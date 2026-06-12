@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\api\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\stores\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\router\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\components\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\views\")",
+      "PowerShell(Get-ChildItem \"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\\" -Recurse -Force | ForEach-Object { $_.FullName.Replace\\(\"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\\", \"src/\"\\) })"
+    ]
+  }
+}
