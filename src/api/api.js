@@ -1,5 +1,10 @@
 import axios from 'axios'
-const api = axios.create({ baseURL: 'https://korean-sense-zoning-election.trycloudflare.com/api/', timeout: 10000 })
+const api = axios.create({ baseURL: 'https://driving-gladly-outcome.ngrok-free.dev/api/',
+  timeout: 10000,
+  headers: {
+    'ngrok-skip-browser-warning': 'true'
+  }  
+ })
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
