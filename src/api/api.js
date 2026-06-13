@@ -1,5 +1,5 @@
 import axios from 'axios'
-const api = axios.create({ baseURL: 'http://92.4.79.69:5000/api/', timeout: 10000 })
+const api = axios.create({ baseURL: 'https://korean-sense-zoning-election.trycloudflare.com/api/', timeout: 10000 })
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
