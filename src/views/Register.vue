@@ -28,6 +28,20 @@
                    required/>
           </div>
 
+            <div class="col-span-2">
+              <label class="block text-sm font-semibold text-primary mb-1">
+                Kullanıcı Adı *
+              </label>
+              <input v-model="form.username"
+                    placeholder="Giriş için kullanıcı adı"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200
+                            focus:border-accent focus:outline-none text-sm"
+                    required/>
+              <p class="text-xs text-muted mt-1">
+                Kasaya giriş yaparken kullanılacak
+      </p>
+    </div>
+
           <div class="col-span-2">
             <label class="block text-sm font-semibold text-primary mb-1">
               Yetkili Adı *
@@ -144,7 +158,8 @@ const success = ref('')
 const form = reactive({
   businessName: '', contactPerson: '', email: '',
   phone: '', city: '', taxNumber: '',
-  address: '', password: ''
+  address: '', password: '',
+  username: '',
 })
 
 async function handleRegister() {
