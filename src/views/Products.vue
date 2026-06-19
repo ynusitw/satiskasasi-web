@@ -67,24 +67,24 @@
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1">Kategori</label>
-              <select v-model="form.categoryId" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm">
-                <option :value="null">Kategori Seçin</option>
+              <select v-model="form.categoryId">
+                <option :value="null">Kategori seçin</option>
                 <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-semibold mb-1">Fiyat *</label>
-                <input v-model="form.price" type="number" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
+                <input v-model.number="form.price" type="number" step="0.01" min="0" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
               </div>
               <div>
                 <label class="block text-sm font-semibold mb-1">Stok</label>
-                <input v-model="form.currentStock" type="number" min="0" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
+                <input v-model.number="form.currentStock" type="number" min="0" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
               </div>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1">Kritik Stok Seviyesi</label>
-              <input v-model="form.minimumStock" type="number" min="0" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
+              <input v-model.number="form.minimumStock" type="number" min="0" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
             </div>
             <label class="flex items-center gap-2 cursor-pointer">
               <input v-model="form.isActive" type="checkbox" class="w-4 h-4"/>
