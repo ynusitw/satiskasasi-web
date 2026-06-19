@@ -106,6 +106,7 @@ const menu = [
   { to: '/',            icon: '📊', label: 'Dashboard'    },
   { to: '/products',    icon: '📦', label: 'Ürünler'      },
   { to: '/categories',  icon: '🗂',  label: 'Kategoriler'  },
+  { to: '/cari',        icon: '👤', label: 'Cari / Müşteri'},
   { to: '/reports',     icon: '📈', label: 'Raporlar'     },
   { to: '/users',       icon: '👥', label: 'Kullanıcılar' },
 ]

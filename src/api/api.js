@@ -55,6 +55,14 @@ export default {
   updateUser:  (id, d)  => api.put(`users/${id}`, d),
   deleteUser:  (id)     => api.delete(`users/${id}`),
 
+  // Cari (Müşteri)
+  getCaris:           ()        => api.get('cari'),
+  createCari:         (d)       => api.post('cari', d),
+  updateCari:         (id, d)   => api.put(`cari/${id}`, d),
+  deleteCari:         (id)      => api.delete(`cari/${id}`),
+  getCariTransactions:(id)      => api.get(`cari/${id}/transactions`),
+  addCariTransaction: (id, d)   => api.post(`cari/${id}/transactions`, d),
+
   // Raporlar
   getXReport:     ()     => api.get('reports/xreport'),
   takeZReport:    ()     => api.post('reports/zreport'),

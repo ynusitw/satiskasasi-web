@@ -32,6 +32,10 @@ const routes = [
     component: () => import('../views/Users.vue'),
   },
   {
+    path: '/cari',
+    component: () => import('../views/Cari.vue'),
+  },
+  {
     path: '/subscription',
     component: () => import('../views/Subscription.vue'),
   },
