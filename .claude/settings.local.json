@@ -8,7 +8,8 @@
       "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\views\")",
       "PowerShell(Get-ChildItem \"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\\" -Recurse -Force | ForEach-Object { $_.FullName.Replace\\(\"c:\\\\VSCodeProjects\\\\satisprogrami\\\\satiskasasi-web\\\\src\\\\\", \"src/\"\\) })",
       "Bash(cd /c/VSCodeProjects/satisprogrami && find . -type f -name \"*.cs\" -path \"*/Controllers/*\" | head -20)",
-      "Read(//c/VSCodeProjects/satisprogrami/**)"
+      "Read(//c/VSCodeProjects/satisprogrami/**)",
+      "PowerShell($env:PGPASSWORD = \"postgres123\"; & psql -h localhost -U postgres -d satiskasasi -c \"SELECT id, username, \\\\\"isSuperAdmin\\\\\", \\\\\"tenantId\\\\\" FROM \\\\\"Users\\\\\" WHERE \\\\\"isSuperAdmin\\\\\" = true;\" 2>&1)"
     ]
   }
 }

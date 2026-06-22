@@ -87,11 +87,18 @@
                 </span>
               </td>
               <td class="px-6 py-4">
-                <button @click="openEdit(t)"
-                        class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent
-                               rounded-lg hover:bg-accent hover:text-white transition-colors">
-                  Yönet
-                </button>
+                <div class="flex gap-2 justify-end">
+                  <button @click="openEdit(t)"
+                          class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent
+                                 rounded-lg hover:bg-accent hover:text-white transition-colors">
+                    Yönet
+                  </button>
+                  <button @click="deleteTenant(t)"
+                          class="px-3 py-1 text-xs font-bold bg-red-50 text-danger
+                                 rounded-lg hover:bg-danger hover:text-white transition-colors">
+                    Sil
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="!loading && filtered.length === 0">
@@ -187,6 +194,16 @@ const trialCount   = computed(() => tenants.value.filter(t =>
   t.plan === 'basic').length)
 const expiredCount = computed(() => tenants.value.filter(t =>
   isExpired(t.expiresAt)).length)
+
+async function deleteTenant(t) {
+  if (!confirm(`"${t.businessName}" müşterisi ve tüm verileri kalıcı olarak silinecek. Emin misiniz?`)) return
+  try {
+    await api.deleteTenant(t.id)
+    await load()
+  } catch (e) {
+    alert(e.response?.data?.message || 'Silinemedi.')
+  }
+}
 
 async function load() {
   loading.value = true
