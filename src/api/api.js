@@ -8,7 +8,8 @@ const api = axios.create({
 
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  const isAuthEndpoint = config.url?.includes('auth/login') || config.url?.includes('tenants/register')
+  if (token && !isAuthEndpoint) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 

@@ -44,19 +44,19 @@
         </div>
 
         <p class="text-sm text-muted mb-6">
-          Aboneliğinizi yenilemek için bizimle iletişime geçin:
+          Aboneliğinizi yenilemek için lütfen iletişime geçin:
         </p>
 
         <div class="space-y-3">
           <a href="mailto:admin@genpos.tr"
              class="flex items-center gap-3 p-4 bg-blue-50 rounded-xl
                     text-accent font-semibold text-sm hover:bg-blue-100 transition-colors">
-            📧 admin@genpos.tr
+            📧 yekutuk@gmail.com
           </a>
           <a href="tel:+905001234567"
              class="flex items-center gap-3 p-4 bg-green-50 rounded-xl
                     text-green-600 font-semibold text-sm hover:bg-green-100 transition-colors">
-            📞 +90 500 123 45 67
+            📞 +90 505 406 00 17
           </a>
         </div>
 
