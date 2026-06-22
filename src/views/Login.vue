@@ -38,7 +38,7 @@ const error = ref('')
 async function handleLogin() {
   loading.value = true; error.value = ''
   try { await auth.login(form.username, form.password); router.push('/') }
-  catch { error.value = 'Kullanıcı adı veya şifre hatalı.' }
+  catch (e) { error.value = e.response?.data?.message || e.message || 'Bağlantı hatası.' }
   finally { loading.value = false }
 }
 </script>
