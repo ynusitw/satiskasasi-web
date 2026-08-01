@@ -11,7 +11,10 @@
       "Read(//c/VSCodeProjects/satisprogrami/**)",
       "PowerShell($env:PGPASSWORD = \"postgres123\"; & psql -h localhost -U postgres -d satiskasasi -c \"SELECT id, username, \\\\\"isSuperAdmin\\\\\", \\\\\"tenantId\\\\\" FROM \\\\\"Users\\\\\" WHERE \\\\\"isSuperAdmin\\\\\" = true;\" 2>&1)",
       "PowerShell(Get-Command ngrok -ErrorAction SilentlyContinue)",
-      "PowerShell(ngrok --version 2>&1)"
+      "PowerShell(ngrok --version 2>&1)",
+      "PowerShell(Get-Process -Name \"SatisKasasiApi\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 5294 -State Listen -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 5000,5001,5294,7226,41690 -State Listen -ErrorAction SilentlyContinue)"
     ]
   }
 }
