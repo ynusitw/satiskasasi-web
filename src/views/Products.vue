@@ -107,7 +107,7 @@ import api from '../api/api'
 const products = ref([]); const categories = ref([]); const loading = ref(true); const saving = ref(false); const error = ref('')
 const search = ref(''); const filterCategory = ref('')
 const modal = reactive({ show: false, editing: false })
-const form = reactive({ id: 0, name: '', barcode: '', categoryId: null, price: 0, vatRate: 0, currentStock: 0, minimumStock: 5, isActive: true })
+const form = reactive({ id: 0, name: '', barcode: '', categoryId: null, price: 0, vatRate: 0, currentStock: 0, minimumStock: 0, isActive: true })
 const categoryMap = computed(() => Object.fromEntries(categories.value.map(c => [c.id, c])))
 const filtered = computed(() => products.value.filter(p => {
   const matchSearch = !search.value || p.name.toLowerCase().includes(search.value.toLowerCase()) || (p.barcode || '').includes(search.value)
@@ -121,7 +121,7 @@ async function load() {
   products.value = prod.data; categories.value = cats.data
   loading.value = false
 }
-function openCreate() { Object.assign(form, { id: 0, name: '', barcode: '', categoryId: null, price: 0, vatRate: 0, currentStock: 0, minimumStock: 5, isActive: true }); modal.editing = false; modal.show = true; error.value = '' }
+function openCreate() { Object.assign(form, { id: 0, name: '', barcode: '', categoryId: null, price: 0, vatRate: 0, currentStock: 0, minimumStock: 0, isActive: true }); modal.editing = false; modal.show = true; error.value = '' }
 function openEdit(p) { Object.assign(form, { ...p }); modal.editing = true; modal.show = true; error.value = '' }
 async function save() {
   if (!form.name.trim()) { error.value = 'Ürün adı zorunludur.'; return }
