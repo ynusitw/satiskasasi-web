@@ -71,7 +71,13 @@ const categories = ref([]); const loading = ref(true); const saving = ref(false)
 const modal = reactive({ show: false, editing: false })
 const form = reactive({ id: 0, name: '', colorHex: '#3498DB', displayOrder: 0 })
 async function load() { loading.value = true; categories.value = (await api.getCategories()).data; loading.value = false }
-function openCreate() { Object.assign(form, { id: 0, name: '', colorHex: '#3498DB', displayOrder: 0 }); modal.editing = false; modal.show = true; error.value = '' }
+function openCreate() {
+  const nextOrder = categories.value.length
+    ? Math.max(...categories.value.map(c => c.displayOrder)) + 1
+    : 1
+  Object.assign(form, { id: 0, name: '', colorHex: '#3498DB', displayOrder: nextOrder })
+  modal.editing = false; modal.show = true; error.value = ''
+}
 function openEdit(c) { Object.assign(form, { id: c.id, name: c.name, colorHex: c.colorHex, displayOrder: c.displayOrder }); modal.editing = true; modal.show = true; error.value = '' }
 async function save() {
   if (!form.name.trim()) { error.value = 'Kategori adı zorunludur.'; return }
