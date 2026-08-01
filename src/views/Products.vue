@@ -126,6 +126,11 @@ function openEdit(p) { Object.assign(form, { ...p }); modal.editing = true; moda
 async function save() {
   if (!form.name.trim()) { error.value = 'Ürün adı zorunludur.'; return }
   if (form.price < 0) { error.value = 'Fiyat geçersiz.'; return }
+  const others = products.value.filter(p => p.id !== form.id)
+  if (others.some(p => p.name.trim().toLowerCase() === form.name.trim().toLowerCase()))
+    { error.value = 'Bu isimde bir ürün zaten kayıtlı.'; return }
+  if (form.barcode && others.some(p => p.barcode && p.barcode === form.barcode.trim()))
+    { error.value = 'Bu barkod zaten başka bir ürüne ait.'; return }
   saving.value = true; error.value = ''
   try { modal.editing ? await api.updateProduct(form.id, form) : await api.createProduct(form); modal.show = false; await load() }
   catch (e) { error.value = e.response?.data?.message || e.response?.data?.title || e.message || 'Hata oluştu.' } finally { saving.value = false }

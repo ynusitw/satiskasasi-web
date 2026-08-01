@@ -81,6 +81,9 @@ function openCreate() {
 function openEdit(c) { Object.assign(form, { id: c.id, name: c.name, colorHex: c.colorHex, displayOrder: c.displayOrder }); modal.editing = true; modal.show = true; error.value = '' }
 async function save() {
   if (!form.name.trim()) { error.value = 'Kategori adı zorunludur.'; return }
+  const others = categories.value.filter(c => c.id !== form.id)
+  if (others.some(c => c.name.trim().toLowerCase() === form.name.trim().toLowerCase()))
+    { error.value = 'Bu isimde bir kategori zaten kayıtlı.'; return }
   saving.value = true; error.value = ''
   try { modal.editing ? await api.updateCategory(form.id, form) : await api.createCategory(form); modal.show = false; await load() }
   catch (e) { error.value = e.response?.data?.message || e.response?.data?.title || e.message || 'Hata oluştu.' } finally { saving.value = false }
