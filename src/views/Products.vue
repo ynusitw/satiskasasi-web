@@ -333,6 +333,11 @@ function onDrop(e) {
 
 // Seçilen görseli 192×192 kareye kırp ve JPEG base64'e dönüştür
 function processImageFile(file) {
+  console.group('%c[ProductImage] Görsel işleniyor', 'color:#3b82f6;font-weight:bold')
+  console.log('Dosya :', file.name)
+  console.log('Tip   :', file.type)
+  console.log('Boyut :', (file.size / 1024).toFixed(1), 'KB')
+
   const reader = new FileReader()
   reader.onload = (e) => {
     const img = new Image()
@@ -349,6 +354,12 @@ function processImageFile(file) {
 
       ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, 192, 192)
       form.imageBase64 = canvas.toDataURL('image/jpeg', 0.85)
+
+      const kb = (form.imageBase64.length * 0.75 / 1024).toFixed(1)
+      console.log('Kaynak :', img.width, '×', img.height, 'px  →  çıktı: 192×192 JPEG')
+      console.log('Base64 :', form.imageBase64.length, 'karakter ≈', kb, 'KB')
+      console.log('Önizleme hazır ✓')
+      console.groupEnd()
     }
     img.src = e.target.result
   }
@@ -393,15 +404,62 @@ async function save() {
   if (form.barcode && others.some(p => p.barcode && p.barcode === form.barcode.trim()))
     { error.value = 'Bu barkod zaten başka bir ürüne ait.'; return }
 
+  // ── LOG: istek öncesi durum ───────────────────────────────────────────────
+  console.group('%c[ProductSave] Kayıt gönderiliyor', 'color:#8b5cf6;font-weight:bold')
+  console.log('İşlem    :', modal.editing ? 'GÜNCELLE' : 'OLUŞTUR')
+  console.log('Ürün     :', form.name, '| ID:', form.id)
+  console.log('Görsel   :', form.imageBase64
+    ? `VAR — ${(form.imageBase64.length * 0.75 / 1024).toFixed(1)} KB`
+    : 'YOK')
+  if (form.imageBase64)
+    console.log('Veri önü :', form.imageBase64.slice(0, 60) + '…')
+
   saving.value = true
   error.value  = ''
   try {
-    modal.editing
+    const res = modal.editing
       ? await api.updateProduct(form.id, form)
       : await api.createProduct(form)
+
+    // ── LOG: API yanıtı ──────────────────────────────────────────────────
+    console.log('HTTP     :', res.status, res.statusText)
+    console.log('Yanıt    :', res.data)
+
+    const returnedImage = res.data?.imageBase64
+    if (form.imageBase64 && !returnedImage) {
+      console.warn(
+        '%c⚠ Backend imageBase64 döndürmedi!',
+        'color:#ef4444;font-weight:bold'
+      )
+      console.warn('  Yapılması gereken:')
+      console.warn('    1) Product.cs → public string? ImageBase64 { get; set; }')
+      console.warn('    2) Add-Migration AddProductImage')
+      console.warn('    3) Update-Database')
+      console.warn('    4) WinSCP ile Ubuntu\'ya yükle')
+    } else if (returnedImage) {
+      console.log('%c✓ Görsel kaydedildi ve API\'den döndü', 'color:#22c55e;font-weight:bold')
+    }
+
     modal.show = false
+    const savedId = res.data?.id ?? form.id
     await load()
+
+    // ── LOG: yeniden yükleme sonrası kontrol ─────────────────────────────
+    const reloaded = products.value.find(p => p.id === savedId)
+    if (reloaded) {
+      console.log('Yeniden yüklenen ürün imageBase64:',
+        reloaded.imageBase64
+          ? `VAR (${(reloaded.imageBase64.length * 0.75 / 1024).toFixed(1)} KB)`
+          : 'YOK — backend alanı henüz yok')
+    }
+    console.groupEnd()
   } catch (e) {
+    // ── LOG: hata detayı ─────────────────────────────────────────────────
+    console.error('%c[ProductSave] HATA', 'color:#ef4444;font-weight:bold')
+    console.error('HTTP status :', e.response?.status)
+    console.error('Backend msg :', e.response?.data)
+    console.error('Stack       :', e.message)
+    console.groupEnd()
     error.value = e.response?.data?.message || e.response?.data?.title || e.message || 'Hata oluştu.'
   } finally {
     saving.value = false
