@@ -46,6 +46,36 @@
             <span>{{ item.label }}</span>
           </RouterLink>
 
+          <!-- Cari İşlemler Accordion -->
+          <div>
+            <button @click="cariOpen = !cariOpen"
+                    class="w-full flex items-center gap-3 px-6 py-3 text-sm border-l-4
+                           border-transparent transition-all"
+                    :class="isCariActive
+                      ? 'text-white bg-white/10 border-accent'
+                      : 'text-white/70 hover:text-white hover:bg-white/8'">
+              <span>👤</span>
+              <span class="flex-1 text-left">Cari İşlemler</span>
+              <svg class="w-4 h-4 transition-transform duration-300"
+                   :class="cariOpen ? 'rotate-180' : ''"
+                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+                 :style="{ maxHeight: cariOpen ? '200px' : '0px' }">
+              <RouterLink v-for="sub in cariSubMenu" :key="sub.to" :to="sub.to"
+                          class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
+                                 text-white/50 hover:text-white hover:bg-white/5
+                                 border-l-4 border-transparent transition-all"
+                          active-class="!text-white !bg-white/10 !border-accent/60">
+                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"/>
+                {{ sub.label }}
+              </RouterLink>
+            </div>
+          </div>
+
           <!-- Raporlar Accordion -->
           <div>
             <button @click="reportsOpen = !reportsOpen"
@@ -143,17 +173,27 @@ const router = useRouter()
 const route  = useRoute()
 
 const reportsOpen = ref(false)
+const cariOpen    = ref(false)
+
 watch(() => route.path, path => {
   if (path.startsWith('/reports')) reportsOpen.value = true
+  if (path.startsWith('/cari'))    cariOpen.value    = true
 }, { immediate: true })
 
 const isReportsActive = computed(() => route.path.startsWith('/reports'))
+const isCariActive    = computed(() => route.path.startsWith('/cari'))
 
 const menuTop = [
-  { to: '/',           icon: '📊', label: 'Dashboard'     },
-  { to: '/products',   icon: '📦', label: 'Ürünler'       },
-  { to: '/categories', icon: '🗂',  label: 'Kategoriler'   },
-  { to: '/cari',       icon: '👤', label: 'Cari / Müşteri' },
+  { to: '/',           icon: '📊', label: 'Dashboard'   },
+  { to: '/products',   icon: '📦', label: 'Ürünler'     },
+  { to: '/categories', icon: '🗂',  label: 'Kategoriler' },
+]
+
+const cariSubMenu = [
+  { to: '/cari/kartlar',   label: 'Cari Kartlar'               },
+  { to: '/cari/faturalar', label: 'Faturalar (Alış/Satış)'     },
+  { to: '/cari/kasa',      label: 'Kasa İşlemleri'             },
+  { to: '/cari/ekstre',    label: 'Cari Ekstre'                },
 ]
 
 const reportSubMenu = [

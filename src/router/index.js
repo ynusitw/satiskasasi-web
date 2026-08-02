@@ -35,10 +35,11 @@ const routes = [
     path: '/users',
     component: () => import('../views/Users.vue'),
   },
-  {
-    path: '/cari',
-    component: () => import('../views/Cari.vue'),
-  },
+  { path: '/cari',              redirect: '/cari/kartlar' },
+  { path: '/cari/kartlar',   component: () => import('../views/cari/CariKartlar.vue') },
+  { path: '/cari/faturalar', component: () => import('../views/cari/Faturalar.vue') },
+  { path: '/cari/kasa',      component: () => import('../views/cari/KasaIslemleri.vue') },
+  { path: '/cari/ekstre',    component: () => import('../views/cari/Ekstre.vue') },
   {
     path: '/subscription',
     component: () => import('../views/Subscription.vue'),
