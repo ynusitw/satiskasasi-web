@@ -14,7 +14,9 @@
       "PowerShell(ngrok --version 2>&1)",
       "PowerShell(Get-Process -Name \"SatisKasasiApi\" -ErrorAction SilentlyContinue)",
       "PowerShell(Get-NetTCPConnection -LocalPort 5294 -State Listen -ErrorAction SilentlyContinue)",
-      "PowerShell(Get-NetTCPConnection -LocalPort 5000,5001,5294,7226,41690 -State Listen -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-NetTCPConnection -LocalPort 5000,5001,5294,7226,41690 -State Listen -ErrorAction SilentlyContinue)",
+      "Bash(npx vue-tsc *)",
+      "Bash(npm run *)"
     ]
   }
 }
