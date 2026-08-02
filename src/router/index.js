@@ -23,10 +23,14 @@ const routes = [
     path: '/categories',
     component: () => import('../views/Categories.vue'),
   },
-  {
-    path: '/reports',
-    component: () => import('../views/Reports.vue'),
-  },
+  { path: '/reports',              redirect: '/reports/gunluk' },
+  { path: '/reports/gunluk',      component: () => import('../views/reports/GunlukCiro.vue') },
+  { path: '/reports/kasa',        component: () => import('../views/reports/KasaDefteri.vue') },
+  { path: '/reports/z-listesi',   component: () => import('../views/reports/ZListesi.vue') },
+  { path: '/reports/satis',       component: () => import('../views/reports/SatisRaporlari.vue') },
+  { path: '/reports/iptaller',    component: () => import('../views/reports/Iptaller.vue') },
+  { path: '/reports/masalar',     component: () => import('../views/reports/Masalar.vue') },
+  { path: '/reports/stoklar',     component: () => import('../views/reports/Stoklar.vue') },
   {
     path: '/users',
     component: () => import('../views/Users.vue'),

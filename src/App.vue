@@ -37,7 +37,47 @@
 
         <!-- Normal Menü -->
         <template v-else>
-          <RouterLink v-for="item in menu" :key="item.to" :to="item.to"
+          <RouterLink v-for="item in menuTop" :key="item.to" :to="item.to"
+            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
+                   hover:text-white hover:bg-white/8 border-l-4
+                   border-transparent transition-all"
+            active-class="text-white !bg-white/10 !border-accent">
+            <span>{{ item.icon }}</span>
+            <span>{{ item.label }}</span>
+          </RouterLink>
+
+          <!-- Raporlar Accordion -->
+          <div>
+            <button @click="reportsOpen = !reportsOpen"
+                    class="w-full flex items-center gap-3 px-6 py-3 text-sm border-l-4
+                           border-transparent transition-all"
+                    :class="isReportsActive
+                      ? 'text-white bg-white/10 border-accent'
+                      : 'text-white/70 hover:text-white hover:bg-white/8'">
+              <span>📈</span>
+              <span class="flex-1 text-left">Raporlar</span>
+              <svg class="w-4 h-4 transition-transform duration-300"
+                   :class="reportsOpen ? 'rotate-180' : ''"
+                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+
+            <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+                 :style="{ maxHeight: reportsOpen ? '320px' : '0px' }">
+              <RouterLink v-for="sub in reportSubMenu" :key="sub.to" :to="sub.to"
+                          class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
+                                 text-white/50 hover:text-white hover:bg-white/5
+                                 border-l-4 border-transparent transition-all"
+                          active-class="!text-white !bg-white/10 !border-accent/60">
+                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"/>
+                {{ sub.label }}
+              </RouterLink>
+            </div>
+          </div>
+
+          <RouterLink v-for="item in menuBottom" :key="item.to" :to="item.to"
             class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
                    hover:text-white hover:bg-white/8 border-l-4
                    border-transparent transition-all"
@@ -94,7 +134,7 @@
 </template>
 
 <script setup>
-import { computed }             from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter, useRoute }  from 'vue-router'
 import { useAuthStore }         from './stores/auth'
 
@@ -102,13 +142,32 @@ const auth   = useAuthStore()
 const router = useRouter()
 const route  = useRoute()
 
-const menu = [
-  { to: '/',            icon: '📊', label: 'Dashboard'    },
-  { to: '/products',    icon: '📦', label: 'Ürünler'      },
-  { to: '/categories',  icon: '🗂',  label: 'Kategoriler'  },
-  { to: '/cari',        icon: '👤', label: 'Cari / Müşteri'},
-  { to: '/reports',     icon: '📈', label: 'Raporlar'     },
-  { to: '/users',       icon: '👥', label: 'Kullanıcılar' },
+const reportsOpen = ref(false)
+watch(() => route.path, path => {
+  if (path.startsWith('/reports')) reportsOpen.value = true
+}, { immediate: true })
+
+const isReportsActive = computed(() => route.path.startsWith('/reports'))
+
+const menuTop = [
+  { to: '/',           icon: '📊', label: 'Dashboard'     },
+  { to: '/products',   icon: '📦', label: 'Ürünler'       },
+  { to: '/categories', icon: '🗂',  label: 'Kategoriler'   },
+  { to: '/cari',       icon: '👤', label: 'Cari / Müşteri' },
+]
+
+const reportSubMenu = [
+  { to: '/reports/gunluk',    label: 'Günlük Ciro'     },
+  { to: '/reports/kasa',      label: 'Kasa Defteri'    },
+  { to: '/reports/z-listesi', label: 'Z-Listesi'       },
+  { to: '/reports/satis',     label: 'Satış Raporları' },
+  { to: '/reports/iptaller',  label: 'İptaller'        },
+  { to: '/reports/masalar',   label: 'Masalar'         },
+  { to: '/reports/stoklar',   label: 'Stoklar'         },
+]
+
+const menuBottom = [
+  { to: '/users', icon: '👥', label: 'Kullanıcılar' },
 ]
 
 const isExpiringSoon = computed(() => {
