@@ -200,6 +200,54 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Risk Limiti Uyarı Modalı -->
+    <Teleport to="body">
+      <div v-if="riskModal.show"
+           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-primary mb-2">Risk Limiti Aşılıyor</h3>
+          <p class="text-sm text-muted mb-4">
+            <span class="font-semibold text-primary">{{ riskModal.cari }}</span> carisi için
+            belirlenen risk limiti aşılmaktadır.
+          </p>
+          <div class="bg-red-50 rounded-xl p-4 mb-6 text-left space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-muted">Risk Limiti</span>
+              <span class="font-semibold">{{ fmt(riskModal.limit) }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-muted">Mevcut Bakiye</span>
+              <span class="font-semibold text-danger">{{ fmt(riskModal.mevcutBakiye) }}</span>
+            </div>
+            <div class="flex justify-between text-sm border-t border-red-200 pt-2">
+              <span class="text-muted">İşlem Sonrası</span>
+              <span class="font-bold text-danger">{{ fmt(riskModal.yeniBakiye) }}</span>
+            </div>
+          </div>
+          <p class="text-sm font-semibold text-primary mb-6">
+            İşlemi onaylıyor musunuz?
+          </p>
+          <div class="flex gap-3">
+            <button @click="riskModal.show = false"
+                    class="flex-1 py-2.5 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+              Vazgeç
+            </button>
+            <button @click="onaylaVeKaydet"
+                    class="flex-1 py-2.5 bg-danger text-white rounded-xl text-sm font-bold
+                           hover:bg-red-600 transition-colors">
+              Onayla, Kaydet
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -209,6 +257,15 @@ import { ref, computed, reactive } from 'vue'
 const today = new Date().toISOString().split('T')[0]
 
 const mockCariler = ['Ahmet Yılmaz', 'ABC Gıda Tic. Ltd.', 'Fatma Demir', 'XYZ Market A.Ş.', 'Mehmet Kaya']
+
+// Cari risk limitleri ve mevcut bakiyeler (gerçekte CariKartlar state'inden gelir)
+const cariRiskData = {
+  'Ahmet Yılmaz':       { limit: 5000,  bakiye: 1500.00  },
+  'ABC Gıda Tic. Ltd.': { limit: 10000, bakiye: -2300.50 },
+  'Fatma Demir':        { limit: 2000,  bakiye: 0        },
+  'XYZ Market A.Ş.':   { limit: 4000,  bakiye: 4800.00  },
+  'Mehmet Kaya':        { limit: 3000,  bakiye: -750.00  },
+}
 
 const faturalar = ref([
   { id: 1, tip: 'Satış', no: 'STF-001', cari: 'Ahmet Yılmaz',       tarih: '2026-07-28', aciklama: 'Haziran ayı malları',     tutar: 1500.00, kdv: 20 },
@@ -220,6 +277,7 @@ const faturalar = ref([
 const search    = ref('')
 const filterTip = ref('')
 const modal     = reactive({ show: false })
+const riskModal = reactive({ show: false, cari: '', limit: 0, mevcutBakiye: 0, yeniBakiye: 0 })
 const error     = ref('')
 const form      = reactive({ tip: 'Satış', no: '', tarih: today, cari: '', aciklama: '', tutar: 0, kdv: 20 })
 
@@ -242,9 +300,38 @@ function openCreate() {
 }
 
 function save() {
-  if (!form.no.trim())   { error.value = 'Fatura no zorunludur.'; return }
-  if (!form.cari)        { error.value = 'Cari seçimi zorunludur.'; return }
-  if (form.tutar <= 0)   { error.value = 'Tutar sıfırdan büyük olmalıdır.'; return }
+  if (!form.no.trim()) { error.value = 'Fatura no zorunludur.'; return }
+  if (!form.cari)      { error.value = 'Cari seçimi zorunludur.'; return }
+  if (form.tutar <= 0) { error.value = 'Tutar sıfırdan büyük olmalıdır.'; return }
+
+  // Satış faturası → cari bakiyesi artar → risk limiti kontrolü
+  if (form.tip === 'Satış') {
+    const data = cariRiskData[form.cari]
+    if (data && data.limit > 0) {
+      const faturaToplam = form.tutar * (1 + form.kdv / 100)
+      const yeniBakiye   = data.bakiye + faturaToplam
+      if (yeniBakiye > data.limit) {
+        Object.assign(riskModal, {
+          show: true,
+          cari: form.cari,
+          limit: data.limit,
+          mevcutBakiye: data.bakiye,
+          yeniBakiye,
+        })
+        return
+      }
+    }
+  }
+
+  kaydet()
+}
+
+function onaylaVeKaydet() {
+  riskModal.show = false
+  kaydet()
+}
+
+function kaydet() {
   faturalar.value.unshift({ ...form, id: Date.now() })
   modal.show = false
 }
