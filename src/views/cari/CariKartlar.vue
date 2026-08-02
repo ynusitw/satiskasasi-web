@@ -18,19 +18,19 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Toplam Cari</div>
-        <div class="text-2xl font-bold text-primary">{{ cariler.length }}</div>
-      </div>
-      <div class="bg-white rounded-2xl shadow-sm p-5">
-        <div class="text-xs text-muted mb-1">Alacaklı</div>
-        <div class="text-2xl font-bold text-success">{{ alacakliSayisi }}</div>
+        <div class="text-2xl font-bold text-primary">{{ store.carilerWithBakiye.length }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Borçlu</div>
         <div class="text-2xl font-bold text-danger">{{ borcluSayisi }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
-        <div class="text-xs text-muted mb-1">Net Alacak</div>
-        <div class="text-2xl font-bold" :class="netBakiye >= 0 ? 'text-success' : 'text-danger'">
+        <div class="text-xs text-muted mb-1">Alacaklı</div>
+        <div class="text-2xl font-bold text-success">{{ alacakliSayisi }}</div>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="text-xs text-muted mb-1">Net Pozisyon</div>
+        <div class="text-2xl font-bold" :class="netBakiye > 0 ? 'text-danger' : netBakiye < 0 ? 'text-success' : 'text-muted'">
           {{ fmt(Math.abs(netBakiye)) }}
         </div>
       </div>
@@ -58,19 +58,21 @@
             <tr>
               <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Tip</th>
               <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Unvan / Ad Soyad</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Telefon</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Vergi / TC No</th>
+              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">Telefon</th>
+              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Vergi / TC No</th>
               <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Güncel Bakiye</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Risk Limiti</th>
+              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Risk Limiti</th>
+              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden xl:table-cell">Son İşlem</th>
               <th class="px-5 py-3"></th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="!filtered.length">
-              <td colspan="7" class="text-center py-12 text-muted">Cari bulunamadı</td>
+              <td colspan="8" class="text-center py-12 text-muted">Cari bulunamadı</td>
             </tr>
             <tr v-for="c in filtered" :key="c.id"
                 class="border-t border-gray-50 hover:bg-gray-50 transition-colors">
+
               <td class="px-5 py-4">
                 <span class="text-xs font-bold px-2.5 py-1 rounded-full"
                       :class="c.tip === 'Müşteri'
@@ -79,26 +81,45 @@
                   {{ c.tip }}
                 </span>
               </td>
+
               <td class="px-5 py-4">
                 <div class="font-semibold text-primary text-sm">{{ c.unvan }}</div>
                 <div v-if="c.email" class="text-xs text-muted">{{ c.email }}</div>
               </td>
-              <td class="px-5 py-4 text-sm text-muted">{{ c.telefon || '—' }}</td>
-              <td class="px-5 py-4 text-sm font-mono text-muted">{{ c.vergiNo || '—' }}</td>
+
+              <td class="px-5 py-4 text-sm text-muted hidden md:table-cell">{{ c.telefon || '—' }}</td>
+              <td class="px-5 py-4 text-sm font-mono text-muted hidden lg:table-cell">{{ c.vergiNo || '—' }}</td>
+
+              <!-- Canlı bakiye -->
               <td class="px-5 py-4 text-right">
                 <span class="text-sm font-bold"
                       :class="c.bakiye > 0 ? 'text-danger' : c.bakiye < 0 ? 'text-success' : 'text-muted'">
                   {{ fmt(Math.abs(c.bakiye)) }}
                 </span>
-                <div class="text-xs text-muted">
+                <div class="text-xs mt-0.5"
+                     :class="c.bakiye > 0 ? 'text-danger/70' : c.bakiye < 0 ? 'text-success/70' : 'text-muted'">
                   {{ c.bakiye > 0 ? 'Borçlu' : c.bakiye < 0 ? 'Alacaklı' : 'Sıfır' }}
                 </div>
               </td>
-              <td class="px-5 py-4 text-right text-sm text-muted">
-                <span :class="c.bakiye > c.riskLimiti ? 'text-danger font-bold' : ''">
+
+              <!-- Risk limiti -->
+              <td class="px-5 py-4 text-right text-sm hidden lg:table-cell">
+                <span :class="c.bakiye > c.riskLimiti ? 'text-danger font-bold' : 'text-muted'">
                   {{ fmt(c.riskLimiti) }}
                 </span>
+                <div v-if="c.bakiye > c.riskLimiti"
+                     class="text-xs text-danger mt-0.5">⚠ Limit aşıldı</div>
               </td>
+
+              <!-- Son işlem -->
+              <td class="px-5 py-4 hidden xl:table-cell">
+                <template v-if="c.sonIslem">
+                  <div class="text-xs font-semibold text-primary">{{ c.sonIslem.belgeNo }}</div>
+                  <div class="text-xs text-muted">{{ c.sonIslem.tarih }}</div>
+                </template>
+                <span v-else class="text-muted text-sm">—</span>
+              </td>
+
               <td class="px-5 py-4">
                 <div class="flex gap-2 justify-end">
                   <button @click="goEkstre(c)"
@@ -134,7 +155,6 @@
           </h2>
 
           <div class="space-y-4">
-            <!-- Tip -->
             <div>
               <label class="block text-sm font-semibold mb-2">Cari Tipi *</label>
               <div class="flex gap-3">
@@ -214,16 +234,10 @@
 <script setup>
 import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCariStore } from '../../stores/cari'
 
 const router = useRouter()
-
-const cariler = ref([
-  { id: 1, tip: 'Müşteri',    unvan: 'Ahmet Yılmaz',       telefon: '0532 111 2233', email: 'ahmet@mail.com',    vergiNo: '12345678901', bakiye: 1500.00,  riskLimiti: 5000,  adres: 'Kadıköy, İstanbul' },
-  { id: 2, tip: 'Tedarikçi',  unvan: 'ABC Gıda Tic. Ltd.', telefon: '0212 444 5566', email: 'info@abcgida.com',  vergiNo: '9876543210',  bakiye: -2300.50, riskLimiti: 10000, adres: 'Bağcılar, İstanbul' },
-  { id: 3, tip: 'Müşteri',    unvan: 'Fatma Demir',         telefon: '0541 999 8877', email: '',                  vergiNo: '98765432109', bakiye: 0,         riskLimiti: 2000,  adres: '' },
-  { id: 4, tip: 'Tedarikçi',  unvan: 'XYZ Market A.Ş.',    telefon: '0216 333 4455', email: 'satis@xyz.com',    vergiNo: '1122334455',  bakiye: 4800.00,  riskLimiti: 4000,  adres: 'Ümraniye, İstanbul' },
-  { id: 5, tip: 'Müşteri',    unvan: 'Mehmet Kaya',         telefon: '0505 222 3344', email: '',                  vergiNo: '55544433221', bakiye: -750.00,  riskLimiti: 3000,  adres: 'Beşiktaş, İstanbul' },
-])
+const store  = useCariStore()
 
 const search    = ref('')
 const filterTip = ref('')
@@ -233,7 +247,7 @@ const form      = reactive({ id: 0, tip: 'Müşteri', unvan: '', telefon: '', em
 
 const filtered = computed(() => {
   const q = search.value.toLowerCase()
-  return cariler.value.filter(c => {
+  return store.carilerWithBakiye.filter(c => {
     const matchTip    = !filterTip.value || c.tip === filterTip.value
     const matchSearch = !q || c.unvan.toLowerCase().includes(q) ||
       (c.telefon || '').includes(q) || (c.vergiNo || '').includes(q)
@@ -241,9 +255,9 @@ const filtered = computed(() => {
   })
 })
 
-const alacakliSayisi = computed(() => cariler.value.filter(c => c.bakiye < 0).length)
-const borcluSayisi   = computed(() => cariler.value.filter(c => c.bakiye > 0).length)
-const netBakiye      = computed(() => cariler.value.reduce((s, c) => s + c.bakiye, 0))
+const borcluSayisi   = computed(() => store.carilerWithBakiye.filter(c => c.bakiye > 0).length)
+const alacakliSayisi = computed(() => store.carilerWithBakiye.filter(c => c.bakiye < 0).length)
+const netBakiye      = computed(() => store.carilerWithBakiye.reduce((s, c) => s + c.bakiye, 0))
 
 function fmt(v) {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
@@ -262,20 +276,19 @@ function openEdit(c) {
 function save() {
   if (!form.unvan.trim()) { error.value = 'Unvan zorunludur.'; return }
   if (modal.editing) {
-    const idx = cariler.value.findIndex(c => c.id === form.id)
-    if (idx !== -1) cariler.value[idx] = { ...form }
+    store.cariGuncelle({ ...form })
   } else {
-    cariler.value.push({ ...form, id: Date.now(), bakiye: 0 })
+    store.cariEkle({ ...form })
   }
   modal.show = false
 }
 
 function deleteCari(c) {
-  if (!confirm(`"${c.unvan}" silinsin mi?`)) return
-  cariler.value = cariler.value.filter(x => x.id !== c.id)
+  if (!confirm(`"${c.unvan}" ve tüm işlem geçmişi silinsin mi?`)) return
+  store.cariSil(c.id)
 }
 
 function goEkstre(c) {
-  router.push(`/cari/ekstre?id=${c.id}&unvan=${encodeURIComponent(c.unvan)}`)
+  router.push(`/cari/ekstre?id=${c.id}`)
 }
 </script>

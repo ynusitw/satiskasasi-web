@@ -11,7 +11,6 @@
       <div class="bg-white rounded-2xl shadow-sm p-6">
         <h2 class="text-lg font-bold mb-5">Makbuz Kes</h2>
 
-        <!-- İşlem Tipi -->
         <div class="flex gap-3 mb-5">
           <button v-for="t in islemTipleri" :key="t.value"
                   @click="form.tip = t.value"
@@ -26,14 +25,25 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-semibold mb-1">Cari *</label>
-            <select v-model="form.cari"
+            <select v-model.number="form.cariId"
                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
                            focus:border-accent focus:outline-none bg-white">
               <option value="">Cari seçin...</option>
-              <option v-for="c in mockCariler" :key="c.id" :value="c.unvan">
+              <option v-for="c in store.carilerWithBakiye" :key="c.id" :value="c.id">
                 {{ c.unvan }} — {{ bakiyeLabel(c.bakiye) }}
               </option>
             </select>
+          </div>
+
+          <!-- Seçili cari bakiye özeti -->
+          <div v-if="secilenCari" class="px-4 py-3 rounded-xl text-sm flex items-center justify-between"
+               :class="secilenCari.bakiye > 0 ? 'bg-red-50' : secilenCari.bakiye < 0 ? 'bg-green-50' : 'bg-gray-50'">
+            <span class="text-muted">Güncel Bakiye</span>
+            <span class="font-bold"
+                  :class="secilenCari.bakiye > 0 ? 'text-danger' : secilenCari.bakiye < 0 ? 'text-success' : 'text-muted'">
+              {{ fmt(Math.abs(secilenCari.bakiye)) }}
+              {{ secilenCari.bakiye > 0 ? '▲ Borçlu' : secilenCari.bakiye < 0 ? '▼ Alacaklı' : 'Sıfır' }}
+            </span>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -90,13 +100,17 @@
         </div>
       </div>
 
-      <!-- Son İşlemler -->
-      <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100">
+      <!-- Son İşlemler (store'dan canlı) -->
+      <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
           <h2 class="text-lg font-bold">Son İşlemler</h2>
+          <span class="text-xs text-muted">{{ store.kasaIslemleri.length }} kayıt</span>
         </div>
-        <div class="divide-y divide-gray-50">
-          <div v-for="i in islemler" :key="i.id"
+        <div class="divide-y divide-gray-50 overflow-y-auto max-h-[560px]">
+          <div v-if="!store.sonKasaIslemleri.length" class="px-6 py-12 text-center text-muted">
+            Henüz işlem bulunmuyor
+          </div>
+          <div v-for="i in store.sonKasaIslemleri" :key="i.id"
                class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
             <div>
               <div class="flex items-center gap-2 mb-0.5">
@@ -106,9 +120,9 @@
                         : 'bg-red-100 text-red-700'">
                   {{ i.tip }}
                 </span>
-                <span class="text-xs text-muted">{{ i.makbuzNo }}</span>
+                <span class="text-xs text-muted font-mono">{{ i.makbuzNo }}</span>
               </div>
-              <div class="text-sm font-semibold text-primary">{{ i.cari }}</div>
+              <div class="text-sm font-semibold text-primary">{{ i.cariUnvan }}</div>
               <div class="text-xs text-muted">{{ i.tarih }} · {{ i.odeme }}</div>
             </div>
             <div class="text-right">
@@ -126,8 +140,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
+import { useCariStore } from '../../stores/cari'
 
+const store = useCariStore()
 const today = new Date().toISOString().split('T')[0]
 
 const islemTipleri = [
@@ -135,26 +151,15 @@ const islemTipleri = [
   { value: 'Tediye',   label: 'Tediye',   icon: '↑', activeClass: 'border-danger bg-red-50 text-danger'   },
 ]
 
-const mockCariler = [
-  { id: 1, unvan: 'Ahmet Yılmaz',       bakiye:  1500.00 },
-  { id: 2, unvan: 'ABC Gıda Tic. Ltd.', bakiye: -2300.50 },
-  { id: 3, unvan: 'Fatma Demir',        bakiye:     0    },
-  { id: 4, unvan: 'XYZ Market A.Ş.',   bakiye:  4800.00 },
-  { id: 5, unvan: 'Mehmet Kaya',        bakiye:  -750.00 },
-]
-
-const islemler = ref([
-  { id: 1, tip: 'Tahsilat', makbuzNo: 'MKB-004', cari: 'Ahmet Yılmaz',       tarih: '2026-08-01', tutar: 500.00,  odeme: 'Nakit',  aciklama: 'Kısmi ödeme' },
-  { id: 2, tip: 'Tediye',   makbuzNo: 'MKB-003', cari: 'ABC Gıda Tic. Ltd.', tarih: '2026-07-30', tutar: 1200.00, odeme: 'Havale', aciklama: 'Mal bedeli' },
-  { id: 3, tip: 'Tahsilat', makbuzNo: 'MKB-002', cari: 'Mehmet Kaya',        tarih: '2026-07-28', tutar: 750.00,  odeme: 'Kart',   aciklama: 'Tam tahsilat' },
-  { id: 4, tip: 'Tediye',   makbuzNo: 'MKB-001', cari: 'XYZ Market A.Ş.',   tarih: '2026-07-25', tutar: 2000.00, odeme: 'Havale', aciklama: 'Stok ödemesi' },
-])
-
 const error = ref('')
 const form  = reactive({
-  tip: 'Tahsilat', cari: '', makbuzNo: '', tarih: today,
-  tutar: 0, odeme: 'Nakit', aciklama: ''
+  tip: 'Tahsilat', cariId: '', makbuzNo: '', tarih: today,
+  tutar: 0, odeme: 'Nakit', aciklama: '',
 })
+
+const secilenCari = computed(() =>
+  store.carilerWithBakiye.find(c => c.id === form.cariId) || null
+)
 
 function fmt(v) {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
@@ -167,11 +172,15 @@ function bakiyeLabel(b) {
 }
 
 function save() {
-  if (!form.cari)      { error.value = 'Cari seçimi zorunludur.'; return }
-  if (form.tutar <= 0) { error.value = 'Tutar sıfırdan büyük olmalıdır.'; return }
-  const no = form.makbuzNo || `MKB-${String(islemler.value.length + 1).padStart(3, '0')}`
-  islemler.value.unshift({ ...form, id: Date.now(), makbuzNo: no })
-  Object.assign(form, { cari: '', makbuzNo: '', tutar: 0, aciklama: '' })
+  if (!form.cariId)      { error.value = 'Cari seçimi zorunludur.'; return }
+  if (form.tutar <= 0)   { error.value = 'Tutar sıfırdan büyük olmalıdır.'; return }
+
+  const no       = form.makbuzNo || `MKB-${String(store.kasaIslemleri.length + 1).padStart(3, '0')}`
+  const cariUnvan = secilenCari.value?.unvan ?? ''
+
+  store.kasaIslemEkle({ ...form, makbuzNo: no, cariUnvan })
+
+  Object.assign(form, { cariId: '', makbuzNo: '', tutar: 0, aciklama: '' })
   error.value = ''
 }
 </script>

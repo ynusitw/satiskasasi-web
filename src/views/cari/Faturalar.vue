@@ -17,7 +17,7 @@
     <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Toplam Fatura</div>
-        <div class="text-2xl font-bold text-primary">{{ faturalar.length }}</div>
+        <div class="text-2xl font-bold text-primary">{{ store.faturalar.length }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Toplam Alış</div>
@@ -52,7 +52,7 @@
               <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Tip</th>
               <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Fatura No</th>
               <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Cari</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Tarih</th>
+              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">Tarih</th>
               <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Açıklama</th>
               <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Ara Toplam</th>
               <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">KDV</th>
@@ -74,8 +74,8 @@
                 </span>
               </td>
               <td class="px-5 py-4 text-sm font-mono font-semibold">{{ f.no }}</td>
-              <td class="px-5 py-4 text-sm font-semibold text-primary">{{ f.cari }}</td>
-              <td class="px-5 py-4 text-sm text-muted whitespace-nowrap">{{ f.tarih }}</td>
+              <td class="px-5 py-4 text-sm font-semibold text-primary">{{ f.cariUnvan }}</td>
+              <td class="px-5 py-4 text-sm text-muted whitespace-nowrap hidden md:table-cell">{{ f.tarih }}</td>
               <td class="px-5 py-4 text-sm text-muted hidden lg:table-cell">{{ f.aciklama }}</td>
               <td class="px-5 py-4 text-sm text-right text-muted hidden lg:table-cell">{{ fmt(f.araToplam) }}</td>
               <td class="px-5 py-4 text-sm text-right text-muted hidden lg:table-cell">{{ fmt(f.kdvToplam) }}</td>
@@ -118,7 +118,6 @@
                 <div class="text-xs font-bold text-muted uppercase tracking-wider mb-3">Fatura Bilgileri</div>
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-                  <!-- Fatura Tipi -->
                   <div class="col-span-2 lg:col-span-1">
                     <label class="block text-sm font-semibold mb-2">Fatura Tipi *</label>
                     <div class="flex gap-2">
@@ -135,7 +134,6 @@
                     </div>
                   </div>
 
-                  <!-- Fatura No -->
                   <div>
                     <label class="block text-sm font-semibold mb-1">Fatura No *</label>
                     <input v-model="form.no" placeholder="FTR-001"
@@ -143,7 +141,6 @@
                                   focus:border-accent focus:outline-none"/>
                   </div>
 
-                  <!-- Tarih -->
                   <div>
                     <label class="block text-sm font-semibold mb-1">Tarih *</label>
                     <input v-model="form.tarih" type="date"
@@ -151,18 +148,18 @@
                                   focus:border-accent focus:outline-none"/>
                   </div>
 
-                  <!-- Cari -->
                   <div>
                     <label class="block text-sm font-semibold mb-1">Cari *</label>
-                    <select v-model="form.cari"
+                    <select v-model.number="form.cariId"
                             class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm
                                    focus:border-accent focus:outline-none bg-white">
                       <option value="">Cari seçin...</option>
-                      <option v-for="c in mockCariler" :key="c">{{ c }}</option>
+                      <option v-for="c in store.carilerWithBakiye" :key="c.id" :value="c.id">
+                        {{ c.unvan }} ({{ c.tip }})
+                      </option>
                     </select>
                   </div>
 
-                  <!-- Açıklama -->
                   <div class="col-span-2 lg:col-span-4">
                     <label class="block text-sm font-semibold mb-1">Açıklama</label>
                     <input v-model="form.aciklama" placeholder="Fatura açıklaması (isteğe bağlı)"
@@ -214,11 +211,7 @@
                         </tr>
                         <tr v-for="(k, i) in kalemler" :key="k.id"
                             class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-
-                          <!-- Sıra no -->
                           <td class="px-3 py-2 text-xs text-muted text-center">{{ i + 1 }}</td>
-
-                          <!-- Ürün seçimi -->
                           <td class="px-3 py-2">
                             <select v-model="k.urunAdi" @change="urunSecildi(k)"
                                     class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm
@@ -227,22 +220,16 @@
                               <option v-for="u in mockUrunler" :key="u.id" :value="u.ad">{{ u.ad }}</option>
                             </select>
                           </td>
-
-                          <!-- Miktar -->
                           <td class="px-3 py-2">
                             <input v-model.number="k.miktar" type="number" min="0.001" step="1"
                                    class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm
                                           focus:border-accent focus:outline-none text-right"/>
                           </td>
-
-                          <!-- Birim Fiyat -->
                           <td class="px-3 py-2">
                             <input v-model.number="k.birimFiyat" type="number" min="0" step="0.01"
                                    class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm
                                           focus:border-accent focus:outline-none text-right"/>
                           </td>
-
-                          <!-- KDV Oranı -->
                           <td class="px-3 py-2">
                             <select v-model.number="k.kdv"
                                     class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm
@@ -253,23 +240,9 @@
                               <option :value="20">%20</option>
                             </select>
                           </td>
-
-                          <!-- Ara Toplam (readonly) -->
-                          <td class="px-3 py-2 text-right text-muted tabular-nums">
-                            {{ fmtN(kalemAra(k)) }}
-                          </td>
-
-                          <!-- KDV Tutarı (readonly) -->
-                          <td class="px-3 py-2 text-right text-muted tabular-nums">
-                            {{ fmtN(kalemKdvTutar(k)) }}
-                          </td>
-
-                          <!-- Satır Toplamı (readonly) -->
-                          <td class="px-3 py-2 text-right font-semibold text-primary tabular-nums">
-                            {{ fmtN(kalemToplam(k)) }}
-                          </td>
-
-                          <!-- Sil -->
+                          <td class="px-3 py-2 text-right text-muted tabular-nums">{{ fmtN(kalemAra(k)) }}</td>
+                          <td class="px-3 py-2 text-right text-muted tabular-nums">{{ fmtN(kalemKdvTutar(k)) }}</td>
+                          <td class="px-3 py-2 text-right font-semibold text-primary tabular-nums">{{ fmtN(kalemToplam(k)) }}</td>
                           <td class="px-3 py-2 text-center">
                             <button @click="kalemSil(k.id)"
                                     class="p-1.5 text-gray-300 hover:text-danger hover:bg-red-50
@@ -349,7 +322,7 @@
           </div>
           <h3 class="text-lg font-bold text-primary mb-2">Risk Limiti Aşılıyor</h3>
           <p class="text-sm text-muted mb-4">
-            <span class="font-semibold text-primary">{{ riskModal.cari }}</span> carisi için
+            <span class="font-semibold text-primary">{{ riskModal.cariUnvan }}</span> carisi için
             belirlenen risk limiti aşılmaktadır.
           </p>
           <div class="bg-red-50 rounded-xl p-4 mb-6 text-left space-y-2">
@@ -362,7 +335,7 @@
               <span class="font-semibold text-danger">{{ fmt(riskModal.mevcutBakiye) }}</span>
             </div>
             <div class="flex justify-between text-sm border-t border-red-200 pt-2">
-              <span class="text-muted">İşlem Sonrası</span>
+              <span class="text-muted">Bu Fatura Sonrası</span>
               <span class="font-bold text-danger">{{ fmt(riskModal.yeniBakiye) }}</span>
             </div>
           </div>
@@ -386,102 +359,65 @@
 
 <script setup>
 import { ref, computed, reactive } from 'vue'
+import { useCariStore } from '../../stores/cari'
 
+const store = useCariStore()
 const today = new Date().toISOString().split('T')[0]
 
-const mockCariler = [
-  'Ahmet Yılmaz',
-  'ABC Gıda Tic. Ltd.',
-  'Fatma Demir',
-  'XYZ Market A.Ş.',
-  'Mehmet Kaya',
-]
-
 const mockUrunler = [
-  { id: 1,  ad: 'Ekmek',          fiyat: 5.00,   kdv: 1  },
-  { id: 2,  ad: 'Süt 1L',         fiyat: 35.00,  kdv: 1  },
-  { id: 3,  ad: 'Çay 500g',       fiyat: 89.90,  kdv: 10 },
-  { id: 4,  ad: 'Deterjan',       fiyat: 45.00,  kdv: 20 },
-  { id: 5,  ad: 'Makarna 500g',   fiyat: 22.50,  kdv: 1  },
-  { id: 6,  ad: 'Zeytinyağı 1L',  fiyat: 180.00, kdv: 10 },
-  { id: 7,  ad: 'Şeker 1kg',      fiyat: 28.00,  kdv: 1  },
-  { id: 8,  ad: 'Un 1kg',         fiyat: 25.00,  kdv: 1  },
-  { id: 9,  ad: 'Temizlik Bezi',  fiyat: 55.00,  kdv: 20 },
-  { id: 10, ad: 'Su 5L',          fiyat: 12.00,  kdv: 1  },
+  { id: 1,  ad: 'Ekmek',         fiyat: 5.00,   kdv: 1  },
+  { id: 2,  ad: 'Süt 1L',        fiyat: 35.00,  kdv: 1  },
+  { id: 3,  ad: 'Çay 500g',      fiyat: 89.90,  kdv: 10 },
+  { id: 4,  ad: 'Deterjan',      fiyat: 45.00,  kdv: 20 },
+  { id: 5,  ad: 'Makarna 500g',  fiyat: 22.50,  kdv: 1  },
+  { id: 6,  ad: 'Zeytinyağı 1L', fiyat: 180.00, kdv: 10 },
+  { id: 7,  ad: 'Şeker 1kg',     fiyat: 28.00,  kdv: 1  },
+  { id: 8,  ad: 'Un 1kg',        fiyat: 25.00,  kdv: 1  },
+  { id: 9,  ad: 'Temizlik Bezi', fiyat: 55.00,  kdv: 20 },
+  { id: 10, ad: 'Su 5L',         fiyat: 12.00,  kdv: 1  },
 ]
-
-const cariRiskData = {
-  'Ahmet Yılmaz':       { limit: 5000,  bakiye: 1500.00  },
-  'ABC Gıda Tic. Ltd.': { limit: 10000, bakiye: -2300.50 },
-  'Fatma Demir':        { limit: 2000,  bakiye: 0        },
-  'XYZ Market A.Ş.':   { limit: 4000,  bakiye: 4800.00  },
-  'Mehmet Kaya':        { limit: 3000,  bakiye: -750.00  },
-}
-
-const faturalar = ref([
-  {
-    id: 1, tip: 'Satış', no: 'STF-001', cari: 'Ahmet Yılmaz',
-    tarih: '2026-07-28', aciklama: 'Haziran ayı malları',
-    araToplam: 1250.00, kdvToplam: 250.00, genelToplam: 1500.00,
-  },
-  {
-    id: 2, tip: 'Alış', no: 'ALF-001', cari: 'ABC Gıda Tic. Ltd.',
-    tarih: '2026-07-25', aciklama: 'Ürün alımı',
-    araToplam: 2093.18, kdvToplam: 207.32, genelToplam: 2300.50,
-  },
-  {
-    id: 3, tip: 'Satış', no: 'STF-002', cari: 'Mehmet Kaya',
-    tarih: '2026-07-20', aciklama: 'Perakende satış',
-    araToplam: 625.00, kdvToplam: 125.00, genelToplam: 750.00,
-  },
-  {
-    id: 4, tip: 'Alış', no: 'ALF-002', cari: 'XYZ Market A.Ş.',
-    tarih: '2026-07-15', aciklama: 'Stok takviyesi',
-    araToplam: 4363.64, kdvToplam: 436.36, genelToplam: 4800.00,
-  },
-])
 
 const search    = ref('')
 const filterTip = ref('')
 const modal     = reactive({ show: false })
-const riskModal = reactive({ show: false, cari: '', limit: 0, mevcutBakiye: 0, yeniBakiye: 0 })
+const riskModal = reactive({ show: false, cariUnvan: '', limit: 0, mevcutBakiye: 0, yeniBakiye: 0 })
 const error     = ref('')
-const form      = reactive({ tip: 'Satış', no: '', tarih: today, cari: '', aciklama: '' })
+const form      = reactive({ tip: 'Satış', no: '', tarih: today, cariId: '', aciklama: '' })
 
 // Dinamik kalem listesi
 const kalemler = ref([])
 
-// ─── Kalem yardımcı fonksiyonlar ───────────────────────────────────────────
+// ─── Seçili cari ────────────────────────────────────────────────────────────
+const secilenCari = computed(() =>
+  store.carilerWithBakiye.find(c => c.id === form.cariId) || null
+)
+
+// ─── Kalem hesapları ────────────────────────────────────────────────────────
 function kalemAra(k)      { return k.miktar * k.birimFiyat }
 function kalemKdvTutar(k) { return kalemAra(k) * k.kdv / 100 }
 function kalemToplam(k)   { return kalemAra(k) + kalemKdvTutar(k) }
 
-// ─── Fatura toplamları ──────────────────────────────────────────────────────
 const araToplam   = computed(() => kalemler.value.reduce((s, k) => s + kalemAra(k),      0))
 const kdvToplam   = computed(() => kalemler.value.reduce((s, k) => s + kalemKdvTutar(k), 0))
 const genelToplam = computed(() => araToplam.value + kdvToplam.value)
 
-// ─── Liste toplamları ───────────────────────────────────────────────────────
-const toplamAlis  = computed(() => faturalar.value.filter(f => f.tip === 'Alış') .reduce((s, f) => s + f.genelToplam, 0))
-const toplamSatis = computed(() => faturalar.value.filter(f => f.tip === 'Satış').reduce((s, f) => s + f.genelToplam, 0))
+// ─── Liste toplamları ────────────────────────────────────────────────────────
+const toplamAlis  = computed(() => store.faturalar.filter(f => f.tip === 'Alış') .reduce((s, f) => s + f.genelToplam, 0))
+const toplamSatis = computed(() => store.faturalar.filter(f => f.tip === 'Satış').reduce((s, f) => s + f.genelToplam, 0))
 
 // ─── Filtre ─────────────────────────────────────────────────────────────────
 const filtered = computed(() => {
   const q = search.value.toLowerCase()
-  return faturalar.value.filter(f => {
+  return store.faturalar.filter(f => {
     const matchTip = !filterTip.value || f.tip === filterTip.value
-    const matchQ   = !q || f.no.toLowerCase().includes(q) || f.cari.toLowerCase().includes(q)
+    const matchQ   = !q || f.no.toLowerCase().includes(q) || f.cariUnvan.toLowerCase().includes(q)
     return matchTip && matchQ
   })
 })
 
 // ─── Format ─────────────────────────────────────────────────────────────────
-function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
-}
-function fmtN(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0)
-}
+function fmt(v)  { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺' }
+function fmtN(v) { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) }
 
 // ─── Kalem işlemleri ────────────────────────────────────────────────────────
 function yeniKalem() {
@@ -502,32 +438,32 @@ function urunSecildi(kalem) {
 
 // ─── Modal ──────────────────────────────────────────────────────────────────
 function openCreate() {
-  Object.assign(form, { tip: 'Satış', no: '', tarih: today, cari: '', aciklama: '' })
+  Object.assign(form, { tip: 'Satış', no: '', tarih: today, cariId: '', aciklama: '' })
   kalemler.value = []
   modal.show     = true
   error.value    = ''
 }
 
-// ─── Kaydetme / Validasyon ──────────────────────────────────────────────────
+// ─── Kaydetme ───────────────────────────────────────────────────────────────
 function save() {
-  if (!form.no.trim())           { error.value = 'Fatura no zorunludur.'; return }
-  if (!form.cari)                { error.value = 'Cari seçimi zorunludur.'; return }
-  if (!kalemler.value.length)    { error.value = 'En az bir kalem eklenmelidir.'; return }
-  if (kalemler.value.some(k => !k.urunAdi))   { error.value = 'Tüm satırlarda ürün seçilmelidir.'; return }
-  if (kalemler.value.some(k => k.miktar <= 0)){ error.value = 'Miktar sıfırdan büyük olmalıdır.'; return }
-  if (genelToplam.value <= 0)    { error.value = 'Fatura tutarı sıfırdan büyük olmalıdır.'; return }
+  if (!form.no.trim())         { error.value = 'Fatura no zorunludur.'; return }
+  if (!form.cariId)            { error.value = 'Cari seçimi zorunludur.'; return }
+  if (!kalemler.value.length)  { error.value = 'En az bir kalem eklenmelidir.'; return }
+  if (kalemler.value.some(k => !k.urunAdi))    { error.value = 'Tüm satırlarda ürün seçilmelidir.'; return }
+  if (kalemler.value.some(k => k.miktar <= 0)) { error.value = 'Miktar sıfırdan büyük olmalıdır.'; return }
+  if (genelToplam.value <= 0)  { error.value = 'Fatura tutarı sıfırdan büyük olmalıdır.'; return }
 
-  // Satış faturası → cari bakiyesi artar → risk limiti kontrolü
+  // Satış → cari bakiyesi artacak → risk limiti kontrolü (canlı bakiye ile)
   if (form.tip === 'Satış') {
-    const data = cariRiskData[form.cari]
-    if (data && data.limit > 0) {
-      const yeniBakiye = data.bakiye + genelToplam.value
-      if (yeniBakiye > data.limit) {
+    const cari = secilenCari.value
+    if (cari && cari.riskLimiti > 0) {
+      const yeniBakiye = cari.bakiye + genelToplam.value
+      if (yeniBakiye > cari.riskLimiti) {
         Object.assign(riskModal, {
           show: true,
-          cari: form.cari,
-          limit: data.limit,
-          mevcutBakiye: data.bakiye,
+          cariUnvan:    cari.unvan,
+          limit:        cari.riskLimiti,
+          mevcutBakiye: cari.bakiye,
           yeniBakiye,
         })
         return
@@ -544,10 +480,10 @@ function onaylaVeKaydet() {
 }
 
 function kaydet() {
-  faturalar.value.unshift({
+  store.faturaEkle({
     ...form,
-    id: Date.now(),
-    kalemler: kalemler.value.map(k => ({ ...k })),
+    cariUnvan:   secilenCari.value?.unvan ?? '',
+    kalemler:    kalemler.value.map(k => ({ ...k })),
     araToplam:   araToplam.value,
     kdvToplam:   kdvToplam.value,
     genelToplam: genelToplam.value,
