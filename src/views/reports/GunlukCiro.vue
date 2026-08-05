@@ -111,13 +111,25 @@
 
                       <!-- Satış bilgi bandı -->
                       <div class="flex flex-wrap gap-4 mb-4 text-sm">
-                        <div class="flex items-center gap-1.5 text-muted">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Kasiyer -->
+                        <div class="flex items-center gap-1.5">
+                          <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                           </svg>
+                          <span class="text-muted text-xs">Kasiyer:</span>
                           <span class="font-semibold text-primary">{{ kasiyerAdi(s) }}</span>
                         </div>
+                        <!-- Müşteri (varsa) -->
+                        <div v-if="musteriAdi(s)" class="flex items-center gap-1.5">
+                          <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/>
+                          </svg>
+                          <span class="text-muted text-xs">Müşteri:</span>
+                          <span class="font-semibold text-primary">{{ musteriAdi(s) }}</span>
+                        </div>
+                        <!-- Saat -->
                         <div class="flex items-center gap-1.5 text-muted">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -125,6 +137,7 @@
                           </svg>
                           {{ time(s.saleDate) }}
                         </div>
+                        <!-- Ödeme -->
                         <div class="flex items-center gap-1.5 text-muted">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -164,9 +177,7 @@
                                   {{ fmt(item.unitPrice ?? item.birimFiyat ?? item.price ?? 0) }}
                                 </td>
                                 <td class="px-4 py-2.5 text-right font-semibold">
-                                  {{ fmt(item.total ?? item.amount ?? item.tutar ??
-                                    ((item.quantity ?? item.miktar ?? 1) *
-                                     (item.unitPrice ?? item.birimFiyat ?? item.price ?? 0))) }}
+                                  {{ fmt(item.lineTotal ?? (item.quantity * item.unitPrice)) }}
                                 </td>
                               </tr>
                             </tbody>
@@ -234,19 +245,16 @@ function time(d) {
   return new Date(d).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
 }
 
-// Kasiyeri API'den gelebilecek farklı alan adlarına göre çöz
 function kasiyerAdi(s) {
-  return s.userName
-    ?? s.cashierName
-    ?? s.user?.name
-    ?? s.user?.username
-    ?? s.operatorName
-    ?? 'Bilinmiyor'
+  return s.kasiyer ?? 'Bilinmiyor'
 }
 
-// Ürün kalemlerini API'den gelebilecek farklı alan adlarına göre çöz
+function musteriAdi(s) {
+  return s.musteri ?? null
+}
+
 function saleItems(s) {
-  return s.items ?? s.saleItems ?? s.lines ?? s.products ?? []
+  return s.items ?? []
 }
 
 // Ödeme yöntemi badge rengi
