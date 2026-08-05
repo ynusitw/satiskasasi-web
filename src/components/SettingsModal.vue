@@ -118,37 +118,66 @@
                   <div class="flex items-center justify-between mb-3">
                     <h4 class="text-sm font-bold text-primary">Aktif Oturumlar</h4>
                     <button @click="logoutAll"
-                            class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-50
-                                   text-red-600 hover:bg-red-100 transition-colors">
-                      Tüm diğer cihazlardan çıkış yap
+                            :disabled="revoking || sessions.length <= 1"
+                            class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors
+                                   disabled:opacity-40 disabled:cursor-not-allowed"
+                            :class="revoking
+                              ? 'bg-gray-100 text-gray-400'
+                              : 'bg-red-50 text-red-600 hover:bg-red-100'">
+                      {{ revoking ? 'İşleniyor...' : 'Tüm diğer cihazlardan çıkış yap' }}
                     </button>
                   </div>
-                  <div class="space-y-2">
+
+                  <!-- Yükleniyor -->
+                  <div v-if="sessionsLoading"
+                       class="flex items-center justify-center py-8 text-muted text-sm gap-2">
+                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    Oturumlar yükleniyor...
+                  </div>
+
+                  <!-- Hata -->
+                  <div v-else-if="sessionsError"
+                       class="p-3 bg-red-50 rounded-xl text-xs text-red-700">
+                    {{ sessionsError }}
+                  </div>
+
+                  <!-- Liste -->
+                  <div v-else class="space-y-2">
                     <div v-for="s in sessions" :key="s.id"
                          class="flex items-center gap-3 p-3 rounded-xl border border-gray-100
                                 bg-gray-50 hover:bg-gray-100 transition-colors">
                       <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                           :class="s.current ? 'bg-accent/15' : 'bg-gray-200'">
-                        <component :is="s.deviceIcon" class="w-5 h-5"
-                                   :class="s.current ? 'text-accent' : 'text-muted'"/>
+                           :class="s.isCurrent ? 'bg-accent/15' : 'bg-gray-200'">
+                        <component :is="isMobile(s.deviceInfo) ? IconPhone : IconMonitor"
+                                   class="w-5 h-5"
+                                   :class="s.isCurrent ? 'text-accent' : 'text-muted'"/>
                       </div>
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
-                          <span class="text-sm font-semibold text-primary truncate">{{ s.device }}</span>
-                          <span v-if="s.current"
-                                class="text-xs px-2 py-0.5 rounded-full bg-accent/15 text-accent font-bold">
+                          <span class="text-sm font-semibold text-primary truncate">
+                            {{ s.deviceInfo ?? 'Bilinmeyen cihaz' }}
+                          </span>
+                          <span v-if="s.isCurrent"
+                                class="text-xs px-2 py-0.5 rounded-full bg-accent/15 text-accent font-bold flex-shrink-0">
                             Bu cihaz
                           </span>
                         </div>
-                        <div class="text-xs text-muted">{{ s.location }} · {{ s.time }}</div>
+                        <div class="text-xs text-muted">
+                          {{ s.ipAddress ?? '' }}
+                          <span v-if="s.createdAt"> · {{ timeAgo(s.createdAt) }}</span>
+                        </div>
                       </div>
                       <div class="w-2 h-2 rounded-full flex-shrink-0"
-                           :class="s.current ? 'bg-success' : 'bg-gray-300'"/>
+                           :class="s.isCurrent ? 'bg-success' : 'bg-gray-300'"/>
+                    </div>
+                    <div v-if="!sessions.length" class="text-sm text-muted text-center py-6">
+                      Aktif oturum bulunamadı.
                     </div>
                   </div>
-                  <p class="text-xs text-muted mt-2">
-                    * Oturum listesi için backend desteği gerekmektedir. Gerçek veriler yakında gösterilecek.
-                  </p>
                 </div>
 
                 <!-- 2FA -->
@@ -171,8 +200,7 @@
                   </div>
                   <div v-if="show2FAInfo"
                        class="mt-3 p-3 bg-amber-50 rounded-lg text-xs text-amber-800">
-                    <strong>Yapım aşamasında:</strong> 2FA kurulumu backend API desteği gerektirir.
-                    Bu özellik bir sonraki sürümde aktif olacaktır.
+                    <strong>Yapım aşamasında:</strong> 2FA kurulumu bir sonraki sürümde aktif olacaktır.
                   </div>
                 </div>
               </section>
@@ -201,12 +229,33 @@
 
                 <!-- Son hatalı giriş -->
                 <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                  <h4 class="text-sm font-bold text-primary mb-2">Oturum Güvenlik Logu</h4>
-                  <div v-if="lastFailedLogin" class="flex items-center gap-2 text-sm">
-                    <span class="w-2 h-2 rounded-full bg-danger flex-shrink-0"/>
-                    <span class="text-danger font-semibold">Son hatalı giriş:</span>
-                    <span class="text-muted">{{ lastFailedLogin }}</span>
+                  <h4 class="text-sm font-bold text-primary mb-3">Oturum Güvenlik Logu</h4>
+
+                  <div v-if="attemptsLoading"
+                       class="flex items-center gap-2 text-sm text-muted">
+                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    Yükleniyor...
                   </div>
+
+                  <template v-else-if="failedAttempts.length">
+                    <div class="space-y-2">
+                      <div v-for="(a, i) in failedAttempts.slice(0, 5)" :key="i"
+                           class="flex items-center gap-3 text-xs">
+                        <span class="w-2 h-2 rounded-full bg-danger flex-shrink-0"/>
+                        <span class="text-danger font-semibold">Hatalı giriş</span>
+                        <span class="text-muted">{{ a.ipAddress ?? '—' }}</span>
+                        <span class="text-muted ml-auto">{{ fmtDate(a.attemptedAt) }}</span>
+                      </div>
+                    </div>
+                    <p v-if="failedAttempts.length > 5"
+                       class="text-xs text-muted mt-2">
+                      +{{ failedAttempts.length - 5 }} daha fazla deneme
+                    </p>
+                  </template>
+
                   <div v-else class="text-sm text-success flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-success flex-shrink-0"/>
                     Son 30 günde hatalı giriş denemesi tespit edilmedi.
@@ -304,11 +353,12 @@
 </template>
 
 <script setup>
-import { ref, h } from 'vue'
+import { ref, h, watch } from 'vue'
 import { useSettingsStore } from '../stores/settings'
 import { useAuthStore }     from '../stores/auth'
+import api                  from '../api/api'
 
-defineProps({ open: Boolean })
+const props = defineProps({ open: Boolean })
 defineEmits(['update:open'])
 
 const settings = useSettingsStore()
@@ -316,6 +366,56 @@ const auth     = useAuthStore()
 
 const activeTab   = ref('ui')
 const show2FAInfo = ref(false)
+
+// ─── Güvenlik: aktif oturumlar ───────────────────────────────────────────────
+const sessions        = ref([])
+const sessionsLoading = ref(false)
+const sessionsError   = ref(null)
+const revoking        = ref(false)
+
+async function loadSessions() {
+  sessionsLoading.value = true
+  sessionsError.value   = null
+  try {
+    const res = await api.getSessions()
+    sessions.value = Array.isArray(res.data) ? res.data : (res.data?.sessions ?? [])
+  } catch {
+    sessionsError.value = 'Oturum bilgileri alınamadı.'
+  } finally {
+    sessionsLoading.value = false
+  }
+}
+
+// ─── Bildirimler: hatalı giriş denemeleri ───────────────────────────────────
+const failedAttempts  = ref([])
+const attemptsLoading = ref(false)
+
+async function loadFailedAttempts() {
+  attemptsLoading.value = true
+  try {
+    const res = await api.getFailedAttempts()
+    failedAttempts.value = Array.isArray(res.data)
+      ? res.data
+      : (res.data?.attempts ?? [])
+  } catch {
+    failedAttempts.value = []
+  } finally {
+    attemptsLoading.value = false
+  }
+}
+
+// Modal açıldığında veya sekme değiştiğinde veri yükle
+watch(() => props.open, open => {
+  if (open) {
+    loadSessions()
+    loadFailedAttempts()
+  }
+})
+
+watch(activeTab, tab => {
+  if (tab === 'security'      && !sessions.value.length)      loadSessions()
+  if (tab === 'notifications' && !failedAttempts.value.length) loadFailedAttempts()
+})
 
 // ─── SVG ikon bileşenleri (inline, CDN yok) ──────────────────────────────────
 const IconPalette = { render: () => h('svg', { fill:'none', stroke:'currentColor', viewBox:'0 0 24 24' },
@@ -379,32 +479,6 @@ const themeOptions = [
   },
 ]
 
-const sessions = [
-  {
-    id: 1, current: true,
-    device: 'Chrome — Windows 10',
-    location: 'İstanbul, TR',
-    time: 'Şu an aktif',
-    deviceIcon: IconMonitor,
-  },
-  {
-    id: 2, current: false,
-    device: 'Safari — iPhone 14',
-    location: 'İstanbul, TR',
-    time: '2 saat önce',
-    deviceIcon: IconPhone,
-  },
-  {
-    id: 3, current: false,
-    device: 'Chrome — MacBook Pro',
-    location: 'Ankara, TR',
-    time: 'Dün, 19:42',
-    deviceIcon: IconMonitor,
-  },
-]
-
-const lastFailedLogin = null // backend'den gelecek
-
 const changelog = [
   {
     version: 'v1.5.0', date: '05 Ağu 2026', latest: true,
@@ -445,9 +519,41 @@ const changelog = [
 ]
 
 // ─── Aksiyonlar ──────────────────────────────────────────────────────────────
-function logoutAll() {
+function isMobile(deviceInfo) {
+  const d = (deviceInfo ?? '').toLowerCase()
+  return d.includes('iphone') || d.includes('android') || d.includes('mobile') || d.includes('ipad')
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins  = Math.floor(diff / 60000)
+  if (mins < 1)   return 'Az önce'
+  if (mins < 60)  return `${mins} dakika önce`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours} saat önce`
+  const days  = Math.floor(hours / 24)
+  return `${days} gün önce`
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleString('tr-TR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  })
+}
+
+async function logoutAll() {
   if (!confirm('Diğer tüm cihazlardaki oturumları kapatmak istediğinize emin misiniz?')) return
-  alert('Bu özellik backend desteği gerektirir. Yakında aktif olacak.')
+  revoking.value = true
+  try {
+    await api.revokeAllSessions()
+    await loadSessions()
+  } catch {
+    alert('İşlem sırasında hata oluştu.')
+  } finally {
+    revoking.value = false
+  }
 }
 
 function downloadLogs() {

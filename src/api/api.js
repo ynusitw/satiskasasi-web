@@ -65,6 +65,11 @@ export default {
   getCariTransactions:(id)      => api.get(`cari/${id}/transactions`),
   addCariTransaction: (id, d)   => api.post(`cari/${id}/transactions`, d),
 
+  // Auth logları
+  getFailedAttempts: ()  => api.get('auth/failed-attempts'),
+  getSessions:       ()  => api.get('auth/sessions'),
+  revokeAllSessions: ()  => api.post('auth/sessions/revoke-all'),
+
   // Raporlar
   getXReport:     ()     => api.get('reports/xreport'),
   takeZReport:    ()     => api.post('reports/zreport'),
