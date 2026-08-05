@@ -40,6 +40,15 @@ const routes = [
   { path: '/cari/faturalar', component: () => import('../views/cari/Faturalar.vue') },
   { path: '/cari/kasa',      component: () => import('../views/cari/KasaIslemleri.vue') },
   { path: '/cari/ekstre',    component: () => import('../views/cari/Ekstre.vue') },
+
+  // Kasa Yapılandırma — sayfalar henüz oluşturulmadı, placeholder route
+  { path: '/settings',                redirect: '/settings/masa-ayarlari' },
+  { path: '/settings/masa-ayarlari',   component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Masa Ayarları</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
+  { path: '/settings/fis-ayarlari',    component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Fiş Ayarları</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
+  { path: '/settings/yazici-ayarlari', component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Yazıcı Ayarları</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
+  { path: '/settings/musteri-ekrani',  component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Müşteri Ekranı Ayarı</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
+  { path: '/settings/okc-durum',       component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">ÖKC Durum</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
+  { path: '/settings/terminal',        component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Terminal Ayarları</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
   {
     path: '/subscription',
     component: () => import('../views/Subscription.vue'),

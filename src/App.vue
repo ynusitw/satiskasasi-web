@@ -107,6 +107,50 @@
             </div>
           </div>
 
+          <!-- Kasa Yapılandırma Accordion -->
+          <div>
+            <button @click="kasaYapiOpen = !kasaYapiOpen"
+                    class="w-full flex items-center gap-3 px-6 py-3 text-sm border-l-4
+                           border-transparent transition-all"
+                    :class="isKasaYapiActive
+                      ? 'text-white bg-white/10 border-accent'
+                      : 'text-white/70 hover:text-white hover:bg-white/8'">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0
+                         002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0
+                         001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0
+                         00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0
+                         00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0
+                         00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0
+                         00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0
+                         001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07
+                         2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span class="flex-1 text-left">Kasa Yapılandırma</span>
+              <svg class="w-4 h-4 transition-transform duration-300"
+                   :class="kasaYapiOpen ? 'rotate-180' : ''"
+                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+
+            <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+                 :style="{ maxHeight: kasaYapiOpen ? '280px' : '0px' }">
+              <RouterLink v-for="sub in kasaYapiSubMenu" :key="sub.to" :to="sub.to"
+                          class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
+                                 text-white/50 hover:text-white hover:bg-white/5
+                                 border-l-4 border-transparent transition-all"
+                          active-class="!text-white !bg-white/10 !border-accent/60">
+                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"/>
+                {{ sub.label }}
+              </RouterLink>
+            </div>
+          </div>
+
           <RouterLink v-for="item in menuBottom" :key="item.to" :to="item.to"
             class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
                    hover:text-white hover:bg-white/8 border-l-4
@@ -172,16 +216,19 @@ const auth   = useAuthStore()
 const router = useRouter()
 const route  = useRoute()
 
-const reportsOpen = ref(false)
-const cariOpen    = ref(false)
+const reportsOpen  = ref(false)
+const cariOpen     = ref(false)
+const kasaYapiOpen = ref(false)
 
 watch(() => route.path, path => {
-  if (path.startsWith('/reports')) reportsOpen.value = true
-  if (path.startsWith('/cari'))    cariOpen.value    = true
+  if (path.startsWith('/reports'))  reportsOpen.value  = true
+  if (path.startsWith('/cari'))     cariOpen.value     = true
+  if (path.startsWith('/settings')) kasaYapiOpen.value = true
 }, { immediate: true })
 
-const isReportsActive = computed(() => route.path.startsWith('/reports'))
-const isCariActive    = computed(() => route.path.startsWith('/cari'))
+const isReportsActive  = computed(() => route.path.startsWith('/reports'))
+const isCariActive     = computed(() => route.path.startsWith('/cari'))
+const isKasaYapiActive = computed(() => route.path.startsWith('/settings'))
 
 const menuTop = [
   { to: '/',           icon: '📊', label: 'Dashboard'   },
@@ -204,6 +251,15 @@ const reportSubMenu = [
   { to: '/reports/iptaller',  label: 'İptaller'        },
   { to: '/reports/masalar',   label: 'Masalar'         },
   { to: '/reports/stoklar',   label: 'Stoklar'         },
+]
+
+const kasaYapiSubMenu = [
+  { to: '/settings/masa-ayarlari',   label: 'Masa Ayarları'         },
+  { to: '/settings/fis-ayarlari',    label: 'Fiş Ayarları'          },
+  { to: '/settings/yazici-ayarlari', label: 'Yazıcı Ayarları'       },
+  { to: '/settings/musteri-ekrani',  label: 'Müşteri Ekranı Ayarı'  },
+  { to: '/settings/okc-durum',       label: 'ÖKC Durum'             },
+  { to: '/settings/terminal',        label: 'Terminal Ayarları'      },
 ]
 
 const menuBottom = [
