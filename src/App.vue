@@ -47,12 +47,19 @@
             active-class="text-white !bg-white/10 !border-accent">
             <span>👑</span><span>Müşteri Yönetimi</span>
           </RouterLink>
-          <RouterLink to="/"
+          <RouterLink to="/superadmin/gelir"
             class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
                    hover:text-white hover:bg-white/8 border-l-4
                    border-transparent transition-all"
             active-class="text-white !bg-white/10 !border-accent">
-            <span>📊</span><span>Dashboard</span>
+            <span>💰</span><span>Gelir Analizi</span>
+          </RouterLink>
+          <RouterLink to="/superadmin/paketler"
+            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
+                   hover:text-white hover:bg-white/8 border-l-4
+                   border-transparent transition-all"
+            active-class="text-white !bg-white/10 !border-accent">
+            <span>📦</span><span>Paket Yönetimi</span>
           </RouterLink>
         </template>
 

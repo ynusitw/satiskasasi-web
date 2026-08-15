@@ -58,6 +58,16 @@ const routes = [
     component: () => import('../views/SuperAdmin.vue'),
     meta: { superAdminOnly: true }
   },
+  {
+    path: '/superadmin/gelir',
+    component: () => import('../views/SuperAdminGelir.vue'),
+    meta: { superAdminOnly: true }
+  },
+  {
+    path: '/superadmin/paketler',
+    component: () => import('../views/SuperAdminPaketler.vue'),
+    meta: { superAdminOnly: true }
+  },
 ]
 
 const router = createRouter({
