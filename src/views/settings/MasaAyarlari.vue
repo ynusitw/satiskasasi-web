@@ -472,7 +472,7 @@ function openTopluModal(bolumId) {
 
   Object.assign(topluModal, {
     show: true, bolumId,
-    onek: 'Masa',
+    onek: bolum?.ad ?? 'Masa',
     baslangic: mevcutMax + 1,
     adet: 5,
     error: '',
