@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
-const STORAGE_KEY = 'satiskasasi_masalar_v1'
+const STORAGE_KEY = 'satiskasasi_masalar_v2'
 
 function load() {
   try {
@@ -12,30 +12,65 @@ function load() {
 }
 
 export const useMasalarStore = defineStore('masalar', () => {
-  const saved  = load()
+  const saved = load()
 
-  const aktif  = ref(saved?.aktif  ?? false)
-  const masalar = ref(saved?.masalar ?? [])
+  const aktif   = ref(saved?.aktif   ?? false)
+  // bolumler: [{ id, ad, masalar: [{ id, ad }] }]
+  const bolumler = ref(saved?.bolumler ?? [])
 
-  watch([aktif, masalar], () => {
+  watch([aktif, bolumler], () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      aktif:   aktif.value,
-      masalar: masalar.value,
+      aktif:    aktif.value,
+      bolumler: bolumler.value,
     }))
   }, { deep: true })
 
-  function ekle(ad) {
-    masalar.value.push({ id: Date.now(), ad: ad.trim() })
+  // ── Bölüm işlemleri ────────────────────────────────────────────────────
+  function bolumEkle(ad) {
+    bolumler.value.push({ id: Date.now(), ad: ad.trim(), masalar: [] })
   }
 
-  function guncelle(id, yeniAd) {
-    const m = masalar.value.find(m => m.id === id)
+  function bolumGuncelle(id, yeniAd) {
+    const b = bolumler.value.find(b => b.id === id)
+    if (b) b.ad = yeniAd.trim()
+  }
+
+  function bolumSil(id) {
+    bolumler.value = bolumler.value.filter(b => b.id !== id)
+  }
+
+  // ── Masa işlemleri ─────────────────────────────────────────────────────
+  function masaEkle(bolumId, ad) {
+    const b = bolumler.value.find(b => b.id === bolumId)
+    if (b) b.masalar.push({ id: Date.now(), ad: ad.trim() })
+  }
+
+  function topluMasaEkle(bolumId, adlar) {
+    const b = bolumler.value.find(b => b.id === bolumId)
+    if (!b) return
+    adlar.forEach((ad, i) => {
+      b.masalar.push({ id: Date.now() + i, ad: ad.trim() })
+    })
+  }
+
+  function masaGuncelle(bolumId, masaId, yeniAd) {
+    const b = bolumler.value.find(b => b.id === bolumId)
+    if (!b) return
+    const m = b.masalar.find(m => m.id === masaId)
     if (m) m.ad = yeniAd.trim()
   }
 
-  function sil(id) {
-    masalar.value = masalar.value.filter(m => m.id !== id)
+  function masaSil(bolumId, masaId) {
+    const b = bolumler.value.find(b => b.id === bolumId)
+    if (b) b.masalar = b.masalar.filter(m => m.id !== masaId)
   }
 
-  return { aktif, masalar, ekle, guncelle, sil }
+  const toplamMasa = () => bolumler.value.reduce((s, b) => s + b.masalar.length, 0)
+
+  return {
+    aktif, bolumler,
+    bolumEkle, bolumGuncelle, bolumSil,
+    masaEkle, topluMasaEkle, masaGuncelle, masaSil,
+    toplamMasa,
+  }
 })
