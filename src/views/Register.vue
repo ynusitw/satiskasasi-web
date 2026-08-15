@@ -10,7 +10,7 @@
         <h1 class="text-2xl font-bold text-primary">SatışKasası</h1>
         <p class="text-muted text-sm mt-1">Yeni İşletme Kaydı</p>
         <p class="text-xs text-green-600 mt-1 font-semibold">
-          14 gün ücretsiz deneme!
+          1 yıl tam kullanım!
         </p>
       </div>
 
@@ -168,8 +168,9 @@ async function handleRegister() {
   success.value = ''
   try {
     const res = await api.register(form)
-    success.value = res.data.message +
-      ` Deneme bitiş: ${new Date(res.data.trialEndsAt).toLocaleDateString('tr-TR')}`
+    const bitis = res.data.trialEndsAt ?? res.data.expiresAt
+    success.value = (res.data.message ?? 'Kayıt başarılı!') +
+      (bitis ? ` Abonelik bitiş: ${new Date(bitis).toLocaleDateString('tr-TR')}` : '')
     setTimeout(() => router.push('/login'), 3000)
   } catch (e) {
     error.value = e.response?.data?.message || 'Kayıt sırasında hata oluştu.'
