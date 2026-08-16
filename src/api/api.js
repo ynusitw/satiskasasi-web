@@ -65,6 +65,19 @@ export default {
   getCariTransactions:(id)      => api.get(`cari/${id}/transactions`),
   addCariTransaction: (id, d)   => api.post(`cari/${id}/transactions`, d),
 
+  // Bölümler
+  getSections:    ()       => api.get('sections'),
+  createSection:  (d)      => api.post('sections', d),
+  updateSection:  (id, d)  => api.put(`sections/${id}`, d),
+  deleteSection:  (id)     => api.delete(`sections/${id}`),
+
+  // Masalar
+  getTables:      ()       => api.get('tables'),
+  createTable:    (d)      => api.post('tables', d),
+  updateTable:    (id, d)  => api.put(`tables/${id}`, d),
+  deleteTable:    (id)     => api.delete(`tables/${id}`),
+  setTableStatus: (id, s)  => api.post(`tables/${id}/status`, { status: s }),
+
   // Auth logları
   getFailedAttempts: ()  => api.get('auth/failed-attempts'),
   getSessions:       ()  => api.get('auth/sessions'),

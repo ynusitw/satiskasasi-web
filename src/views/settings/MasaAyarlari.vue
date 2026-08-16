@@ -9,12 +9,12 @@
 
     <!-- ── Aktif/Pasif Kartı ───────────────────────────────────────────── -->
     <div class="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2 transition-colors"
-         :class="store.aktif ? 'border-accent/30' : 'border-gray-100'">
+         :class="aktif ? 'border-accent/30' : 'border-gray-100'">
       <div class="flex items-start justify-between gap-6">
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors"
-               :class="store.aktif ? 'bg-accent/10' : 'bg-gray-100'">
-            <svg class="w-6 h-6 transition-colors" :class="store.aktif ? 'text-accent' : 'text-muted'"
+               :class="aktif ? 'bg-accent/10' : 'bg-gray-100'">
+            <svg class="w-6 h-6 transition-colors" :class="aktif ? 'text-accent' : 'text-muted'"
                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0
@@ -32,32 +32,32 @@
             </p>
             <div class="flex items-center gap-3 mt-2">
               <span class="text-xs font-bold px-2.5 py-1 rounded-full transition-colors"
-                    :class="store.aktif ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'">
-                {{ store.aktif ? '✓ Aktif' : 'Pasif' }}
+                    :class="aktif ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'">
+                {{ aktif ? '✓ Aktif' : 'Pasif' }}
               </span>
-              <span v-if="store.aktif" class="text-xs text-muted">
-                {{ store.bolumler.length }} bölüm · {{ store.toplamMasa() }} masa
+              <span v-if="aktif" class="text-xs text-muted">
+                {{ bolumler.length }} bölüm · {{ toplamMasa() }} masa
               </span>
             </div>
           </div>
         </div>
 
         <!-- Toggle -->
-        <button @click="store.aktif = !store.aktif"
+        <button @click="toggleAktif()"
                 class="relative inline-flex h-7 items-center rounded-full flex-shrink-0
                        transition-colors duration-300"
                 style="width:3.25rem"
-                :class="store.aktif ? 'bg-accent' : 'bg-gray-300'">
+                :class="aktif ? 'bg-accent' : 'bg-gray-300'">
           <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow-md
                        transition-transform duration-300"
-                :class="store.aktif ? 'translate-x-7' : 'translate-x-1'"/>
+                :class="aktif ? 'translate-x-7' : 'translate-x-1'"/>
         </button>
       </div>
     </div>
 
     <!-- ── İçerik (sadece aktifken) ───────────────────────────────────── -->
     <Transition name="slide-down">
-      <div v-if="store.aktif">
+      <div v-if="aktif">
 
         <!-- Araç çubuğu -->
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
@@ -76,8 +76,8 @@
         </div>
 
         <!-- Bölüm kartları -->
-        <div v-if="store.bolumler.length" class="space-y-4 mb-6">
-          <div v-for="bolum in store.bolumler" :key="bolum.id"
+        <div v-if="bolumler.length" class="space-y-4 mb-6">
+          <div v-for="bolum in bolumler" :key="bolum.id"
                class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
 
             <!-- Bölüm başlığı -->
@@ -394,139 +394,212 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, nextTick } from 'vue'
-import { useMasalarStore } from '../../stores/masalar'
+import { reactive, ref, computed, onMounted, nextTick } from 'vue'
+import api from '../../api/api'
 
-const store = useMasalarStore()
+// ── Aktif/pasif (localStorage — API endpoint yok) ────────────────────────────
+const AKTIF_KEY = 'satiskasasi_masa_aktif'
+const aktif = ref(localStorage.getItem(AKTIF_KEY) === 'true')
+function toggleAktif() {
+  aktif.value = !aktif.value
+  localStorage.setItem(AKTIF_KEY, aktif.value)
+  if (aktif.value && !bolumler.value.length) load()
+}
 
-const bolumInputRef = ref(null)
-const masaInputRef  = ref(null)
+// ── Veri ─────────────────────────────────────────────────────────────────────
+const bolumler  = ref([])   // [{ id, name, masalar: [{ id, name, status }] }]
+const loading   = ref(false)
+
+async function load() {
+  loading.value = true
+  try {
+    const [secRes, tblRes] = await Promise.all([
+      api.getSections(),
+      api.getTables(),
+    ])
+    const sections = secRes.data ?? []
+    const tables   = tblRes.data ?? []
+
+    bolumler.value = sections.map(s => ({
+      id:     s.id,
+      ad:     s.name,
+      masalar: tables
+        .filter(t => t.sectionId === s.id)
+        .map(t => ({ id: t.id, ad: t.name, durum: t.status })),
+    }))
+  } catch (e) {
+    console.error('[MasaAyarlari] Yükleme hatası', e)
+  } finally {
+    loading.value = false
+  }
+}
+
+function toplamMasa() {
+  return bolumler.value.reduce((s, b) => s + b.masalar.length, 0)
+}
+
+onMounted(() => { if (aktif.value) load() })
 
 // ── Bölüm Modal ──────────────────────────────────────────────────────────────
-const bolumModal = reactive({ show: false, isEdit: false, id: null, ad: '', error: '' })
+const bolumInputRef = ref(null)
+const bolumModal    = reactive({ show: false, isEdit: false, id: null, ad: '', saving: false, error: '' })
 
 function openBolumModal(bolum = null) {
   Object.assign(bolumModal, {
     show: true, isEdit: !!bolum,
-    id:   bolum?.id  ?? null,
-    ad:   bolum?.ad  ?? '',
-    error: '',
+    id: bolum?.id ?? null, ad: bolum?.ad ?? '', saving: false, error: '',
   })
   nextTick(() => bolumInputRef.value?.focus())
 }
 
-function saveBolum() {
+async function saveBolum() {
   bolumModal.error = ''
   const ad = bolumModal.ad.trim()
   if (!ad) { bolumModal.error = 'Bölüm adı boş olamaz.'; return }
 
-  const dup = store.bolumler.some(b =>
+  const dup = bolumler.value.some(b =>
     b.ad.toLowerCase() === ad.toLowerCase() && b.id !== bolumModal.id
   )
   if (dup) { bolumModal.error = 'Bu isimde bir bölüm zaten var.'; return }
 
-  bolumModal.isEdit
-    ? store.bolumGuncelle(bolumModal.id, ad)
-    : store.bolumEkle(ad)
-  bolumModal.show = false
+  bolumModal.saving = true
+  try {
+    if (bolumModal.isEdit) {
+      await api.updateSection(bolumModal.id, { name: ad })
+      const b = bolumler.value.find(b => b.id === bolumModal.id)
+      if (b) b.ad = ad
+    } else {
+      const res = await api.createSection({ name: ad })
+      bolumler.value.push({ id: res.data.id, ad: res.data.name, masalar: [] })
+    }
+    bolumModal.show = false
+  } catch {
+    bolumModal.error = 'İşlem sırasında hata oluştu.'
+  } finally {
+    bolumModal.saving = false
+  }
 }
 
-function silBolum(bolum) {
-  const masaSayisi = bolum.masalar.length
-  const uyari = masaSayisi > 0
-    ? `"${bolum.ad}" bölümünü ve içindeki ${masaSayisi} masayı silmek istediğinize emin misiniz?`
+async function silBolum(bolum) {
+  const uyari = bolum.masalar.length > 0
+    ? `"${bolum.ad}" bölümünü ve içindeki ${bolum.masalar.length} masayı silmek istediğinize emin misiniz?`
     : `"${bolum.ad}" bölümünü silmek istediğinize emin misiniz?`
   if (!confirm(uyari)) return
-  store.bolumSil(bolum.id)
+  try {
+    await api.deleteSection(bolum.id)
+    bolumler.value = bolumler.value.filter(b => b.id !== bolum.id)
+  } catch {
+    alert('Bölüm silinemedi.')
+  }
 }
 
 // ── Tek Masa Modal ────────────────────────────────────────────────────────────
-const masaModal = reactive({
-  show: false, isEdit: false, bolumId: null, id: null, ad: '', error: '',
-})
+const masaInputRef = ref(null)
+const masaModal    = reactive({ show: false, isEdit: false, bolumId: null, id: null, ad: '', saving: false, error: '' })
 
 function openMasaModal(bolumId) {
-  Object.assign(masaModal, { show: true, isEdit: false, bolumId, id: null, ad: '', error: '' })
+  Object.assign(masaModal, { show: true, isEdit: false, bolumId, id: null, ad: '', saving: false, error: '' })
   nextTick(() => masaInputRef.value?.focus())
 }
 
 function openMasaDuzenle(bolumId, masa) {
-  Object.assign(masaModal, { show: true, isEdit: true, bolumId, id: masa.id, ad: masa.ad, error: '' })
+  Object.assign(masaModal, { show: true, isEdit: true, bolumId, id: masa.id, ad: masa.ad, saving: false, error: '' })
   nextTick(() => masaInputRef.value?.focus())
 }
 
-function saveMasa() {
+async function saveMasa() {
   masaModal.error = ''
   const ad = masaModal.ad.trim()
   if (!ad) { masaModal.error = 'Masa adı boş olamaz.'; return }
 
-  const bolum = store.bolumler.find(b => b.id === masaModal.bolumId)
-  const dup = bolum?.masalar.some(m =>
+  const bolum = bolumler.value.find(b => b.id === masaModal.bolumId)
+  const dup   = bolum?.masalar.some(m =>
     m.ad.toLowerCase() === ad.toLowerCase() && m.id !== masaModal.id
   )
   if (dup) { masaModal.error = 'Bu bölümde aynı isimde masa var.'; return }
 
-  masaModal.isEdit
-    ? store.masaGuncelle(masaModal.bolumId, masaModal.id, ad)
-    : store.masaEkle(masaModal.bolumId, ad)
-  masaModal.show = false
+  masaModal.saving = true
+  try {
+    if (masaModal.isEdit) {
+      await api.updateTable(masaModal.id, { name: ad, sectionId: masaModal.bolumId })
+      const m = bolum?.masalar.find(m => m.id === masaModal.id)
+      if (m) m.ad = ad
+    } else {
+      const res = await api.createTable({ name: ad, sectionId: masaModal.bolumId })
+      bolum?.masalar.push({ id: res.data.id, ad: res.data.name, durum: res.data.status })
+    }
+    masaModal.show = false
+  } catch {
+    masaModal.error = 'İşlem sırasında hata oluştu.'
+  } finally {
+    masaModal.saving = false
+  }
+}
+
+async function silMasa(bolumId, masa) {
+  if (!confirm(`"${masa.ad}" masasını silmek istediğinize emin misiniz?`)) return
+  try {
+    await api.deleteTable(masa.id)
+    const b = bolumler.value.find(b => b.id === bolumId)
+    if (b) b.masalar = b.masalar.filter(m => m.id !== masa.id)
+  } catch {
+    alert('Masa silinemedi.')
+  }
 }
 
 // ── Toplu Masa Modal ──────────────────────────────────────────────────────────
-const topluModal = reactive({
-  show: false, bolumId: null, onek: 'Masa', baslangic: 1, adet: 5, error: '',
-})
+const topluModal = reactive({ show: false, bolumId: null, onek: '', baslangic: 1, adet: 5, saving: false, error: '' })
 
 function openTopluModal(bolumId) {
-  const bolum = store.bolumler.find(b => b.id === bolumId)
-  // Başlangıç numarasını mevcut masaların sonuna ayarla
+  const bolum    = bolumler.value.find(b => b.id === bolumId)
   const mevcutMax = bolum?.masalar
     .map(m => parseInt(m.ad.replace(/\D/g, '')) || 0)
     .reduce((a, b) => Math.max(a, b), 0) ?? 0
-
   Object.assign(topluModal, {
     show: true, bolumId,
-    onek: bolum?.ad ?? 'Masa',
+    onek: bolum?.ad ?? '',
     baslangic: mevcutMax + 1,
-    adet: 5,
-    error: '',
+    adet: 5, saving: false, error: '',
   })
 }
 
 const topluOnizleme = computed(() => {
-  const onek = topluModal.onek.trim()
+  const onek      = topluModal.onek.trim()
   const baslangic = Math.max(1, topluModal.baslangic || 1)
-  const adet = Math.min(50, Math.max(1, topluModal.adet || 1))
-  return Array.from({ length: adet }, (_, i) =>
-    `${onek} ${baslangic + i}`.trim()
-  )
+  const adet      = Math.min(50, Math.max(1, topluModal.adet || 1))
+  return Array.from({ length: adet }, (_, i) => `${onek} ${baslangic + i}`.trim())
 })
 
-function saveToplu() {
+async function saveToplu() {
   topluModal.error = ''
   if (!topluOnizleme.value.length) return
 
-  const bolum = store.bolumler.find(b => b.id === topluModal.bolumId)
+  const bolum      = bolumler.value.find(b => b.id === topluModal.bolumId)
   const mevcutAdlar = new Set(bolum?.masalar.map(m => m.ad.toLowerCase()) ?? [])
-  const cakisan = topluOnizleme.value.filter(ad => mevcutAdlar.has(ad.toLowerCase()))
+  const cakisan    = topluOnizleme.value.filter(ad => mevcutAdlar.has(ad.toLowerCase()))
+  if (cakisan.length) { topluModal.error = `Bu isimler zaten var: ${cakisan.join(', ')}`; return }
 
-  if (cakisan.length) {
-    topluModal.error = `Bu isimler zaten var: ${cakisan.join(', ')}`
-    return
+  topluModal.saving = true
+  try {
+    const sonuclar = await Promise.all(
+      topluOnizleme.value.map(ad =>
+        api.createTable({ name: ad, sectionId: topluModal.bolumId })
+      )
+    )
+    sonuclar.forEach(res => {
+      bolum?.masalar.push({ id: res.data.id, ad: res.data.name, durum: res.data.status })
+    })
+    topluModal.show = false
+  } catch {
+    topluModal.error = 'Masalar eklenirken hata oluştu.'
+  } finally {
+    topluModal.saving = false
   }
-
-  store.topluMasaEkle(topluModal.bolumId, topluOnizleme.value)
-  topluModal.show = false
-}
-
-function silMasa(bolumId, masa) {
-  if (!confirm(`"${masa.ad}" masasını silmek istediğinize emin misiniz?`)) return
-  store.masaSil(bolumId, masa.id)
 }
 
 // ── Yardımcılar ───────────────────────────────────────────────────────────────
 function bolumAdi(id) {
-  return store.bolumler.find(b => b.id === id)?.ad ?? ''
+  return bolumler.value.find(b => b.id === id)?.ad ?? ''
 }
 </script>
 
