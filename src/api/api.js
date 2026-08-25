@@ -79,8 +79,9 @@ export default {
   setTableStatus: (id, s)  => api.post(`tables/${id}/status`, { status: s }),
 
   // Yazıcı / Fiş Ayarları
-  getPrinterSettings:    ()  => api.get('settings/printer'),
-  updatePrinterSettings: (d) => api.put('settings/printer', d),
+  getPrinterSettings:     ()  => api.get('settings/printer'),
+  updatePrinterSettings:  (d) => api.put('settings/printer', d),
+  getAvailablePrinters:   ()  => api.get('settings/printer/available'),
 
   // Auth logları
   getFailedAttempts: ()  => api.get('auth/failed-attempts'),

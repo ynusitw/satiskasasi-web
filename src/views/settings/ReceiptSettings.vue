@@ -88,11 +88,33 @@
               <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
                 Yazıcı Adı
               </label>
-              <input v-model="form.printerName"
-                     placeholder="POS58 Thermal Printer"
-                     class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
-              <p class="text-xs text-muted mt-1">İşletim sistemindeki yazıcı adıyla eşleşmeli</p>
+
+              <!-- Dropdown — liste doluysa -->
+              <select v-if="availablePrinters.length"
+                      v-model="form.printerName"
+                      class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                             focus:border-accent focus:outline-none bg-white">
+                <option value="">— Yazıcı seçin —</option>
+                <option v-for="p in availablePrinters" :key="p" :value="p">{{ p }}</option>
+              </select>
+
+              <!-- Text input — liste boşsa -->
+              <template v-else>
+                <input v-model="form.printerName"
+                       placeholder="POS58 Thermal Printer"
+                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                              focus:border-accent focus:outline-none"/>
+                <p class="flex items-center gap-1.5 text-xs text-warning mt-1.5 font-medium">
+                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                  </svg>
+                  Kasa henüz bağlanmadı — yazıcı adını elle girin
+                </p>
+              </template>
+
+              <p v-if="availablePrinters.length"
+                 class="text-xs text-muted mt-1">İşletim sistemindeki yazıcı adıyla eşleşmeli</p>
             </div>
           </div>
         </div>
@@ -347,10 +369,11 @@
 import { reactive, ref, computed, onMounted } from 'vue'
 import api from '../../api/api'
 
-const loading = ref(false)
-const saving  = ref(false)
-const error   = ref('')
-const savedOk = ref(false)
+const loading           = ref(false)
+const saving            = ref(false)
+const error             = ref('')
+const savedOk           = ref(false)
+const availablePrinters = ref([])
 
 const form = reactive({
   businessName:        '',
@@ -379,10 +402,13 @@ async function load() {
   loading.value = true
   error.value   = ''
   try {
-    const res = await api.getPrinterSettings()
-    Object.assign(form, res.data)
-  } catch {
-    error.value = 'Ayarlar yüklenemedi.'
+    const [settingsRes, printersRes] = await Promise.allSettled([
+      api.getPrinterSettings(),
+      api.getAvailablePrinters(),
+    ])
+    if (settingsRes.status === 'fulfilled') Object.assign(form, settingsRes.value.data)
+    else error.value = 'Ayarlar yüklenemedi.'
+    if (printersRes.status === 'fulfilled') availablePrinters.value = printersRes.value.data ?? []
   } finally {
     loading.value = false
   }
