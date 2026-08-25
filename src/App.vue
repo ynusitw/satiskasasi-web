@@ -292,7 +292,7 @@ const reportSubMenu = [
 
 const kasaYapiSubMenu = [
   { to: '/settings/masa-ayarlari',   label: 'Masa Ayarları'         },
-  { to: '/settings/fis-ayarlari',    label: 'Fiş Ayarları'          },
+  { to: '/settings/receipt',         label: '🖨 Fiş Tasarımı'       },
   { to: '/settings/yazici-ayarlari', label: 'Yazıcı Ayarları'       },
   { to: '/settings/musteri-ekrani',  label: 'Müşteri Ekranı Ayarı'  },
   { to: '/settings/okc-durum',       label: 'ÖKC Durum'             },

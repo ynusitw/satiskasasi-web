@@ -44,7 +44,8 @@ const routes = [
   // Kasa Yapılandırma — sayfalar henüz oluşturulmadı, placeholder route
   { path: '/settings',                redirect: '/settings/masa-ayarlari' },
   { path: '/settings/masa-ayarlari',   component: () => import('../views/settings/MasaAyarlari.vue') },
-  { path: '/settings/fis-ayarlari',    component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Fiş Ayarları</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
+  { path: '/settings/fis-ayarlari',    redirect: '/settings/receipt' },
+  { path: '/settings/receipt',         component: () => import('../views/settings/ReceiptSettings.vue') },
   { path: '/settings/yazici-ayarlari', component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Yazıcı Ayarları</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
   { path: '/settings/musteri-ekrani',  component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Müşteri Ekranı Ayarı</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
   { path: '/settings/okc-durum',       component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">ÖKC Durum</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },

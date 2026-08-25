@@ -78,6 +78,10 @@ export default {
   deleteTable:    (id)     => api.delete(`tables/${id}`),
   setTableStatus: (id, s)  => api.post(`tables/${id}/status`, { status: s }),
 
+  // Yazıcı / Fiş Ayarları
+  getPrinterSettings:    ()  => api.get('settings/printer'),
+  updatePrinterSettings: (d) => api.put('settings/printer', d),
+
   // Auth logları
   getFailedAttempts: ()  => api.get('auth/failed-attempts'),
   getSessions:       ()  => api.get('auth/sessions'),
