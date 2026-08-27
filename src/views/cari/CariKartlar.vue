@@ -232,7 +232,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCariStore } from '../../stores/cari'
 
@@ -242,8 +242,11 @@ const store  = useCariStore()
 const search    = ref('')
 const filterTip = ref('')
 const modal     = reactive({ show: false, editing: false })
+const saving    = ref(false)
 const error     = ref('')
 const form      = reactive({ id: 0, tip: 'Müşteri', unvan: '', telefon: '', email: '', vergiNo: '', riskLimiti: 5000, adres: '' })
+
+onMounted(() => store.fetchCariler())
 
 const filtered = computed(() => {
   const q = search.value.toLowerCase()
@@ -273,19 +276,31 @@ function openEdit(c) {
   modal.editing = true; modal.show = true; error.value = ''
 }
 
-function save() {
+async function save() {
   if (!form.unvan.trim()) { error.value = 'Unvan zorunludur.'; return }
-  if (modal.editing) {
-    store.cariGuncelle({ ...form })
-  } else {
-    store.cariEkle({ ...form })
+  saving.value = true
+  error.value  = ''
+  try {
+    if (modal.editing) {
+      await store.cariGuncelle({ ...form })
+    } else {
+      await store.cariEkle({ ...form })
+    }
+    modal.show = false
+  } catch {
+    error.value = 'İşlem sırasında hata oluştu.'
+  } finally {
+    saving.value = false
   }
-  modal.show = false
 }
 
-function deleteCari(c) {
+async function deleteCari(c) {
   if (!confirm(`"${c.unvan}" ve tüm işlem geçmişi silinsin mi?`)) return
-  store.cariSil(c.id)
+  try {
+    await store.cariSil(c.id)
+  } catch {
+    alert('Silme işlemi başarısız.')
+  }
 }
 
 function goEkstre(c) {

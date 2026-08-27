@@ -358,10 +358,12 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useCariStore } from '../../stores/cari'
 
 const store = useCariStore()
+onMounted(() => store.fetchCariler())
+
 const today = new Date().toISOString().split('T')[0]
 
 const mockUrunler = [

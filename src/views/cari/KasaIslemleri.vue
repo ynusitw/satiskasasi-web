@@ -140,10 +140,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useCariStore } from '../../stores/cari'
 
 const store = useCariStore()
+onMounted(() => store.fetchCariler())
+
 const today = new Date().toISOString().split('T')[0]
 
 const islemTipleri = [

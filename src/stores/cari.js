@@ -1,53 +1,24 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
+import api from '../api/api'
 
-const STORAGE_KEY = 'satiskasasi_cari_v1'
-
-const MOCK_CARILER    = []
-const MOCK_FATURALAR  = []
-const MOCK_KASA       = []
-
-// ─── localStorage yardımcıları ───────────────────────────────────────────────
-function loadStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch (e) {
-    console.warn('[CariStore] localStorage okunamadı, mock veri kullanılıyor:', e)
-  }
-  return null
-}
-
-function saveStorage(data) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-  } catch (e) {
-    console.warn('[CariStore] localStorage yazılamadı:', e)
-  }
-}
-
-// ─── Store ───────────────────────────────────────────────────────────────────
 export const useCariStore = defineStore('cari', () => {
 
-  // Kaydedilmiş veriyi oku; yoksa mock ile başla
-  const saved = loadStorage()
+  const cariler       = ref([])
+  const faturalar     = ref([])   // in-memory (API transaction endpoint'i eklenince burası güncellenir)
+  const kasaIslemleri = ref([])   // in-memory
 
-  const cariler       = ref(saved?.cariler       ?? MOCK_CARILER)
-  const faturalar     = ref(saved?.faturalar     ?? MOCK_FATURALAR)
-  const kasaIslemleri = ref(saved?.kasaIslemleri ?? MOCK_KASA)
+  // ─── API yükle ────────────────────────────────────────────────────────────
+  async function fetchCariler() {
+    try {
+      const res = await api.getCaris()
+      cariler.value = res.data ?? []
+    } catch (e) {
+      console.error('[CariStore] fetchCariler hatası', e)
+    }
+  }
 
-  // Her değişiklikte localStorage'a yaz
-  watch(
-    [cariler, faturalar, kasaIslemleri],
-    () => saveStorage({
-      cariler:       cariler.value,
-      faturalar:     faturalar.value,
-      kasaIslemleri: kasaIslemleri.value,
-    }),
-    { deep: true }
-  )
-
-  // ─── Cari hareket hesaplama ────────────────────────────────────────────────
+  // ─── Hareket hesaplama ────────────────────────────────────────────────────
   function hareketlerByCari(cariId) {
     const events = []
 
@@ -108,36 +79,32 @@ export const useCariStore = defineStore('cari', () => {
     [...kasaIslemleri.value].sort((a, b) => b.tarih.localeCompare(a.tarih))
   )
 
-  // ─── Mutasyonlar ──────────────────────────────────────────────────────────
+  // ─── Cari CRUD — API + in-memory ─────────────────────────────────────────
+  async function cariEkle(cari) {
+    const res = await api.createCari(cari)
+    cariler.value.push(res.data)
+  }
+
+  async function cariGuncelle(guncellenen) {
+    await api.updateCari(guncellenen.id, guncellenen)
+    const idx = cariler.value.findIndex(c => c.id === guncellenen.id)
+    if (idx !== -1) cariler.value[idx] = { ...guncellenen }
+  }
+
+  async function cariSil(id) {
+    await api.deleteCari(id)
+    cariler.value       = cariler.value.filter(c => c.id !== id)
+    faturalar.value     = faturalar.value.filter(f => f.cariId !== id)
+    kasaIslemleri.value = kasaIslemleri.value.filter(k => k.cariId !== id)
+  }
+
+  // ─── Fatura / Kasa — in-memory (TODO: backend transaction endpoint'i) ────
   function faturaEkle(fatura) {
     faturalar.value.unshift({ ...fatura, id: Date.now() })
   }
 
   function kasaIslemEkle(islem) {
     kasaIslemleri.value.unshift({ ...islem, id: Date.now() })
-  }
-
-  function cariEkle(cari) {
-    cariler.value.push({ ...cari, id: Date.now() })
-  }
-
-  function cariGuncelle(guncellenen) {
-    const idx = cariler.value.findIndex(c => c.id === guncellenen.id)
-    if (idx !== -1) cariler.value[idx] = { ...guncellenen }
-  }
-
-  function cariSil(id) {
-    cariler.value       = cariler.value.filter(c => c.id !== id)
-    faturalar.value     = faturalar.value.filter(f => f.cariId !== id)
-    kasaIslemleri.value = kasaIslemleri.value.filter(k => k.cariId !== id)
-  }
-
-  // Tüm veriyi sıfırla (mock'a dön)
-  function resetToMock() {
-    cariler.value       = MOCK_CARILER
-    faturalar.value     = MOCK_FATURALAR
-    kasaIslemleri.value = MOCK_KASA
-    localStorage.removeItem(STORAGE_KEY)
   }
 
   return {
@@ -148,11 +115,11 @@ export const useCariStore = defineStore('cari', () => {
     sonKasaIslemleri,
     hareketlerByCari,
     bakiyeByCari,
+    fetchCariler,
     faturaEkle,
     kasaIslemEkle,
     cariEkle,
     cariGuncelle,
     cariSil,
-    resetToMock,
   }
 })

@@ -147,12 +147,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCariStore } from '../../stores/cari'
 
 const route = useRoute()
 const store = useCariStore()
+onMounted(() => store.fetchCariler())
 
 const secilenCariId = ref('')
 

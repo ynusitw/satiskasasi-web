@@ -397,21 +397,12 @@
 import { reactive, ref, computed, onMounted, nextTick } from 'vue'
 import api from '../../api/api'
 
-// ── Aktif/pasif (localStorage — API endpoint yok) ────────────────────────────
-const AKTIF_KEY = 'satiskasasi_masa_aktif'
-const aktif = ref(localStorage.getItem(AKTIF_KEY) === 'true')
-function toggleAktif() {
-  aktif.value = !aktif.value
-  localStorage.setItem(AKTIF_KEY, aktif.value)
-  if (aktif.value && !bolumler.value.length) load()
-}
+// ── Aktif/pasif — API kaynaklı ───────────────────────────────────────────────
+const aktif   = ref(false)
+const bolumler = ref([])
+const loading  = ref(false)
 
-// ── Veri ─────────────────────────────────────────────────────────────────────
-const bolumler  = ref([])   // [{ id, name, masalar: [{ id, name, status }] }]
-const loading   = ref(false)
-
-async function load() {
-  loading.value = true
+async function loadBolumler() {
   try {
     const [secRes, tblRes] = await Promise.all([
       api.getSections(),
@@ -419,7 +410,6 @@ async function load() {
     ])
     const sections = secRes.data ?? []
     const tables   = tblRes.data ?? []
-
     bolumler.value = sections.map(s => ({
       id:     s.id,
       ad:     s.name,
@@ -428,9 +418,31 @@ async function load() {
         .map(t => ({ id: t.id, ad: t.name, durum: t.status })),
     }))
   } catch (e) {
-    console.error('[MasaAyarlari] Yükleme hatası', e)
+    console.error('[MasaAyarlari] Bölüm/masa yükleme hatası', e)
+  }
+}
+
+async function load() {
+  loading.value = true
+  try {
+    const res = await api.getTableSettings()
+    aktif.value = res.data?.isActive ?? false
+    if (aktif.value) await loadBolumler()
+  } catch {
+    // endpoint yoksa false kalır, uygulama çalışmaya devam eder
   } finally {
     loading.value = false
+  }
+}
+
+async function toggleAktif() {
+  const newVal = !aktif.value
+  aktif.value = newVal   // optimistic update
+  try {
+    await api.updateTableSettings({ isActive: newVal })
+    if (newVal && !bolumler.value.length) await loadBolumler()
+  } catch {
+    aktif.value = !newVal  // hata durumunda geri al
   }
 }
 
@@ -438,7 +450,7 @@ function toplamMasa() {
   return bolumler.value.reduce((s, b) => s + b.masalar.length, 0)
 }
 
-onMounted(() => { if (aktif.value) load() })
+onMounted(load)
 
 // ── Bölüm Modal ──────────────────────────────────────────────────────────────
 const bolumInputRef = ref(null)

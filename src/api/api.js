@@ -82,6 +82,8 @@ export default {
   getPrinterSettings:     ()  => api.get('settings/printer'),
   updatePrinterSettings:  (d) => api.put('settings/printer', d),
   getAvailablePrinters:   ()  => api.get('settings/printer/available'),
+  getTableSettings:       ()  => api.get('settings/tables'),
+  updateTableSettings:    (d) => api.put('settings/tables', d),
 
   // Auth logları
   getFailedAttempts: ()  => api.get('auth/failed-attempts'),
