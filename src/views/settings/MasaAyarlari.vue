@@ -441,7 +441,8 @@ async function toggleAktif() {
   try {
     await api.updateTableSettings({ isActive: newVal })
     if (newVal && !bolumler.value.length) await loadBolumler()
-  } catch {
+  } catch (e) {
+    console.error('[MasaAyarlari] toggleAktif hatası:', e?.response?.status, e?.response?.data ?? e?.message)
     aktif.value = !newVal  // hata durumunda geri al
   }
 }

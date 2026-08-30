@@ -82,6 +82,8 @@ export default {
   getPrinterSettings:     ()  => api.get('settings/printer'),
   updatePrinterSettings:  (d) => api.put('settings/printer', d),
   getAvailablePrinters:   ()  => api.get('settings/printer/available'),
+  getCategoryRoutings:    ()  => api.get('settings/printer/routing'),
+  saveCategoryRoutings:   (d) => api.put('settings/printer/routing', d),
   getTableSettings:       ()  => api.get('settings/tables'),
   updateTableSettings:    (d) => api.put('settings/tables', d),
 
