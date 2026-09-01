@@ -7,36 +7,6 @@
       <p class="text-muted text-sm mt-1">Z-Raporu geçmişi ve günlük satış özetleri</p>
     </div>
 
-    <!-- Filtre + Z-Al butonu -->
-    <div class="flex flex-wrap gap-3 items-end mb-6">
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1 uppercase tracking-wide">Başlangıç</label>
-        <input v-model="filter.start" type="date"
-               class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:border-accent focus:outline-none bg-white"/>
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1 uppercase tracking-wide">Bitiş</label>
-        <input v-model="filter.end" type="date"
-               class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:border-accent focus:outline-none bg-white"/>
-      </div>
-      <button @click="clearFilter"
-              class="px-4 py-2 text-sm text-muted border border-gray-200 rounded-xl
-                     hover:border-gray-300 hover:text-primary transition-colors bg-white">
-        Filtreyi Temizle
-      </button>
-      <div class="flex-1"/>
-      <button @click="takeZ" :disabled="takingZ"
-              class="px-5 py-2 bg-danger text-white text-sm font-bold rounded-xl
-                     hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586
-                   a1 1 0 01.707.293l5.414 5.414A1 1 0 0121 9.414V19a2 2 0 01-2 2z"/>
-        </svg>
-        {{ takingZ ? 'İşleniyor...' : 'Z Al' }}
-      </button>
-    </div>
-
     <div v-if="loading" class="text-center py-20 text-muted text-sm">Yükleniyor...</div>
 
     <template v-else>
@@ -52,7 +22,7 @@
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs font-bold text-muted uppercase tracking-wide mb-1">Toplam Nakit</div>
           <div class="text-2xl font-bold text-success">{{ fmt(totals.cash) }}</div>
-          <div class="text-xs text-muted mt-1">{{ filteredReports.length }} rapor</div>
+          <div class="text-xs text-muted mt-1">{{ reports.length }} rapor</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs font-bold text-muted uppercase tracking-wide mb-1">Toplam Kart</div>
@@ -70,9 +40,9 @@
       </div>
 
       <!-- Tablo -->
-      <div v-if="!filteredReports.length"
+      <div v-if="!reports.length"
            class="bg-white rounded-2xl shadow-sm p-16 text-center text-muted">
-        {{ reports.length ? 'Filtreye uyan Z raporu yok.' : 'Henüz Z raporu bulunmuyor.' }}
+        Henüz Z raporu bulunmuyor.
       </div>
 
       <div v-else class="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -90,7 +60,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="z in filteredReports" :key="z.id"
+              <tr v-for="z in reports" :key="z.id"
                   class="border-t border-gray-50 hover:bg-gray-50/60 transition-colors">
                 <td class="px-6 py-4 text-sm font-semibold text-primary whitespace-nowrap">
                   {{ fmtDate(z.reportDate) }}
@@ -120,7 +90,7 @@
               </tr>
             </tbody>
             <!-- Toplam satırı -->
-            <tfoot v-if="filteredReports.length > 1" class="bg-gray-50 border-t-2 border-gray-200">
+            <tfoot v-if="reports.length > 1" class="bg-gray-50 border-t-2 border-gray-200">
               <tr>
                 <td class="px-6 py-3 text-sm font-bold">TOPLAM</td>
                 <td class="px-6 py-3 text-sm text-right font-bold text-muted">{{ totals.sales }}</td>
@@ -228,32 +198,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '../../api/api'
 
-const reports    = ref([])
-const loading    = ref(true)
-const loadError  = ref('')
-const takingZ    = ref(false)
-
-const filter = reactive({ start: '', end: '' })
-
-const filteredReports = computed(() => {
-  if (!filter.start && !filter.end) return reports.value
-  return reports.value.filter(z => {
-    const d = z.reportDate?.slice(0, 10) ?? ''
-    if (filter.start && d < filter.start) return false
-    if (filter.end   && d > filter.end)   return false
-    return true
-  })
-})
+const reports   = ref([])
+const loading   = ref(true)
+const loadError = ref('')
 
 const totals = computed(() => ({
-  cash:     filteredReports.value.reduce((s, z) => s + (z.totalCash     ?? 0), 0),
-  card:     filteredReports.value.reduce((s, z) => s + (z.totalCard     ?? 0), 0),
-  discount: filteredReports.value.reduce((s, z) => s + (z.totalDiscount ?? 0), 0),
-  grand:    filteredReports.value.reduce((s, z) => s + (z.grandTotal    ?? 0), 0),
-  sales:    filteredReports.value.reduce((s, z) => s + (z.saleCount     ?? 0), 0),
+  cash:     reports.value.reduce((s, z) => s + (z.totalCash     ?? 0), 0),
+  card:     reports.value.reduce((s, z) => s + (z.totalCard     ?? 0), 0),
+  discount: reports.value.reduce((s, z) => s + (z.totalDiscount ?? 0), 0),
+  grand:    reports.value.reduce((s, z) => s + (z.grandTotal    ?? 0), 0),
+  sales:    reports.value.reduce((s, z) => s + (z.saleCount     ?? 0), 0),
 }))
 
 function fmt(v) {
@@ -261,10 +218,6 @@ function fmt(v) {
 }
 function fmtDate(d) {
   return new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })
-}
-function clearFilter() {
-  filter.start = ''
-  filter.end   = ''
 }
 
 async function load() {
@@ -279,20 +232,6 @@ async function load() {
     reports.value = []
   } finally {
     loading.value = false
-  }
-}
-
-async function takeZ() {
-  if (!confirm('Z raporu alınacak. Günlük kasa sayacı sıfırlanır. Devam edilsin mi?')) return
-  takingZ.value = true
-  try {
-    await api.takeZReport()
-    await load()
-  } catch (e) {
-    console.error('[ZListesi] takeZReport hatası:', e?.response?.status, e?.response?.data ?? e?.message)
-    alert('Z raporu alınamadı: ' + (e?.response?.data?.message ?? e?.message ?? 'Bilinmeyen hata'))
-  } finally {
-    takingZ.value = false
   }
 }
 
