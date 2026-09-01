@@ -36,9 +36,15 @@
             <span class="text-xs font-bold text-muted uppercase tracking-wide">Bugün Nakit</span>
             <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center text-base">💵</div>
           </div>
-          <div class="text-2xl font-bold text-primary mt-1">{{ fmt(data?.todayCash) }}</div>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-2xl font-bold text-primary">{{ fmt(data?.todayCash) }}</span>
+            <span :class="trendBadge(mockTrends.cash)"
+                  class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
+              {{ mockTrends.cash >= 0 ? '↑' : '↓' }} {{ Math.abs(mockTrends.cash).toFixed(1) }}%
+            </span>
+          </div>
           <div class="mt-3 -mx-1">
-            <VueApexCharts type="line" height="50"
+            <VueApexCharts type="area" height="50"
                            :options="sparkOpts('#27AE60')" :series="[{ data: cashHourly }]"/>
           </div>
           <div class="text-xs text-muted mt-1">Saatlik trend</div>
@@ -50,9 +56,15 @@
             <span class="text-xs font-bold text-muted uppercase tracking-wide">Bugün Kart</span>
             <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-base">💳</div>
           </div>
-          <div class="text-2xl font-bold text-primary mt-1">{{ fmt(data?.todayCard) }}</div>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-2xl font-bold text-primary">{{ fmt(data?.todayCard) }}</span>
+            <span :class="trendBadge(mockTrends.card)"
+                  class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
+              {{ mockTrends.card >= 0 ? '↑' : '↓' }} {{ Math.abs(mockTrends.card).toFixed(1) }}%
+            </span>
+          </div>
           <div class="mt-3 -mx-1">
-            <VueApexCharts type="line" height="50"
+            <VueApexCharts type="area" height="50"
                            :options="sparkOpts('#3498DB')" :series="[{ data: cardHourly }]"/>
           </div>
           <div class="text-xs text-muted mt-1">Saatlik trend</div>
@@ -64,9 +76,15 @@
             <span class="text-xs font-bold text-muted uppercase tracking-wide">Bugün Toplam</span>
             <div class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-base">💰</div>
           </div>
-          <div class="text-2xl font-bold text-primary mt-1">{{ fmt(data?.todayTotal) }}</div>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-2xl font-bold text-primary">{{ fmt(data?.todayTotal) }}</span>
+            <span :class="trendBadge(mockTrends.total)"
+                  class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
+              {{ mockTrends.total >= 0 ? '↑' : '↓' }} {{ Math.abs(mockTrends.total).toFixed(1) }}%
+            </span>
+          </div>
           <div class="mt-3 -mx-1">
-            <VueApexCharts type="line" height="50"
+            <VueApexCharts type="area" height="50"
                            :options="sparkOpts('#8B5CF6')" :series="[{ data: totalHourly }]"/>
           </div>
           <div class="text-xs text-muted mt-1">{{ data?.todaySaleCount ?? 0 }} işlem</div>
@@ -99,20 +117,32 @@
 
         <!-- Bu Ay Satış Trendi (2/3) -->
         <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-          <div class="flex items-center justify-between mb-6">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
             <div>
-              <h2 class="font-bold text-primary text-base">Bu Ay Satış Trendi</h2>
-              <p class="text-xs text-muted mt-0.5">Nakit ve kart ciro (günlük)</p>
+              <h2 class="font-bold text-primary text-base">Satış Trendi</h2>
+              <p class="text-xs text-muted mt-0.5">Nakit ve kart ciro</p>
             </div>
-            <div class="flex items-center gap-4 text-xs font-semibold">
-              <span class="flex items-center gap-1.5">
-                <span class="w-3 h-3 rounded-full bg-success inline-block"/>
-                Nakit
-              </span>
-              <span class="flex items-center gap-1.5">
-                <span class="w-3 h-3 rounded-full bg-accent inline-block"/>
-                Kart
-              </span>
+            <div class="flex items-center gap-3">
+              <!-- Legend -->
+              <div class="hidden sm:flex items-center gap-4 text-xs font-semibold mr-1">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-success inline-block"/>Nakit
+                </span>
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-accent inline-block"/>Kart
+                </span>
+              </div>
+              <!-- Zaman filtresi -->
+              <div class="flex rounded-xl overflow-hidden border border-gray-200">
+                <button v-for="f in periodFilters" :key="f.key"
+                        @click="activeFilter = f.key"
+                        class="px-3 py-1.5 text-xs font-semibold transition-all"
+                        :class="activeFilter === f.key
+                          ? 'bg-accent text-white'
+                          : 'bg-white text-muted hover:text-primary hover:bg-gray-50'">
+                  {{ f.label }}
+                </button>
+              </div>
             </div>
           </div>
           <VueApexCharts type="area" height="300"
@@ -196,6 +226,20 @@ function genMonthly(base, amp, seed) {
 const mockMonthlyCash = genMonthly(2800, 900, 0)
 const mockMonthlyCard = genMonthly(1900, 700, 2)
 
+// Haftalık veri — 7 gün, hafta sonu daha yüksek
+const mockWeeklyCash = [12400, 14800, 13200, 15600, 17200, 21500, 18900]
+const mockWeeklyCard = [ 8300, 10100,  9400, 11200, 12800, 15600, 13400]
+
+// Yıllık veri — 12 ay
+const mockYearlyCash = [62000, 58000, 71000, 75000, 82000, 91000, 88000, 95000, 87000, 79000, 68000, 105000]
+const mockYearlyCard = [41000, 38000, 47000, 52000, 58000, 64000, 61000, 68000, 62000, 55000, 48000,  74000]
+
+// Trend rozetleri — dünle kıyasla % (gerçek API gelene kadar mock)
+const mockTrends = { cash: 12.4, card: -3.1, total: 8.7 }
+function trendBadge(pct) {
+  return pct >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+}
+
 // Mock ürünler
 const mockTopProducts = [
   { name: 'Çay',               totalQty: 248, totalRevenue: 3720 },
@@ -206,8 +250,16 @@ const mockTopProducts = [
 ]
 
 // ── State ─────────────────────────────────────────────────────────────────
-const data    = ref(null)
-const loading = ref(true)
+const data         = ref(null)
+const loading      = ref(true)
+const activeFilter = ref('month')
+
+const periodFilters = [
+  { key: 'today', label: 'Bugün'    },
+  { key: 'week',  label: 'Bu Hafta' },
+  { key: 'month', label: 'Bu Ay'    },
+  { key: 'year',  label: 'Bu Yıl'   },
+]
 
 const todayLabel = new Date().toLocaleDateString('tr-TR', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -237,55 +289,98 @@ function rankColor(i) { return rankColors[i % rankColors.length] }
 function sparkOpts(color) {
   return {
     chart: {
-      type: 'line',
+      type: 'area',
       sparkline: { enabled: true },
       animations: { enabled: true, easing: 'easeinout', speed: 900 },
     },
-    stroke: { curve: 'smooth', width: 2.5 },
+    stroke: { curve: 'smooth', width: 2.5, colors: [color] },
     colors: [color],
     tooltip: { enabled: false },
     fill: {
       type: 'gradient',
-      gradient: { shadeIntensity: 1, opacityFrom: 0.25, opacityTo: 0, stops: [0, 100] },
+      gradient: {
+        type: 'vertical',
+        shadeIntensity: 0,
+        opacityFrom: 0.45,
+        opacityTo:   0.02,
+        stops: [0, 100],
+        colorStops: [
+          { offset: 0,   color, opacity: 0.45 },
+          { offset: 100, color, opacity: 0.02 },
+        ],
+      },
     },
   }
 }
 
-// ── Alan grafiği seçenekleri ──────────────────────────────────────────────
-const dayLabels = Array.from({ length: 30 }, (_, i) => `${i + 1}`)
+// ── Alan grafiği — filtre bazlı reaktif veri ─────────────────────────────
+const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara']
 
-const areaOpts = {
+const chartPeriod = computed(() => {
+  switch (activeFilter.value) {
+    case 'today':
+      return {
+        categories: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+        cash:       cashHourly,
+        card:       cardHourly,
+        xLabel:     (v) => (parseInt(v) % 6 === 0 ? v : ''),
+        xTooltip:   (v) => v,
+      }
+    case 'week':
+      return {
+        categories: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'],
+        cash:       mockWeeklyCash,
+        card:       mockWeeklyCard,
+        xLabel:     (v) => v,
+        xTooltip:   (v) => v,
+      }
+    case 'year':
+      return {
+        categories: MONTHS,
+        cash:       mockYearlyCash,
+        card:       mockYearlyCard,
+        xLabel:     (v) => v,
+        xTooltip:   (v) => v,
+      }
+    default: // month
+      return {
+        categories: Array.from({ length: 30 }, (_, i) => `${i + 1}`),
+        cash:       mockMonthlyCash,
+        card:       mockMonthlyCard,
+        xLabel:     (v) => (Number(v) % 5 === 0 ? v : ''),
+        xTooltip:   (v) => `${v}. Gün`,
+      }
+  }
+})
+
+const areaSeries = computed(() => [
+  { name: 'Nakit', data: chartPeriod.value.cash },
+  { name: 'Kart',  data: chartPeriod.value.card },
+])
+
+const areaOpts = computed(() => ({
   chart: {
     type: 'area',
     toolbar: { show: false },
     zoom:    { enabled: false },
-    animations: { enabled: true, easing: 'easeinout', speed: 900, animateGradually: { enabled: true, delay: 100 } },
+    animations: { enabled: true, easing: 'easeinout', speed: 700 },
     fontFamily: 'inherit',
   },
   colors: ['#27AE60', '#3498DB'],
   stroke: { curve: 'smooth', width: 2.5 },
   fill: {
     type: 'gradient',
-    gradient: {
-      shadeIntensity: 1,
-      opacityFrom:    0.35,
-      opacityTo:      0.03,
-      stops:          [0, 95, 100],
-    },
+    gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.03, stops: [0, 95, 100] },
   },
   dataLabels: { enabled: false },
-  grid: {
-    borderColor: '#f1f5f9',
-    strokeDashArray: 5,
-    padding: { left: 4, right: 4 },
-  },
+  grid: { borderColor: '#f1f5f9', strokeDashArray: 5, padding: { left: 4, right: 4 } },
   xaxis: {
-    categories: dayLabels,
+    categories: chartPeriod.value.categories,
     axisBorder: { show: false },
     axisTicks:  { show: false },
     labels: {
       style: { colors: '#94a3b8', fontSize: '11px' },
-      formatter: (v) => v % 5 === 0 ? v : '',
+      formatter: chartPeriod.value.xLabel,
     },
     tooltip: { enabled: false },
   },
@@ -298,20 +393,13 @@ const areaOpts = {
   tooltip: {
     shared: true,
     intersect: false,
-    y: {
-      formatter: (v) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 0 }).format(v) + ' ₺',
-    },
-    x: { formatter: (v) => `${v}. Gün` },
+    y: { formatter: (v) => new Intl.NumberFormat('tr-TR').format(v) + ' ₺' },
+    x: { formatter: chartPeriod.value.xTooltip },
     style: { fontSize: '12px' },
   },
   legend: { show: false },
   markers: { size: 0 },
-}
-
-const areaSeries = [
-  { name: 'Nakit', data: mockMonthlyCash },
-  { name: 'Kart',  data: mockMonthlyCard  },
-]
+}))
 
 // ── Yükleme ───────────────────────────────────────────────────────────────
 async function load() {
