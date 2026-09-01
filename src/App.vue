@@ -268,9 +268,8 @@ const isCariActive     = computed(() => route.path.startsWith('/cari'))
 const isKasaYapiActive = computed(() => route.path.startsWith('/settings'))
 
 const menuTop = [
-  { to: '/',           icon: '📊', label: 'Dashboard'   },
-  { to: '/products',   icon: '📦', label: 'Ürünler'     },
-  { to: '/categories', icon: '🗂',  label: 'Kategoriler' },
+  { to: '/',         icon: '📊', label: 'Dashboard'       },
+  { to: '/products', icon: '📦', label: 'Ürün Düzenleme'  },
 ]
 
 const cariSubMenu = [

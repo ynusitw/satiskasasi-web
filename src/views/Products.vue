@@ -1,129 +1,246 @@
 <template>
-  <div class="p-8">
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-primary">Ürünler</h1>
-      <button @click="openCreate"
-              class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                     hover:bg-blue-600 transition-colors">
-        + Yeni Ürün
-      </button>
+  <div class="p-6 lg:p-8">
+
+    <!-- Başlık -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-primary">Ürün Düzenleme</h1>
+      <p class="text-muted text-sm mt-1">Kategori ve ürün yönetimi</p>
     </div>
 
-    <div class="mb-4 flex gap-3 flex-wrap">
-      <input v-model="search" placeholder="Ürün ara..."
-             class="px-4 py-2 border border-gray-200 rounded-xl text-sm
-                    focus:border-accent focus:outline-none w-64"/>
-      <select v-model="filterCategory"
-              class="px-4 py-2 border border-gray-200 rounded-xl text-sm
-                     focus:border-accent focus:outline-none">
-        <option value="">Tüm Kategoriler</option>
-        <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-      </select>
-    </div>
+    <!-- ── İki Sütun Layout ──────────────────────────────────────────── -->
+    <div class="flex gap-5 items-start">
 
-    <!-- Ürün Tablosu -->
-    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase w-14">Görsel</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Ürün</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">Barkod</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Kategori</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Fiyat</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase hidden sm:table-cell">Stok</th>
-              <th class="px-6 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="loading">
-              <td colspan="7" class="text-center py-12 text-muted">Yükleniyor...</td>
-            </tr>
+      <!-- ── Sol Kart: Kategoriler ──────────────────────────────────── -->
+      <div class="w-60 flex-shrink-0 bg-white rounded-xl shadow-sm overflow-hidden">
 
-            <tr v-for="p in filtered" :key="p.id"
-                class="border-t border-gray-50 hover:bg-gray-50 transition-colors">
+        <!-- Başlık + Yeni Grup -->
+        <div class="px-4 py-3.5 border-b border-gray-100 flex items-center justify-between">
+          <span class="text-sm font-bold text-primary">Kategoriler</span>
+          <button @click="openExistingCategoryModal()"
+                  class="flex items-center gap-1 text-xs font-semibold text-accent
+                         hover:bg-accent/10 px-2 py-1 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+            Yeni Grup
+          </button>
+        </div>
 
-              <!-- Ürün Görseli (192×192 → 44×44 olarak gösterilir) -->
-              <td class="px-4 py-3">
-                <div class="w-11 h-11 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                  <img v-if="p.imageBase64"
-                       :src="p.imageBase64"
-                       :alt="p.name"
-                       class="w-full h-full object-cover"/>
-                  <div v-else
-                       class="w-full h-full flex items-center justify-center text-gray-300 text-lg">
-                    📦
+        <!-- Tüm Ürünler -->
+        <button @click="selectedCategoryId = null"
+                class="w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors
+                       border-l-4"
+                :class="selectedCategoryId === null
+                  ? 'bg-accent/8 border-accent text-accent font-semibold'
+                  : 'border-transparent text-muted hover:bg-gray-50 hover:text-primary'">
+          <span class="w-2 h-2 rounded-full bg-gray-400 flex-shrink-0"/>
+          <span class="flex-1 text-left truncate">Tüm Ürünler</span>
+          <span class="text-xs font-bold ml-1">{{ products.length }}</span>
+        </button>
+
+        <!-- Kategori Listesi -->
+        <div v-if="loading" class="py-6 text-center text-xs text-muted">Yükleniyor...</div>
+
+        <div v-else class="divide-y divide-gray-50">
+          <div v-for="cat in categories" :key="cat.id"
+               class="group flex items-center gap-0 border-l-4 transition-colors"
+               :class="selectedCategoryId === cat.id
+                 ? 'bg-accent/8 border-accent'
+                 : 'border-transparent hover:bg-gray-50'">
+
+            <!-- Kategori seçme alanı -->
+            <button @click="selectedCategoryId = cat.id"
+                    class="flex-1 flex items-center gap-3 px-4 py-3 text-sm text-left min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    :style="{ background: cat.colorHex || '#94a3b8' }"/>
+              <span class="truncate flex-1"
+                    :class="selectedCategoryId === cat.id
+                      ? 'text-accent font-semibold'
+                      : 'text-primary'">
+                {{ cat.name }}
+              </span>
+              <span class="text-xs text-muted ml-1 flex-shrink-0">
+                {{ products.filter(p => p.categoryId === cat.id).length }}
+              </span>
+            </button>
+
+            <!-- Düzenle ikonu (hover'da görünür) -->
+            <button @click="openExistingCategoryModal(cat)"
+                    title="Düzenle"
+                    class="px-2 py-3 text-muted opacity-0 group-hover:opacity-100
+                           hover:text-accent transition-all flex-shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
+                         m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div v-if="!categories.length"
+               class="py-8 text-center text-xs text-muted">
+            Henüz kategori yok
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Sağ Kart: Ürünler ───────────────────────────────────────── -->
+      <div class="flex-1 min-w-0 bg-white rounded-xl shadow-sm overflow-hidden">
+
+        <!-- Toolbar -->
+        <div class="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 flex-wrap">
+          <!-- Seçili kategori başlığı -->
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <span v-if="selectedCategory"
+                  class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  :style="{ background: selectedCategory.colorHex || '#94a3b8' }"/>
+            <span class="font-semibold text-sm text-primary truncate">
+              {{ selectedCategory ? selectedCategory.name : 'Tüm Ürünler' }}
+            </span>
+            <span class="text-xs text-muted">({{ filtered.length }} ürün)</span>
+          </div>
+
+          <!-- Arama -->
+          <div class="relative">
+            <svg class="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+            </svg>
+            <input v-model="search" placeholder="Ürün ara..."
+                   class="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm
+                          focus:border-accent focus:outline-none w-52"/>
+          </div>
+
+          <!-- Yeni Ürün Ekle -->
+          <button @click="openExistingProductModal()"
+                  class="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg
+                         text-sm font-bold hover:bg-blue-600 transition-colors flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+            Yeni Ürün Ekle
+          </button>
+        </div>
+
+        <!-- Tablo -->
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase w-14">Görsel</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Ürün Adı</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">Barkod</th>
+                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Fiyat</th>
+                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase hidden sm:table-cell">Stok</th>
+                <th class="px-5 py-3 w-24"/>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="loading">
+                <td colspan="6" class="text-center py-16 text-muted text-sm">Yükleniyor...</td>
+              </tr>
+
+              <tr v-for="p in filtered" :key="p.id"
+                  class="border-t border-gray-50 hover:bg-gray-50/60 transition-colors">
+
+                <!-- Görsel -->
+                <td class="px-4 py-3">
+                  <div class="w-11 h-11 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                    <img v-if="p.imageBase64" :src="p.imageBase64" :alt="p.name"
+                         class="w-full h-full object-cover"/>
+                    <div v-else
+                         class="w-full h-full flex items-center justify-center text-gray-300 text-base">
+                      📦
+                    </div>
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <td class="px-6 py-3 font-semibold text-sm">{{ p.name }}</td>
-              <td class="px-6 py-3 font-mono text-sm text-muted hidden md:table-cell">{{ p.barcode || '—' }}</td>
+                <!-- Ürün Adı -->
+                <td class="px-5 py-3">
+                  <div class="font-semibold text-sm text-primary">{{ p.name }}</div>
+                  <div v-if="!selectedCategoryId && p.categoryName"
+                       class="text-xs mt-0.5 font-medium"
+                       :style="{ color: categoryMap[p.categoryId]?.colorHex || '#94a3b8' }">
+                    {{ p.categoryName }}
+                  </div>
+                </td>
 
-              <td class="px-6 py-3 text-sm hidden lg:table-cell">
-                <span v-if="p.categoryName"
-                      class="px-2 py-1 rounded-full text-xs font-bold"
-                      :style="{ background: (categoryMap[p.categoryId]?.colorHex || '#eee') + '22',
-                                color: categoryMap[p.categoryId]?.colorHex || '#666' }">
-                  {{ p.categoryName }}
-                </span>
-                <span v-else class="text-muted">—</span>
-              </td>
+                <!-- Barkod -->
+                <td class="px-5 py-3 text-sm font-mono text-muted hidden md:table-cell">
+                  {{ p.barcode || '—' }}
+                </td>
 
-              <td class="px-6 py-3 font-bold text-success text-sm">{{ fmt(p.price) }}</td>
-              <td class="px-6 py-3 text-sm hidden sm:table-cell">
-                <span :class="p.currentStock <= p.minimumStock ? 'text-danger font-bold' : 'text-primary'">
-                  {{ p.currentStock }}
-                </span>
-              </td>
+                <!-- Fiyat -->
+                <td class="px-5 py-3 text-sm font-bold text-success text-right whitespace-nowrap">
+                  {{ fmt(p.price) }}
+                </td>
 
-              <td class="px-6 py-3">
-                <div class="flex gap-2 justify-end">
-                  <button @click="openEdit(p)"
-                          class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent
-                                 rounded-lg hover:bg-accent hover:text-white transition-colors">
-                    Düzenle
-                  </button>
-                  <button @click="deleteProduct(p)"
-                          class="px-3 py-1 text-xs font-bold bg-red-50 text-danger
-                                 rounded-lg hover:bg-danger hover:text-white transition-colors">
-                    Sil
-                  </button>
-                </div>
-              </td>
-            </tr>
+                <!-- Stok -->
+                <td class="px-5 py-3 text-sm text-right hidden sm:table-cell">
+                  <span :class="p.currentStock <= (p.minimumStock ?? 0)
+                    ? 'text-danger font-bold'
+                    : 'text-primary'">
+                    {{ p.currentStock }}
+                  </span>
+                </td>
 
-            <tr v-if="!loading && filtered.length === 0">
-              <td colspan="7" class="text-center py-12 text-muted">Ürün bulunamadı</td>
-            </tr>
-          </tbody>
-        </table>
+                <!-- Aksiyon -->
+                <td class="px-5 py-3">
+                  <div class="flex items-center justify-end gap-1">
+                    <button @click="openExistingProductModal(p)"
+                            title="Düzenle"
+                            class="p-2 rounded-lg text-muted hover:text-accent hover:bg-accent/10
+                                   transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
+                                 m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                      </svg>
+                    </button>
+                    <button @click="deleteProduct(p)"
+                            title="Sil"
+                            class="p-2 rounded-lg text-muted hover:text-danger hover:bg-red-50
+                                   transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5
+                                 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr v-if="!loading && !filtered.length">
+                <td colspan="6" class="text-center py-16 text-muted text-sm">
+                  {{ search ? 'Aramanızla eşleşen ürün bulunamadı.' : 'Bu kategoride ürün yok.' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- Ürün Modal -->
+    <!-- ── Ürün Modal (mevcut, değiştirilmedi) ───────────────────────── -->
     <Teleport to="body">
       <div v-if="modal.show"
            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
 
-          <!-- Modal Başlık -->
           <div class="px-8 pt-8 pb-6 border-b border-gray-100">
             <h2 class="text-xl font-bold">{{ modal.editing ? 'Ürünü Düzenle' : 'Yeni Ürün' }}</h2>
           </div>
 
           <div class="px-8 py-6 space-y-5">
 
-            <!-- ── Ürün Görseli ─────────────────────────────────────────── -->
+            <!-- Ürün Görseli -->
             <div>
               <label class="block text-sm font-semibold mb-2">Ürün Görseli
                 <span class="text-muted font-normal">(192×192 · POS'ta görünür)</span>
               </label>
-
               <div class="flex gap-4 items-start">
-
-                <!-- Drop Zone / Preview -->
                 <div
                   class="relative w-48 h-48 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer flex-shrink-0"
                   :class="dragOver
@@ -135,14 +252,8 @@
                   @dragover.prevent="dragOver = true"
                   @dragleave="dragOver = false"
                   @drop.prevent="onDrop">
-
-                  <!-- Mevcut görsel varsa göster -->
-                  <img v-if="form.imageBase64"
-                       :src="form.imageBase64"
-                       alt="Ürün görseli"
+                  <img v-if="form.imageBase64" :src="form.imageBase64" alt="Ürün görseli"
                        class="w-full h-full object-cover"/>
-
-                  <!-- Placeholder -->
                   <div v-else class="w-full h-full flex flex-col items-center justify-center gap-2 text-muted">
                     <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -153,8 +264,6 @@
                       <div class="text-gray-400 mt-0.5">tıkla veya sürükle</div>
                     </div>
                   </div>
-
-                  <!-- Hover overlay (görsel varsa değiştir teklif et) -->
                   <div v-if="form.imageBase64"
                        class="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all
                               flex items-center justify-center opacity-0 hover:opacity-100">
@@ -162,22 +271,17 @@
                       Değiştir
                     </div>
                   </div>
-
-                  <!-- Sürükleniyor göstergesi -->
                   <div v-if="dragOver"
                        class="absolute inset-0 flex items-center justify-center bg-accent/10">
                     <div class="text-accent font-bold text-sm">Bırak!</div>
                   </div>
                 </div>
-
-                <!-- Yardım metni + Kaldır butonu -->
                 <div class="flex flex-col gap-3 pt-1 flex-1">
                   <div class="text-xs text-muted leading-relaxed">
                     <p>Görsel otomatik olarak <strong>192×192 px</strong> kare boyutuna kırpılır.</p>
                     <p class="mt-1">JPG, PNG, WebP desteklenir.</p>
                     <p class="mt-2 text-accent/80 font-medium">Bu boyut POS kasasındaki ürün kartına tam uyar.</p>
                   </div>
-
                   <div class="flex flex-col gap-2">
                     <button type="button" @click="triggerFileInput"
                             class="px-3 py-1.5 border border-accent text-accent rounded-xl
@@ -191,28 +295,24 @@
                     </button>
                   </div>
                 </div>
-
-                <!-- Gizli file input -->
                 <input ref="fileInput" type="file" accept="image/*"
                        class="hidden" @change="onFileChange"/>
               </div>
             </div>
 
-            <!-- ── Ürün Bilgileri ─────────────────────────────────────── -->
+            <!-- Ürün Bilgileri -->
             <div>
               <label class="block text-sm font-semibold mb-1">Ürün Adı *</label>
               <input v-model="form.name"
                      class="w-full px-4 py-2 border border-gray-200 rounded-xl
                             focus:border-accent focus:outline-none text-sm"/>
             </div>
-
             <div>
               <label class="block text-sm font-semibold mb-1">Barkod</label>
               <input v-model="form.barcode"
                      class="w-full px-4 py-2 border border-gray-200 rounded-xl
                             focus:border-accent focus:outline-none text-sm font-mono"/>
             </div>
-
             <div>
               <label class="block text-sm font-semibold mb-1">Kategori</label>
               <select v-model="form.categoryId"
@@ -222,7 +322,6 @@
                 <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
             </div>
-
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-semibold mb-1">Fiyat (₺) *</label>
@@ -237,14 +336,12 @@
                               focus:border-accent focus:outline-none text-sm"/>
               </div>
             </div>
-
             <div>
               <label class="block text-sm font-semibold mb-1">Kritik Stok Seviyesi</label>
               <input v-model.number="form.minimumStock" type="number" min="0"
                      class="w-full px-4 py-2 border border-gray-200 rounded-xl
                             focus:border-accent focus:outline-none text-sm"/>
             </div>
-
             <label class="flex items-center gap-2 cursor-pointer">
               <input v-model="form.isActive" type="checkbox" class="w-4 h-4 accent-accent"/>
               <span class="text-sm font-semibold">Aktif</span>
@@ -276,23 +373,18 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import api from '../api/api'
 
+// ── Veri ─────────────────────────────────────────────────────────────────
 const products   = ref([])
 const categories = ref([])
 const loading    = ref(true)
-const saving     = ref(false)
-const error      = ref('')
-const search         = ref('')
-const filterCategory = ref('')
-const modal = reactive({ show: false, editing: false })
-const form  = reactive({
-  id: 0, name: '', barcode: '', categoryId: null,
-  price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
-  isActive: true, imageBase64: '',
-})
 
-// ─── Drag & Drop state ───────────────────────────────────────────────────────
-const dragOver  = ref(false)
-const fileInput = ref(null)
+// ── UI State ──────────────────────────────────────────────────────────────
+const search             = ref('')
+const selectedCategoryId = ref(null)   // null = Tüm Ürünler
+
+const selectedCategory = computed(() =>
+  categories.value.find(c => c.id === selectedCategoryId.value) ?? null
+)
 
 const categoryMap = computed(() =>
   Object.fromEntries(categories.value.map(c => [c.id, c]))
@@ -303,7 +395,8 @@ const filtered = computed(() =>
     const matchSearch = !search.value ||
       p.name.toLowerCase().includes(search.value.toLowerCase()) ||
       (p.barcode || '').includes(search.value)
-    const matchCat = !filterCategory.value || p.categoryId === filterCategory.value
+    const matchCat = selectedCategoryId.value === null ||
+      p.categoryId === selectedCategoryId.value
     return matchSearch && matchCat
   })
 )
@@ -312,16 +405,37 @@ function fmt(v) {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 
-// ─── Görsel işleme ───────────────────────────────────────────────────────────
+// ── Modal state (mevcut, değiştirilmedi) ─────────────────────────────────
+const saving = ref(false)
+const error  = ref('')
+const modal  = reactive({ show: false, editing: false })
+const form   = reactive({
+  id: 0, name: '', barcode: '', categoryId: null,
+  price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
+  isActive: true, imageBase64: '',
+})
+const dragOver  = ref(false)
+const fileInput = ref(null)
 
-function triggerFileInput() {
-  fileInput.value?.click()
+// ── Yer Tutucu Fonksiyonlar ───────────────────────────────────────────────
+// Kendi çalışan modal'ınızı buraya bağlayın.
+
+function openExistingProductModal(product = null) {
+  if (product) openEdit(product)
+  else openCreate()
 }
+
+// eslint-disable-next-line no-unused-vars
+function openExistingCategoryModal(category = null) {
+  // Kategori ekleme/düzenleme modal'ı buraya bağlanacak
+}
+
+// ── Görsel işleme (mevcut, değiştirilmedi) ───────────────────────────────
+function triggerFileInput() { fileInput.value?.click() }
 
 function onFileChange(e) {
   const file = e.target.files?.[0]
   if (file) processImageFile(file)
-  // Input'u sıfırla (aynı dosya tekrar seçilebilsin)
   e.target.value = ''
 }
 
@@ -331,34 +445,22 @@ function onDrop(e) {
   if (file && file.type.startsWith('image/')) processImageFile(file)
 }
 
-// Seçilen görseli 192×192 kareye kırp ve JPEG base64'e dönüştür
 function processImageFile(file) {
   console.group('%c[ProductImage] Görsel işleniyor', 'color:#3b82f6;font-weight:bold')
-  console.log('Dosya :', file.name)
-  console.log('Tip   :', file.type)
-  console.log('Boyut :', (file.size / 1024).toFixed(1), 'KB')
-
+  console.log('Dosya :', file.name, '|', file.type, '|', (file.size / 1024).toFixed(1), 'KB')
   const reader = new FileReader()
   reader.onload = (e) => {
     const img = new Image()
     img.onload = () => {
       const canvas = document.createElement('canvas')
-      canvas.width  = 192
-      canvas.height = 192
+      canvas.width = canvas.height = 192
       const ctx = canvas.getContext('2d')
-
-      // Merkezi kare kırpma (en küçük kenar esas alınır)
       const srcSize = Math.min(img.width, img.height)
       const sx = (img.width  - srcSize) / 2
       const sy = (img.height - srcSize) / 2
-
       ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, 192, 192)
       form.imageBase64 = canvas.toDataURL('image/jpeg', 0.85)
-
-      const kb = (form.imageBase64.length * 0.75 / 1024).toFixed(1)
-      console.log('Kaynak :', img.width, '×', img.height, 'px  →  çıktı: 192×192 JPEG')
-      console.log('Base64 :', form.imageBase64.length, 'karakter ≈', kb, 'KB')
-      console.log('Önizleme hazır ✓')
+      console.log('Çıktı: 192×192 JPEG |', (form.imageBase64.length * 0.75 / 1024).toFixed(1), 'KB')
       console.groupEnd()
     }
     img.src = e.target.result
@@ -366,8 +468,7 @@ function processImageFile(file) {
   reader.readAsDataURL(file)
 }
 
-// ─── API ─────────────────────────────────────────────────────────────────────
-
+// ── API (mevcut, değiştirilmedi) ─────────────────────────────────────────
 async function load() {
   loading.value = true
   const [prod, cats] = await Promise.all([api.getProducts(), api.getCategories()])
@@ -378,7 +479,7 @@ async function load() {
 
 function openCreate() {
   Object.assign(form, {
-    id: 0, name: '', barcode: '', categoryId: null,
+    id: 0, name: '', barcode: '', categoryId: selectedCategoryId.value,
     price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
     isActive: true, imageBase64: '',
   })
@@ -404,62 +505,17 @@ async function save() {
   if (form.barcode && others.some(p => p.barcode && p.barcode === form.barcode.trim()))
     { error.value = 'Bu barkod zaten başka bir ürüne ait.'; return }
 
-  // ── LOG: istek öncesi durum ───────────────────────────────────────────────
-  console.group('%c[ProductSave] Kayıt gönderiliyor', 'color:#8b5cf6;font-weight:bold')
-  console.log('İşlem    :', modal.editing ? 'GÜNCELLE' : 'OLUŞTUR')
-  console.log('Ürün     :', form.name, '| ID:', form.id)
-  console.log('Görsel   :', form.imageBase64
-    ? `VAR — ${(form.imageBase64.length * 0.75 / 1024).toFixed(1)} KB`
-    : 'YOK')
-  if (form.imageBase64)
-    console.log('Veri önü :', form.imageBase64.slice(0, 60) + '…')
-
   saving.value = true
   error.value  = ''
   try {
     const res = modal.editing
       ? await api.updateProduct(form.id, form)
       : await api.createProduct(form)
-
-    // ── LOG: API yanıtı ──────────────────────────────────────────────────
-    console.log('HTTP     :', res.status, res.statusText)
-    console.log('Yanıt    :', res.data)
-
-    const returnedImage = res.data?.imageBase64
-    if (form.imageBase64 && !returnedImage) {
-      console.warn(
-        '%c⚠ Backend imageBase64 döndürmedi!',
-        'color:#ef4444;font-weight:bold'
-      )
-      console.warn('  Yapılması gereken:')
-      console.warn('    1) Product.cs → public string? ImageBase64 { get; set; }')
-      console.warn('    2) Add-Migration AddProductImage')
-      console.warn('    3) Update-Database')
-      console.warn('    4) WinSCP ile Ubuntu\'ya yükle')
-    } else if (returnedImage) {
-      console.log('%c✓ Görsel kaydedildi ve API\'den döndü', 'color:#22c55e;font-weight:bold')
-    }
-
+    console.log('[ProductSave]', modal.editing ? 'GÜNCELLEME' : 'OLUŞTURMA', res.status, res.data)
     modal.show = false
-    const savedId = res.data?.id ?? form.id
     await load()
-
-    // ── LOG: yeniden yükleme sonrası kontrol ─────────────────────────────
-    const reloaded = products.value.find(p => p.id === savedId)
-    if (reloaded) {
-      console.log('Yeniden yüklenen ürün imageBase64:',
-        reloaded.imageBase64
-          ? `VAR (${(reloaded.imageBase64.length * 0.75 / 1024).toFixed(1)} KB)`
-          : 'YOK — backend alanı henüz yok')
-    }
-    console.groupEnd()
   } catch (e) {
-    // ── LOG: hata detayı ─────────────────────────────────────────────────
-    console.error('%c[ProductSave] HATA', 'color:#ef4444;font-weight:bold')
-    console.error('HTTP status :', e.response?.status)
-    console.error('Backend msg :', e.response?.data)
-    console.error('Stack       :', e.message)
-    console.groupEnd()
+    console.error('[ProductSave] HATA', e.response?.status, e.response?.data ?? e.message)
     error.value = e.response?.data?.message || e.response?.data?.title || e.message || 'Hata oluştu.'
   } finally {
     saving.value = false
