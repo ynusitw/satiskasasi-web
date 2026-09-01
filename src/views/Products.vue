@@ -64,8 +64,8 @@
               </span>
             </button>
 
-            <!-- Düzenle + Sil ikonları (hover'da görünür) -->
-            <div class="flex items-center opacity-0 group-hover:opacity-100 transition-all pr-1 gap-0.5 flex-shrink-0">
+            <!-- Düzenle + Sil ikonları -->
+            <div class="flex items-center pr-1 gap-0.5 flex-shrink-0">
               <button @click="openExistingCategoryModal(cat)"
                       title="Düzenle"
                       class="p-1.5 rounded-md text-muted hover:text-accent hover:bg-accent/10
