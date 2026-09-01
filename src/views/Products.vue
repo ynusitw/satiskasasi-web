@@ -223,6 +223,68 @@
       </div>
     </div>
 
+    <!-- ── Kategori Modal ────────────────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="catModal.show"
+           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+           @click.self="catModal.show = false">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8">
+
+          <h2 class="text-xl font-bold mb-6">
+            {{ catModal.editing ? 'Grubu Düzenle' : 'Yeni Grup Ekle' }}
+          </h2>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1">Grup Adı *</label>
+              <input v-model="catForm.name" placeholder="ör. Sıcak İçecekler"
+                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
+                            focus:border-accent focus:outline-none"/>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-1">Renk</label>
+              <div class="flex items-center gap-3">
+                <input v-model="catForm.colorHex" type="color"
+                       class="w-12 h-10 rounded-lg border cursor-pointer p-1"/>
+                <input v-model="catForm.colorHex"
+                       class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm
+                              font-mono focus:border-accent focus:outline-none"
+                       placeholder="#3498DB"/>
+                <!-- Önizleme -->
+                <span class="w-8 h-8 rounded-full flex-shrink-0 border border-gray-200"
+                      :style="{ background: catForm.colorHex }"/>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold mb-1">Sıra</label>
+              <input v-model.number="catForm.displayOrder" type="number" min="0"
+                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
+                            focus:border-accent focus:outline-none"/>
+            </div>
+          </div>
+
+          <div v-if="catError"
+               class="mt-4 p-3 bg-red-50 text-danger rounded-xl text-sm">
+            {{ catError }}
+          </div>
+
+          <div class="flex gap-3 mt-6 justify-end">
+            <button @click="catModal.show = false"
+                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+              İptal
+            </button>
+            <button @click="saveCat" :disabled="catSaving"
+                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
+                           hover:bg-blue-600 disabled:opacity-50 transition-colors">
+              {{ catSaving ? 'Kaydediliyor...' : 'Kaydet' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- ── Ürün Modal (mevcut, değiştirilmedi) ───────────────────────── -->
     <Teleport to="body">
       <div v-if="modal.show"
@@ -417,17 +479,54 @@ const form   = reactive({
 const dragOver  = ref(false)
 const fileInput = ref(null)
 
-// ── Yer Tutucu Fonksiyonlar ───────────────────────────────────────────────
-// Kendi çalışan modal'ınızı buraya bağlayın.
-
+// ── Ürün modal yer tutucu ─────────────────────────────────────────────────
 function openExistingProductModal(product = null) {
   if (product) openEdit(product)
   else openCreate()
 }
 
-// eslint-disable-next-line no-unused-vars
+// ── Kategori modal ────────────────────────────────────────────────────────
+const catModal   = reactive({ show: false, editing: false })
+const catForm    = reactive({ id: 0, name: '', colorHex: '#3498DB', displayOrder: 0 })
+const catSaving  = ref(false)
+const catError   = ref('')
+
 function openExistingCategoryModal(category = null) {
-  // Kategori ekleme/düzenleme modal'ı buraya bağlanacak
+  catError.value = ''
+  if (category) {
+    Object.assign(catForm, {
+      id: category.id, name: category.name,
+      colorHex: category.colorHex, displayOrder: category.displayOrder,
+    })
+    catModal.editing = true
+  } else {
+    const nextOrder = categories.value.length
+      ? Math.max(...categories.value.map(c => c.displayOrder ?? 0)) + 1
+      : 1
+    Object.assign(catForm, { id: 0, name: '', colorHex: '#3498DB', displayOrder: nextOrder })
+    catModal.editing = false
+  }
+  catModal.show = true
+}
+
+async function saveCat() {
+  if (!catForm.name.trim()) { catError.value = 'Kategori adı zorunludur.'; return }
+  const others = categories.value.filter(c => c.id !== catForm.id)
+  if (others.some(c => c.name.trim().toLowerCase() === catForm.name.trim().toLowerCase()))
+    { catError.value = 'Bu isimde bir kategori zaten var.'; return }
+  catSaving.value = true
+  catError.value  = ''
+  try {
+    catModal.editing
+      ? await api.updateCategory(catForm.id, catForm)
+      : await api.createCategory(catForm)
+    catModal.show = false
+    await load()
+  } catch (e) {
+    catError.value = e.response?.data?.message || e.response?.data?.title || e.message || 'Hata oluştu.'
+  } finally {
+    catSaving.value = false
+  }
 }
 
 // ── Görsel işleme (mevcut, değiştirilmedi) ───────────────────────────────
