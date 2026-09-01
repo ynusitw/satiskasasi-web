@@ -38,14 +38,15 @@
           </div>
           <div class="flex items-center gap-2 mt-1">
             <span class="text-2xl font-bold text-primary">{{ fmt(data?.todayCash) }}</span>
-            <span :class="trendBadge(mockTrends.cash)"
+            <span v-if="trends.cash !== null"
+                  :class="trendBadge(trends.cash)"
                   class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              {{ mockTrends.cash >= 0 ? '↑' : '↓' }} {{ Math.abs(mockTrends.cash).toFixed(1) }}%
+              {{ trends.cash >= 0 ? '↑' : '↓' }} {{ Math.abs(trends.cash).toFixed(1) }}%
             </span>
           </div>
           <div class="mt-3 -mx-1">
             <VueApexCharts type="area" height="50"
-                           :options="sparkOpts('#27AE60')" :series="[{ data: cashHourly }]"/>
+                           :options="sparkOpts('#27AE60')" :series="[{ data: sparkCash }]"/>
           </div>
           <div class="text-xs text-muted mt-1">Saatlik trend</div>
         </div>
@@ -58,14 +59,15 @@
           </div>
           <div class="flex items-center gap-2 mt-1">
             <span class="text-2xl font-bold text-primary">{{ fmt(data?.todayCard) }}</span>
-            <span :class="trendBadge(mockTrends.card)"
+            <span v-if="trends.card !== null"
+                  :class="trendBadge(trends.card)"
                   class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              {{ mockTrends.card >= 0 ? '↑' : '↓' }} {{ Math.abs(mockTrends.card).toFixed(1) }}%
+              {{ trends.card >= 0 ? '↑' : '↓' }} {{ Math.abs(trends.card).toFixed(1) }}%
             </span>
           </div>
           <div class="mt-3 -mx-1">
             <VueApexCharts type="area" height="50"
-                           :options="sparkOpts('#3498DB')" :series="[{ data: cardHourly }]"/>
+                           :options="sparkOpts('#3498DB')" :series="[{ data: sparkCard }]"/>
           </div>
           <div class="text-xs text-muted mt-1">Saatlik trend</div>
         </div>
@@ -78,14 +80,15 @@
           </div>
           <div class="flex items-center gap-2 mt-1">
             <span class="text-2xl font-bold text-primary">{{ fmt(data?.todayTotal) }}</span>
-            <span :class="trendBadge(mockTrends.total)"
+            <span v-if="trends.total !== null"
+                  :class="trendBadge(trends.total)"
                   class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              {{ mockTrends.total >= 0 ? '↑' : '↓' }} {{ Math.abs(mockTrends.total).toFixed(1) }}%
+              {{ trends.total >= 0 ? '↑' : '↓' }} {{ Math.abs(trends.total).toFixed(1) }}%
             </span>
           </div>
           <div class="mt-3 -mx-1">
             <VueApexCharts type="area" height="50"
-                           :options="sparkOpts('#8B5CF6')" :series="[{ data: totalHourly }]"/>
+                           :options="sparkOpts('#8B5CF6')" :series="[{ data: sparkTotal }]"/>
           </div>
           <div class="text-xs text-muted mt-1">{{ data?.todaySaleCount ?? 0 }} işlem</div>
         </div>
@@ -145,8 +148,21 @@
               </div>
             </div>
           </div>
-          <VueApexCharts type="area" height="300"
+          <!-- Grafik veya boş durum -->
+          <VueApexCharts v-if="chartHasData"
+                         type="area" height="300"
                          :options="areaOpts" :series="areaSeries"/>
+
+          <div v-else class="flex flex-col items-center justify-center h-[300px] gap-3 select-none">
+            <svg class="w-14 h-14 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0
+                       0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0
+                       0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <p class="text-sm font-semibold text-gray-400">Henüz yeterli satış verisi oluşmadı.</p>
+            <p class="text-xs text-gray-300">İlk satışınızın ardından grafik burada görünecek.</p>
+          </div>
         </div>
 
         <!-- Bu Ay En Çok Satılanlar (1/3) -->
@@ -154,8 +170,11 @@
           <h2 class="font-bold text-primary text-base mb-1">Bu Ay En Çok Satılanlar</h2>
           <p class="text-xs text-muted mb-5">Satış adedine göre</p>
 
-          <div v-if="!topProducts.length" class="flex-1 flex items-center justify-center text-muted text-sm">
-            Henüz satış verisi yok
+          <div v-if="!topProducts.length"
+               class="flex-1 flex flex-col items-center justify-center gap-2 py-8 select-none">
+            <span class="text-3xl">🛍️</span>
+            <p class="text-sm font-semibold text-gray-400">Bu ay henüz satış yapılmadı.</p>
+            <p class="text-xs text-gray-300">Satışlar gerçekleştikçe liste burada oluşacak.</p>
           </div>
 
           <div v-else class="space-y-4 flex-1">
@@ -209,45 +228,11 @@ import { ref, computed, onMounted } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import api from '../api/api'
 
-// ── Sabit mock veri ───────────────────────────────────────────────────────
-// Saat bazlı satış trendi (24 saat) — gerçekçi restoran/kafe deseni
-const cashHourly  = [0, 0, 0, 0, 0, 20, 120, 280, 350, 420, 390, 480, 520, 460, 380, 310, 290, 340, 430, 510, 470, 380, 210, 80]
-const cardHourly  = [0, 0, 0, 0, 0, 10,  80, 190, 270, 340, 300, 410, 470, 390, 310, 260, 240, 290, 370, 450, 410, 320, 160, 50]
-const totalHourly = cashHourly.map((v, i) => v + cardHourly[i])
-
-// Aylık satış verisi — 30 gün, gerçekçi dalga
-function genMonthly(base, amp, seed) {
-  return Array.from({ length: 30 }, (_, i) => {
-    const wave = Math.sin((i + seed) * 0.7) * amp
-    const wknd = (i % 7 === 5 || i % 7 === 6) ? amp * 0.4 : 0
-    return Math.max(0, Math.round(base + wave + wknd + i * 25))
-  })
-}
-const mockMonthlyCash = genMonthly(2800, 900, 0)
-const mockMonthlyCard = genMonthly(1900, 700, 2)
-
-// Haftalık veri — 7 gün, hafta sonu daha yüksek
-const mockWeeklyCash = [12400, 14800, 13200, 15600, 17200, 21500, 18900]
-const mockWeeklyCard = [ 8300, 10100,  9400, 11200, 12800, 15600, 13400]
-
-// Yıllık veri — 12 ay
-const mockYearlyCash = [62000, 58000, 71000, 75000, 82000, 91000, 88000, 95000, 87000, 79000, 68000, 105000]
-const mockYearlyCard = [41000, 38000, 47000, 52000, 58000, 64000, 61000, 68000, 62000, 55000, 48000,  74000]
-
-// Trend rozetleri — dünle kıyasla % (gerçek API gelene kadar mock)
-const mockTrends = { cash: 12.4, card: -3.1, total: 8.7 }
-function trendBadge(pct) {
-  return pct >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-}
-
-// Mock ürünler
-const mockTopProducts = [
-  { name: 'Çay',               totalQty: 248, totalRevenue: 3720 },
-  { name: 'Türk Kahvesi',      totalQty: 183, totalRevenue: 7320 },
-  { name: 'Kahvaltı Tabağı',   totalQty: 97,  totalRevenue: 11640 },
-  { name: 'Su 0.5L',           totalQty: 312, totalRevenue: 2808 },
-  { name: 'Karışık Tost',      totalQty: 74,  totalRevenue: 5180 },
-]
+// ── Sabitler ─────────────────────────────────────────────────────────────
+// Düz sıfır çizgisi — satış yokken sparkline için
+const FLAT8 = [0, 0, 0, 0, 0, 0, 0, 0]
+// Zaman ekseni etiketleri
+const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara']
 
 // ── State ─────────────────────────────────────────────────────────────────
 const data         = ref(null)
@@ -269,10 +254,8 @@ function fmt(v) {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 
-// ── Top products: API'dan yoksa mock ─────────────────────────────────────
-const topProducts = computed(() =>
-  data.value?.topProducts?.length ? data.value.topProducts : mockTopProducts
-)
+// ── Top products — sadece API verisi, mock yok ───────────────────────────
+const topProducts = computed(() => data.value?.topProducts ?? [])
 
 const maxQty = computed(() =>
   Math.max(...topProducts.value.map(p => p.totalQty ?? p.qty ?? 0), 1)
@@ -284,6 +267,28 @@ function barWidth(qty) {
 
 const rankColors = ['#3498DB', '#27AE60', '#8B5CF6', '#F59E0B', '#E74C3C']
 function rankColor(i) { return rankColors[i % rankColors.length] }
+
+// ── Trend rozetleri — API'dan gelirse göster, yoksa gizle ────────────────
+// API şu alanları dönerse: todayCashChange, todayCardChange, todayTotalChange (number | null)
+const trends = computed(() => ({
+  cash:  data.value?.todayCashChange  ?? null,
+  card:  data.value?.todayCardChange  ?? null,
+  total: data.value?.todayTotalChange ?? null,
+}))
+function trendBadge(pct) {
+  return pct >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+}
+
+// ── Sparkline serileri — satış yoksa düz çizgi ────────────────────────────
+const sparkCash  = computed(() => (data.value?.todayCash  ?? 0) > 0 ? FLAT8 : FLAT8)
+const sparkCard  = computed(() => (data.value?.todayCard  ?? 0) > 0 ? FLAT8 : FLAT8)
+const sparkTotal = computed(() => (data.value?.todayTotal ?? 0) > 0 ? FLAT8 : FLAT8)
+
+// ── Alan grafiği boş mu? ─────────────────────────────────────────────────
+const chartHasData = computed(() => {
+  if (activeFilter.value === 'today') return (data.value?.todayTotal ?? 0) > 0
+  return (data.value?.monthTotal ?? 0) > 0
+})
 
 // ── Sparkline seçenekleri ─────────────────────────────────────────────────
 function sparkOpts(color) {
@@ -314,40 +319,38 @@ function sparkOpts(color) {
   }
 }
 
-// ── Alan grafiği — filtre bazlı reaktif veri ─────────────────────────────
-const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara']
-
+// ── Alan grafiği — filtre bazlı reaktif veri (API'dan gelene kadar sıfır) ─
 const chartPeriod = computed(() => {
   switch (activeFilter.value) {
     case 'today':
       return {
         categories: Array.from({ length: 24 }, (_, i) => `${i}:00`),
-        cash:       cashHourly,
-        card:       cardHourly,
+        cash:       Array(24).fill(0),
+        card:       Array(24).fill(0),
         xLabel:     (v) => (parseInt(v) % 6 === 0 ? v : ''),
         xTooltip:   (v) => v,
       }
     case 'week':
       return {
         categories: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'],
-        cash:       mockWeeklyCash,
-        card:       mockWeeklyCard,
+        cash:       Array(7).fill(0),
+        card:       Array(7).fill(0),
         xLabel:     (v) => v,
         xTooltip:   (v) => v,
       }
     case 'year':
       return {
         categories: MONTHS,
-        cash:       mockYearlyCash,
-        card:       mockYearlyCard,
+        cash:       Array(12).fill(0),
+        card:       Array(12).fill(0),
         xLabel:     (v) => v,
         xTooltip:   (v) => v,
       }
     default: // month
       return {
         categories: Array.from({ length: 30 }, (_, i) => `${i + 1}`),
-        cash:       mockMonthlyCash,
-        card:       mockMonthlyCard,
+        cash:       Array(30).fill(0),
+        card:       Array(30).fill(0),
         xLabel:     (v) => (Number(v) % 5 === 0 ? v : ''),
         xTooltip:   (v) => `${v}. Gün`,
       }
