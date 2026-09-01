@@ -251,9 +251,6 @@
                        class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm
                               font-mono focus:border-accent focus:outline-none"
                        placeholder="#3498DB"/>
-                <!-- Önizleme -->
-                <span class="w-8 h-8 rounded-full flex-shrink-0 border border-gray-200"
-                      :style="{ background: catForm.colorHex }"/>
               </div>
             </div>
 
