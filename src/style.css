@@ -50,3 +50,13 @@ body {
 
 /* Settings modal kendisi her zaman açık temada kalır */
 .theme-dark [data-settings-modal] .bg-white { background: #ffffff !important; color: #2C3E50; }
+
+/* Dashboard icon arka planları */
+.theme-dark .bg-green-50  { background: #14532d33 !important; }
+.theme-dark .bg-blue-50   { background: #1e3a5f33 !important; }
+.theme-dark .bg-purple-50 { background: #3b076433 !important; }
+.theme-dark .bg-red-50    { background: #7f1d1d33 !important; }
+
+/* Trend badge'ler */
+.theme-dark .bg-green-100 { background: #14532d55 !important; }
+.theme-dark .bg-red-100   { background: #7f1d1d55 !important; }

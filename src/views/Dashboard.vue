@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8 min-h-screen" style="background: #F0F2F5">
+  <div class="p-6 lg:p-8 min-h-screen bg-bg">
 
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
@@ -291,6 +291,7 @@ function sparkOpts(color) {
     chart: {
       type: 'area',
       sparkline: { enabled: true },
+      background: 'transparent',
       animations: { enabled: true, easing: 'easeinout', speed: 900 },
     },
     stroke: { curve: 'smooth', width: 2.5, colors: [color] },
@@ -363,6 +364,7 @@ const areaOpts = computed(() => ({
     type: 'area',
     toolbar: { show: false },
     zoom:    { enabled: false },
+    background: 'transparent',
     animations: { enabled: true, easing: 'easeinout', speed: 700 },
     fontFamily: 'inherit',
   },
