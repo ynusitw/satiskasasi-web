@@ -64,17 +64,29 @@
               </span>
             </button>
 
-            <!-- Düzenle ikonu (hover'da görünür) -->
-            <button @click="openExistingCategoryModal(cat)"
-                    title="Düzenle"
-                    class="px-2 py-3 text-muted opacity-0 group-hover:opacity-100
-                           hover:text-accent transition-all flex-shrink-0">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
-                         m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-              </svg>
-            </button>
+            <!-- Düzenle + Sil ikonları (hover'da görünür) -->
+            <div class="flex items-center opacity-0 group-hover:opacity-100 transition-all pr-1 gap-0.5 flex-shrink-0">
+              <button @click="openExistingCategoryModal(cat)"
+                      title="Düzenle"
+                      class="p-1.5 rounded-md text-muted hover:text-accent hover:bg-accent/10
+                             transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
+                           m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </button>
+              <button @click="deleteCat(cat)"
+                      title="Sil"
+                      class="p-1.5 rounded-md text-muted hover:text-danger hover:bg-red-50
+                             transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5
+                           7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div v-if="!categories.length"
@@ -504,6 +516,21 @@ function openExistingCategoryModal(category = null) {
     catModal.editing = false
   }
   catModal.show = true
+}
+
+async function deleteCat(cat) {
+  const count = products.value.filter(p => p.categoryId === cat.id).length
+  const msg = count > 0
+    ? `"${cat.name}" grubunu silmek üzeresiniz.\n${count} ürün bu gruba bağlı — ürünler kategorisiz kalacak.\n\nDevam edilsin mi?`
+    : `"${cat.name}" grubu silinsin mi?`
+  if (!confirm(msg)) return
+  try {
+    await api.deleteCategory(cat.id)
+    if (selectedCategoryId.value === cat.id) selectedCategoryId.value = null
+    await load()
+  } catch (e) {
+    alert(e.response?.data?.message || e.response?.data?.title || 'Grup silinemedi.')
+  }
 }
 
 async function saveCat() {
