@@ -133,6 +133,33 @@
             </svg>
             Yeni Ürün Ekle
           </button>
+
+          <!-- Excel Şablon İndir -->
+          <button @click="downloadTemplate"
+                  title="Boş Excel şablonu indir"
+                  class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-muted
+                         rounded-lg text-xs font-semibold hover:border-accent hover:text-accent
+                         transition-colors flex-shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Şablon
+          </button>
+
+          <!-- Excel İçe Aktar -->
+          <button @click="triggerImport"
+                  title="Excel dosyasından ürün içe aktar"
+                  class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-muted
+                         rounded-lg text-xs font-semibold hover:border-success hover:text-success
+                         transition-colors flex-shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            Excel İçe Aktar
+          </button>
+          <input ref="importFileInput" type="file" accept=".xlsx,.xls" class="hidden" @change="onImportFile"/>
         </div>
 
         <!-- Tablo -->
@@ -294,6 +321,64 @@
       </div>
     </Teleport>
 
+    <!-- ── Excel İçe Aktarma Modal ─────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="importModal.show"
+           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+           @click.self="importModal.show = false">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+
+          <!-- Başlık -->
+          <h2 class="text-xl font-bold mb-2">Excel İçe Aktarma</h2>
+
+          <!-- İşleniyor -->
+          <div v-if="importModal.processing" class="py-8 flex flex-col items-center gap-4">
+            <div class="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"/>
+            <div class="text-sm text-muted">
+              İşleniyor... {{ importModal.done }} / {{ importModal.total }}
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="bg-accent h-2 rounded-full transition-all"
+                   :style="{ width: importModal.total ? (importModal.done / importModal.total * 100) + '%' : '0%' }"/>
+            </div>
+          </div>
+
+          <!-- Sonuç -->
+          <div v-else-if="importModal.done > 0 || importModal.errors.length">
+            <div class="grid grid-cols-3 gap-3 mt-4 mb-5">
+              <div class="bg-green-50 rounded-xl p-3 text-center">
+                <div class="text-2xl font-bold text-success">{{ importModal.productsCreated }}</div>
+                <div class="text-xs text-muted mt-0.5">Ürün Eklendi</div>
+              </div>
+              <div class="bg-blue-50 rounded-xl p-3 text-center">
+                <div class="text-2xl font-bold text-accent">{{ importModal.catsCreated }}</div>
+                <div class="text-xs text-muted mt-0.5">Grup Oluşturuldu</div>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-3 text-center">
+                <div class="text-2xl font-bold text-muted">{{ importModal.skipped }}</div>
+                <div class="text-xs text-muted mt-0.5">Atlandı</div>
+              </div>
+            </div>
+
+            <!-- Hatalar -->
+            <div v-if="importModal.errors.length"
+                 class="max-h-36 overflow-y-auto bg-red-50 rounded-xl p-3 text-xs text-danger space-y-1">
+              <div v-for="(e, i) in importModal.errors" :key="i">
+                Satır {{ e.row }}: {{ e.msg }}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 mt-6">
+            <button @click="importModal.show = false"
+                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+              Kapat
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- ── Ürün Modal (mevcut, değiştirilmedi) ───────────────────────── -->
     <Teleport to="body">
       <div v-if="modal.show"
@@ -442,6 +527,7 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
+import { read, utils, writeFileXLSX } from 'xlsx'
 import api from '../api/api'
 
 // ── Veri ─────────────────────────────────────────────────────────────────
@@ -649,6 +735,123 @@ async function deleteProduct(p) {
   if (!confirm(`"${p.name}" silinsin mi?`)) return
   try { await api.deleteProduct(p.id); await load() }
   catch { alert('Ürün silinemedi.') }
+}
+
+// ── Excel Şablon İndir ────────────────────────────────────────────────────
+function downloadTemplate() {
+  const wb = utils.book_new()
+  const ws = utils.aoa_to_sheet([
+    ['Barkod', 'Ürün Adı', 'Ürün Grubu', 'Satış Fiyatı', 'Stok'],
+    ['8690000000001', 'Örnek Ürün 1', 'Sıcak İçecekler', 25.90, 100],
+    ['8690000000002', 'Örnek Ürün 2', 'Soğuk İçecekler', 18.50, 50],
+    ['', 'Örnek Ürün 3', 'Sıcak İçecekler', 12.00, 0],
+  ])
+  // Sütun genişlikleri
+  ws['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 20 }, { wch: 14 }, { wch: 8 }]
+  utils.book_append_sheet(wb, ws, 'Ürünler')
+  writeFileXLSX(wb, 'urun-import-sablonu.xlsx')
+}
+
+// ── Excel İçe Aktarma ─────────────────────────────────────────────────────
+const importFileInput = ref(null)
+const importModal = reactive({
+  show: false,
+  processing: false,
+  total: 0,
+  done: 0,
+  productsCreated: 0,
+  catsCreated: 0,
+  skipped: 0,
+  errors: [],
+})
+
+function triggerImport() {
+  importFileInput.value?.click()
+}
+
+async function onImportFile(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  e.target.value = ''
+
+  const buffer = await file.arrayBuffer()
+  const wb = read(buffer)
+  const ws = wb.Sheets[wb.SheetNames[0]]
+  const rows = utils.sheet_to_json(ws, { header: 1, defval: '' })
+
+  // İlk satır başlık, atla; Ürün Adı boş olan satırları da atla
+  const dataRows = rows.slice(1).filter(r => r[1]?.toString().trim())
+  if (!dataRows.length) {
+    alert('Excel dosyasında işlenecek ürün bulunamadı.')
+    return
+  }
+
+  Object.assign(importModal, {
+    show: true, processing: true,
+    total: dataRows.length, done: 0,
+    productsCreated: 0, catsCreated: 0, skipped: 0, errors: [],
+  })
+
+  // Mevcut kategorileri önbelleğe al (isim → id)
+  const catCache = {}
+  for (const c of categories.value) catCache[c.name.trim().toLowerCase()] = c.id
+
+  // Mevcut ürün adları ve barkodlar (duplicate kontrolü için)
+  const existingNames    = new Set(products.value.map(p => p.name.trim().toLowerCase()))
+  const existingBarcodes = new Set(products.value.map(p => p.barcode).filter(Boolean))
+
+  for (let i = 0; i < dataRows.length; i++) {
+    const [barcodeRaw, nameRaw, groupRaw, priceRaw, stockRaw] = dataRows[i]
+    const rowNum  = i + 2  // Excel satır numarası (1 başlık)
+    const name    = nameRaw?.toString().trim()
+    const barcode = barcodeRaw?.toString().trim() || ''
+    const group   = groupRaw?.toString().trim() || ''
+    const price   = parseFloat(priceRaw) || 0
+    const stock   = parseInt(stockRaw)   || 0
+
+    try {
+      // Duplicate kontrolü
+      if (existingNames.has(name.toLowerCase())) {
+        importModal.skipped++
+        importModal.done++
+        continue
+      }
+      if (barcode && existingBarcodes.has(barcode)) {
+        importModal.skipped++
+        importModal.done++
+        continue
+      }
+
+      // Kategori yok → oluştur
+      let categoryId = null
+      if (group) {
+        const key = group.toLowerCase()
+        if (catCache[key] !== undefined) {
+          categoryId = catCache[key]
+        } else {
+          const res = await api.createCategory({ name: group, colorHex: '#3498DB', displayOrder: 0 })
+          categoryId = res.data?.id ?? res.data
+          catCache[key] = categoryId
+          categories.value.push({ id: categoryId, name: group, colorHex: '#3498DB', displayOrder: 0 })
+          importModal.catsCreated++
+        }
+      }
+
+      // Ürün oluştur
+      await api.createProduct({ name, barcode, categoryId, price, currentStock: stock, isActive: true })
+      existingNames.add(name.toLowerCase())
+      if (barcode) existingBarcodes.add(barcode)
+      importModal.productsCreated++
+    } catch (err) {
+      const msg = err?.response?.data?.message ?? err?.response?.data?.title ?? err?.message ?? 'Hata'
+      importModal.errors.push({ row: rowNum, msg })
+    }
+
+    importModal.done++
+  }
+
+  importModal.processing = false
+  await load()
 }
 
 onMounted(load)
