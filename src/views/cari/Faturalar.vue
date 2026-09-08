@@ -213,11 +213,11 @@
                             class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
                           <td class="px-3 py-2 text-xs text-muted text-center">{{ i + 1 }}</td>
                           <td class="px-3 py-2">
-                            <select v-model="k.urunAdi" @change="urunSecildi(k)"
+                            <select v-model="k.urunId" @change="urunSecildi(k)"
                                     class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm
                                            focus:border-accent focus:outline-none bg-white">
-                              <option value="">Ürün seçin...</option>
-                              <option v-for="u in mockUrunler" :key="u.id" :value="u.ad">{{ u.ad }}</option>
+                              <option :value="null">Ürün seçin...</option>
+                              <option v-for="u in urunler" :key="u.id" :value="u.id">{{ u.name }}</option>
                             </select>
                           </td>
                           <td class="px-3 py-2">
@@ -360,24 +360,22 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useCariStore } from '../../stores/cari'
+import api from '../../api/api'
 
 const store = useCariStore()
-onMounted(() => store.fetchCariler())
 
-const today = new Date().toISOString().split('T')[0]
+const today   = new Date().toISOString().split('T')[0]
+const urunler = ref([])
 
-const mockUrunler = [
-  { id: 1,  ad: 'Ekmek',         fiyat: 5.00,   kdv: 1  },
-  { id: 2,  ad: 'Süt 1L',        fiyat: 35.00,  kdv: 1  },
-  { id: 3,  ad: 'Çay 500g',      fiyat: 89.90,  kdv: 10 },
-  { id: 4,  ad: 'Deterjan',      fiyat: 45.00,  kdv: 20 },
-  { id: 5,  ad: 'Makarna 500g',  fiyat: 22.50,  kdv: 1  },
-  { id: 6,  ad: 'Zeytinyağı 1L', fiyat: 180.00, kdv: 10 },
-  { id: 7,  ad: 'Şeker 1kg',     fiyat: 28.00,  kdv: 1  },
-  { id: 8,  ad: 'Un 1kg',        fiyat: 25.00,  kdv: 1  },
-  { id: 9,  ad: 'Temizlik Bezi', fiyat: 55.00,  kdv: 20 },
-  { id: 10, ad: 'Su 5L',         fiyat: 12.00,  kdv: 1  },
-]
+onMounted(async () => {
+  store.fetchCariler()
+  try {
+    const res = await api.getProducts()
+    urunler.value = Array.isArray(res.data) ? res.data : []
+  } catch (e) {
+    console.error('[Faturalar] getProducts hatası:', e?.response?.status, e?.message)
+  }
+})
 
 const search    = ref('')
 const filterTip = ref('')
@@ -423,7 +421,7 @@ function fmtN(v) { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits
 
 // ─── Kalem işlemleri ────────────────────────────────────────────────────────
 function yeniKalem() {
-  kalemler.value.push({ id: Date.now(), urunAdi: '', miktar: 1, birimFiyat: 0, kdv: 20 })
+  kalemler.value.push({ id: Date.now(), urunId: null, urunAdi: '', miktar: 1, birimFiyat: 0, kdv: 20 })
 }
 
 function kalemSil(id) {
@@ -431,10 +429,14 @@ function kalemSil(id) {
 }
 
 function urunSecildi(kalem) {
-  const urun = mockUrunler.find(u => u.ad === kalem.urunAdi)
+  const urun = urunler.value.find(u => u.id === kalem.urunId)
   if (urun) {
-    kalem.birimFiyat = urun.fiyat
-    kalem.kdv        = urun.kdv
+    kalem.urunAdi    = urun.name
+    kalem.birimFiyat = urun.price ?? 0
+    kalem.kdv        = [0, 1, 10, 20].includes(urun.vatRate) ? urun.vatRate : 20
+  } else {
+    kalem.urunAdi    = ''
+    kalem.birimFiyat = 0
   }
 }
 
@@ -451,7 +453,7 @@ function save() {
   if (!form.no.trim())         { error.value = 'Fatura no zorunludur.'; return }
   if (!form.cariId)            { error.value = 'Cari seçimi zorunludur.'; return }
   if (!kalemler.value.length)  { error.value = 'En az bir kalem eklenmelidir.'; return }
-  if (kalemler.value.some(k => !k.urunAdi))    { error.value = 'Tüm satırlarda ürün seçilmelidir.'; return }
+  if (kalemler.value.some(k => !k.urunId))     { error.value = 'Tüm satırlarda ürün seçilmelidir.'; return }
   if (kalemler.value.some(k => k.miktar <= 0)) { error.value = 'Miktar sıfırdan büyük olmalıdır.'; return }
   if (genelToplam.value <= 0)  { error.value = 'Fatura tutarı sıfırdan büyük olmalıdır.'; return }
 
