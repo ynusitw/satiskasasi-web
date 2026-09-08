@@ -124,6 +124,18 @@
                           focus:border-accent focus:outline-none w-52"/>
           </div>
 
+          <!-- Hızlı Fotoğraf -->
+          <button @click="openPhotoModal"
+                  class="flex items-center gap-2 px-4 py-2 border border-purple-200 text-purple-600
+                         rounded-lg text-sm font-bold hover:bg-purple-50 transition-colors flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Hızlı Fotoğraf
+          </button>
+
           <!-- Yeni Ürün Ekle -->
           <button @click="openExistingProductModal()"
                   class="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg
@@ -261,6 +273,122 @@
         </div>
       </div>
     </div>
+
+    <!-- ── Hızlı Fotoğraf Modal ─────────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="photoModal.show"
+           class="fixed inset-0 bg-black/60 z-50 flex flex-col">
+
+        <!-- Üst bar -->
+        <div class="bg-white flex items-center gap-4 px-6 py-3.5 shadow-sm flex-shrink-0">
+          <div class="flex-1 min-w-0">
+            <h2 class="font-bold text-primary text-base">Hızlı Fotoğraf Ekle</h2>
+            <p class="text-xs text-muted">{{ filteredPhotoItems.length }} ürün gösteriliyor · Tıkla veya sürükle</p>
+          </div>
+
+          <!-- Arama -->
+          <div class="relative">
+            <svg class="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+            </svg>
+            <input v-model="photoSearch" placeholder="Ürün ara..."
+                   class="pl-9 pr-4 py-1.5 border border-gray-200 rounded-lg text-sm
+                          focus:border-accent focus:outline-none w-48"/>
+          </div>
+
+          <!-- Kapat -->
+          <button @click="photoModal.show = false"
+                  class="p-2 rounded-xl text-muted hover:text-danger hover:bg-red-50 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Grid -->
+        <div class="flex-1 overflow-y-auto p-5 bg-gray-100">
+          <div v-if="!filteredPhotoItems.length"
+               class="h-full flex items-center justify-center text-muted text-sm">
+            Ürün bulunamadı.
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <div v-for="item in filteredPhotoItems" :key="item.id"
+                 class="bg-white rounded-2xl shadow-sm p-3.5 flex flex-col gap-2.5">
+
+              <!-- Ürün adı (salt okunur) -->
+              <div class="text-xs font-bold text-primary text-center leading-tight line-clamp-2 min-h-[2.5rem] flex items-center justify-center">
+                {{ item.name }}
+              </div>
+
+              <!-- Görsel alanı -->
+              <div class="relative w-full aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all"
+                   :class="item.dragOver
+                     ? 'border-accent bg-blue-50 scale-[1.02]'
+                     : item.imageBase64
+                       ? 'border-gray-200'
+                       : 'border-dashed border-gray-300 hover:border-purple-400 hover:bg-purple-50'"
+                   @click="pickPhotoFile(item)"
+                   @dragover.prevent="item.dragOver = true"
+                   @dragleave="item.dragOver = false"
+                   @drop.prevent="onPhotoDrop(item, $event)">
+
+                <img v-if="item.imageBase64" :src="item.imageBase64"
+                     class="w-full h-full object-cover"/>
+
+                <div v-else
+                     class="w-full h-full flex flex-col items-center justify-center gap-1.5 text-gray-300">
+                  <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                  <span class="text-xs text-gray-400">Fotoğraf ekle</span>
+                </div>
+
+                <!-- Kayıt spinnerı -->
+                <div v-if="item.saving"
+                     class="absolute inset-0 bg-white/80 flex items-center justify-center">
+                  <div class="w-7 h-7 border-[3px] border-accent border-t-transparent rounded-full animate-spin"/>
+                </div>
+
+                <!-- Kaydedildi rozeti -->
+                <div v-if="item.saved && !item.saving"
+                     class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-success
+                            flex items-center justify-center shadow">
+                  <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+
+                <!-- Hata rozeti -->
+                <div v-if="item.error && !item.saving"
+                     class="absolute inset-0 bg-red-50/90 flex items-center justify-center p-2">
+                  <span class="text-danger text-xs font-semibold text-center">{{ item.error }}</span>
+                </div>
+
+                <!-- Sürükle overlay -->
+                <div v-if="item.dragOver"
+                     class="absolute inset-0 flex items-center justify-center bg-accent/10">
+                  <span class="text-accent font-bold text-sm">Bırak!</span>
+                </div>
+              </div>
+
+              <!-- Görseli kaldır -->
+              <button v-if="item.imageBase64 && !item.saving"
+                      @click.stop="removePhoto(item)"
+                      class="text-xs text-muted hover:text-danger transition-colors text-center
+                             py-0.5 hover:bg-red-50 rounded-lg">
+                Görseli Kaldır
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- ── Kategori Modal ────────────────────────────────────────────── -->
     <Teleport to="body">
@@ -735,6 +863,95 @@ async function deleteProduct(p) {
   if (!confirm(`"${p.name}" silinsin mi?`)) return
   try { await api.deleteProduct(p.id); await load() }
   catch { alert('Ürün silinemedi.') }
+}
+
+// ── Hızlı Fotoğraf Modal ─────────────────────────────────────────────────
+const photoModal  = reactive({ show: false })
+const photoItems  = ref([])
+const photoSearch = ref('')
+
+const filteredPhotoItems = computed(() =>
+  photoSearch.value
+    ? photoItems.value.filter(i =>
+        i.name.toLowerCase().includes(photoSearch.value.toLowerCase()))
+    : photoItems.value
+)
+
+function openPhotoModal() {
+  photoSearch.value = ''
+  photoItems.value = products.value.map(p => ({
+    id:          p.id,
+    name:        p.name,
+    imageBase64: p.imageBase64 || '',
+    dragOver:    false,
+    saving:      false,
+    saved:       false,
+    error:       '',
+    _product:    { ...p },
+  }))
+  photoModal.show = true
+}
+
+function pickPhotoFile(item) {
+  if (item.saving) return
+  const input = document.createElement('input')
+  input.type   = 'file'
+  input.accept = 'image/*'
+  input.onchange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) processPhotoForItem(item, file)
+  }
+  input.click()
+}
+
+function onPhotoDrop(item, e) {
+  item.dragOver = false
+  if (item.saving) return
+  const file = e.dataTransfer?.files?.[0]
+  if (file?.type.startsWith('image/')) processPhotoForItem(item, file)
+}
+
+function processPhotoForItem(item, file) {
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = canvas.height = 192
+      const ctx = canvas.getContext('2d')
+      const srcSize = Math.min(img.width, img.height)
+      const sx = (img.width  - srcSize) / 2
+      const sy = (img.height - srcSize) / 2
+      ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, 192, 192)
+      item.imageBase64 = canvas.toDataURL('image/jpeg', 0.85)
+      savePhotoForItem(item)
+    }
+    img.src = ev.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+async function savePhotoForItem(item) {
+  item.saving = true
+  item.saved  = false
+  item.error  = ''
+  try {
+    await api.updateProduct(item.id, { ...item._product, imageBase64: item.imageBase64 })
+    item._product.imageBase64 = item.imageBase64
+    const p = products.value.find(p => p.id === item.id)
+    if (p) p.imageBase64 = item.imageBase64
+    item.saved = true
+    setTimeout(() => { item.saved = false }, 2500)
+  } catch (e) {
+    item.error = e?.response?.data?.message ?? 'Kaydedilemedi'
+  } finally {
+    item.saving = false
+  }
+}
+
+async function removePhoto(item) {
+  item.imageBase64 = ''
+  await savePhotoForItem(item)
 }
 
 // ── Excel Şablon İndir ────────────────────────────────────────────────────
