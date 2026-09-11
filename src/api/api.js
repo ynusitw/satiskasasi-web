@@ -8,8 +8,11 @@ const api = axios.create({
 
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
-  const isAuthEndpoint = config.url?.includes('auth/login') ||
-    config.url?.includes('licenses/request') || config.url?.includes('licenses/status')
+  // Not: licenses/request ve licenses/status kasadan (WPF) anonim çağrılır,
+  // Vue admin panelinden hiç kullanılmaz — burada hariç tutulmalarına gerek
+  // yok (ve "licenses/request" alt dizesi "licenses/requests" (süper admin,
+  // token gerekli) ile çakışıp yanlışlıkla onu da token'sız bırakıyordu).
+  const isAuthEndpoint = config.url?.includes('auth/login')
   if (token && !isAuthEndpoint) config.headers.Authorization = `Bearer ${token}`
   return config
 })
