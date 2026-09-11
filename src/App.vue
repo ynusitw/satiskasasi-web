@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-h-screen bg-bg">
 
-    <aside v-if="auth.isLoggedIn && route.path !== '/login' && route.path !== '/register'"
+    <aside v-if="auth.isLoggedIn && route.path !== '/login'"
            class="fixed left-0 top-0 h-full w-60 bg-primary text-white
                   flex flex-col z-50 shadow-xl">
 
@@ -60,6 +60,20 @@
                    border-transparent transition-all"
             active-class="text-white !bg-white/10 !border-accent">
             <span>📦</span><span>Paket Yönetimi</span>
+          </RouterLink>
+          <RouterLink to="/superadmin/lisanslar"
+            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
+                   hover:text-white hover:bg-white/8 border-l-4
+                   border-transparent transition-all"
+            active-class="text-white !bg-white/10 !border-accent">
+            <span>🔑</span><span>Lisanslar</span>
+          </RouterLink>
+          <RouterLink to="/superadmin/lisans-talepleri"
+            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
+                   hover:text-white hover:bg-white/8 border-l-4
+                   border-transparent transition-all"
+            active-class="text-white !bg-white/10 !border-accent">
+            <span>📨</span><span>Lisans Talepleri</span>
           </RouterLink>
         </template>
 
@@ -226,8 +240,7 @@
 
     <!-- İçerik -->
     <main :class="auth.isLoggedIn &&
-                  route.path !== '/login' &&
-                  route.path !== '/register' ? 'ml-60' : ''"
+                  route.path !== '/login' ? 'ml-60' : ''"
           class="flex-1">
       <RouterView v-slot="{ Component }">
         <Transition name="fade" mode="out-in">

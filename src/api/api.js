@@ -8,7 +8,8 @@ const api = axios.create({
 
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
-  const isAuthEndpoint = config.url?.includes('auth/login') || config.url?.includes('tenants/register')
+  const isAuthEndpoint = config.url?.includes('auth/login') ||
+    config.url?.includes('licenses/request') || config.url?.includes('licenses/status')
   if (token && !isAuthEndpoint) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -35,6 +36,13 @@ export default {
   getAllTenants:      ()   => api.get('tenants'),
   updateSubscription:(id, d) => api.put(`tenants/${id}/subscription`, d),
   deleteTenant:      (id) => api.delete(`tenants/${id}`),
+
+  // Lisans
+  getLicenses:        ()       => api.get('licenses'),
+  getLicenseRequests: ()       => api.get('licenses/requests'),
+  approveLicense:     (id, d)  => api.post(`licenses/requests/${id}/approve`, d),
+  rejectLicense:      (id, d)  => api.post(`licenses/requests/${id}/reject`, d),
+  revokeLicense:      (id)     => api.post(`licenses/${id}/revoke`),
 
   // Dashboard
   dashboard: () => api.get('reports/dashboard'),

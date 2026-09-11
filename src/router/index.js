@@ -7,11 +7,6 @@ const routes = [
     meta: { public: true }
   },
   {
-    path: '/register',
-    component: () => import('../views/Register.vue'),
-    meta: { public: true }
-  },
-  {
     path: '/',
     component: () => import('../views/Dashboard.vue'),
   },
@@ -67,6 +62,16 @@ const routes = [
   {
     path: '/superadmin/paketler',
     component: () => import('../views/SuperAdminPaketler.vue'),
+    meta: { superAdminOnly: true }
+  },
+  {
+    path: '/superadmin/lisanslar',
+    component: () => import('../views/LicensesView.vue'),
+    meta: { superAdminOnly: true }
+  },
+  {
+    path: '/superadmin/lisans-talepleri',
+    component: () => import('../views/LicenseRequestsView.vue'),
     meta: { superAdminOnly: true }
   },
 ]
