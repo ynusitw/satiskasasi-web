@@ -209,7 +209,14 @@
 
                 <!-- Ürün Adı -->
                 <td class="px-5 py-3">
-                  <div class="font-semibold text-sm text-primary">{{ p.name }}</div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold text-sm text-primary">{{ p.name }}</span>
+                    <span v-if="!p.isActive"
+                          class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                                 bg-gray-200 text-gray-500 flex-shrink-0">
+                      Pasif
+                    </span>
+                  </div>
                   <div v-if="!selectedCategoryId && p.categoryName"
                        class="text-xs mt-0.5 font-medium"
                        :style="{ color: categoryMap[p.categoryId]?.colorHex || '#94a3b8' }">
@@ -626,6 +633,35 @@
                      class="w-full px-4 py-2 border border-gray-200 rounded-xl
                             focus:border-accent focus:outline-none text-sm"/>
             </div>
+
+            <!-- Dijital menü alanları -->
+            <div>
+              <label class="block text-sm font-semibold mb-1">
+                Açıklama
+                <span class="text-xs font-normal text-muted">(dijital menüde görünür)</span>
+              </label>
+              <textarea v-model="form.description" rows="2"
+                        placeholder="Örn. Odun ateşinde pişirilmiş, özel baharatlarla..."
+                        class="w-full px-4 py-2 border border-gray-200 rounded-xl
+                               focus:border-accent focus:outline-none text-sm resize-none"/>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2">
+                Alerjenler
+                <span class="text-xs font-normal text-muted">(dijital menüde görünür)</span>
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <button v-for="a in ALLERGENS" :key="a.code" type="button"
+                        @click="toggleAllergen(a.code)"
+                        class="px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all"
+                        :class="hasAllergen(a.code)
+                          ? 'border-accent bg-accent/10 text-accent'
+                          : 'border-gray-200 text-muted hover:border-gray-300'">
+                  {{ a.label }}
+                </button>
+              </div>
+            </div>
+
             <label class="flex items-center gap-2 cursor-pointer">
               <input v-model="form.isActive" type="checkbox" class="w-4 h-4 accent-accent"/>
               <span class="text-sm font-semibold">Aktif</span>
@@ -657,6 +693,7 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import { read, utils, writeFileXLSX } from 'xlsx'
 import api from '../api/api'
+import { ALLERGENS, parseAllergens } from '../constants/allergens'
 
 // ── Veri ─────────────────────────────────────────────────────────────────
 const products   = ref([])
@@ -697,10 +734,25 @@ const modal  = reactive({ show: false, editing: false })
 const form   = reactive({
   id: 0, name: '', barcode: '', categoryId: null,
   price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
-  isActive: true, imageBase64: '',
+  isActive: true, imageBase64: '', description: '', allergens: '',
 })
 const dragOver  = ref(false)
 const fileInput = ref(null)
+
+// ── Alerjenler (dijital menü) ────────────────────────────────────────────
+function allergenList() {
+  return parseAllergens(form.allergens)
+}
+function hasAllergen(code) {
+  return allergenList().includes(code)
+}
+function toggleAllergen(code) {
+  const list = allergenList()
+  const i = list.indexOf(code)
+  if (i === -1) list.push(code)
+  else list.splice(i, 1)
+  form.allergens = list.join(',')
+}
 
 // ── Ürün modal yer tutucu ─────────────────────────────────────────────────
 function openExistingProductModal(product = null) {
@@ -808,7 +860,9 @@ function processImageFile(file) {
 // ── API (mevcut, değiştirilmedi) ─────────────────────────────────────────
 async function load() {
   loading.value = true
-  const [prod, cats] = await Promise.all([api.getProducts(), api.getCategories()])
+  // Pasif ürünler de listelenir (menüde gri gösteriliyor, buradan
+  // tekrar aktifleştirilebilmeli)
+  const [prod, cats] = await Promise.all([api.getProductsAll(), api.getCategories()])
   products.value   = prod.data
   categories.value = cats.data
   loading.value    = false
@@ -818,7 +872,7 @@ function openCreate() {
   Object.assign(form, {
     id: 0, name: '', barcode: '', categoryId: selectedCategoryId.value,
     price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
-    isActive: true, imageBase64: '',
+    isActive: true, imageBase64: '', description: '', allergens: '',
   })
   modal.editing = false
   modal.show    = true
@@ -826,7 +880,12 @@ function openCreate() {
 }
 
 function openEdit(p) {
-  Object.assign(form, { ...p, imageBase64: p.imageBase64 || '' })
+  Object.assign(form, {
+    ...p,
+    imageBase64: p.imageBase64 || '',
+    description: p.description || '',
+    allergens:   p.allergens   || '',
+  })
   modal.editing = true
   modal.show    = true
   error.value   = ''

@@ -57,11 +57,17 @@ export default {
   // Dijital Menü (herkese açık)
   getPublicMenu: (slug) => api.get(`menu/${slug}`),
 
+  // Dijital Menü yapılandırması (öne çıkanlar + kategori görselleri)
+  getMenuConfig:  ()  => api.get('menu/config'),
+  saveMenuConfig: (d) => api.put('menu/config', d),
+
   // Dashboard
   dashboard: () => api.get('reports/dashboard'),
 
   // Ürünler
   getProducts:    ()       => api.get('products'),
+  // Pasifler dahil — yalnızca ürün yönetim ekranı kullanır
+  getProductsAll: ()       => api.get('products?includeInactive=true'),
   createProduct:  (d)      => api.post('products', d),
   updateProduct:  (id, d)  => api.put(`products/${id}`, d),
   deleteProduct:  (id)     => api.delete(`products/${id}`),
