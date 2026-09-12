@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8 max-w-5xl">
+  <div class="p-8 max-w-6xl">
 
     <!-- Başlık -->
     <div class="mb-6">
@@ -75,8 +75,8 @@
           </button>
         </div>
 
-        <!-- Bölüm kartları -->
-        <div v-if="bolumler.length" class="space-y-4 mb-6">
+        <!-- Bölüm kartları — geniş ekranda iki sütun -->
+        <div v-if="bolumler.length" class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6 items-start">
           <div v-for="bolum in bolumler" :key="bolum.id"
                class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
 
@@ -146,8 +146,10 @@
 
             <!-- Masa grid'i -->
             <div class="p-4">
+              <!-- Bölüm kartı artık yarım genişlikte olabildiği için sütun
+                   sayısı 3'te tutuluyor -->
               <div v-if="bolum.masalar.length"
-                   class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                   class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <div v-for="masa in bolum.masalar" :key="masa.id"
                      class="border border-gray-200 rounded-xl bg-white
                             hover:border-accent/40 hover:shadow-sm transition-all flex flex-col">

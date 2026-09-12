@@ -38,12 +38,12 @@
     <div v-else class="flex flex-col xl:flex-row gap-6 items-start">
 
       <!-- ────────────────────── Sol: Form ───────────────────────────── -->
-      <div class="flex-1 space-y-5 min-w-0">
+      <!-- Ayar kartları geniş ekranda iki sütuna yayılır (önizleme sağda kalır) -->
+      <div class="flex-1 min-w-0 grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
         <!-- İşletme Bilgileri -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
           <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            <span class="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">🏪</span>
             İşletme Bilgileri
           </h2>
           <div class="space-y-3">
@@ -62,7 +62,6 @@
         <!-- Yazıcı Ayarları -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
           <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            <span class="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">🖨</span>
             Yazıcı Ayarları
           </h2>
           <div class="space-y-4">
@@ -122,7 +121,6 @@
         <!-- Alt Not -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
           <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            <span class="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">📝</span>
             Alt Not
           </h2>
           <div class="space-y-3">
@@ -150,7 +148,6 @@
         <!-- Otomatik Yazdırma -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
           <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            <span class="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">⚡</span>
             Otomatik Yazdırma
           </h2>
           <div class="divide-y divide-gray-50">
@@ -188,7 +185,6 @@
         <!-- Gösterim Seçenekleri -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
           <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            <span class="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center">👁</span>
             Fişte Göster / Gizle
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">

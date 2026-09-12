@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8 max-w-3xl">
+  <div class="p-8 max-w-6xl">
     <h1 class="text-2xl font-bold text-primary">Dijital Menü (QR)</h1>
     <p class="text-muted text-sm mt-1 mb-6">
       Bu QR kodu masalarınıza koyun — müşterileriniz telefonlarıyla okutup
@@ -9,7 +9,8 @@
 
     <div v-if="loading" class="text-muted">Yükleniyor...</div>
 
-    <div v-else class="space-y-6">
+    <!-- Kartlar geniş ekranda iki sütuna yayılır; dar ekranda alt alta iner -->
+    <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
       <!-- QR + bağlantı -->
       <div class="bg-white rounded-2xl shadow-sm p-8 flex flex-col items-center">
         <img :src="qrUrl" :alt="menuUrl" width="220" height="220"
@@ -166,8 +167,8 @@
                class="hidden" @change="onCategoryFileChange"/>
       </div>
 
-      <!-- Kaydet -->
-      <div class="flex items-center justify-end gap-3 pb-4">
+      <!-- Kaydet — iki sütunun altında tam genişlik -->
+      <div class="xl:col-span-2 flex items-center justify-end gap-3 pb-4">
         <span class="text-sm" :class="configError ? 'text-danger' : 'text-muted'">
           {{ configError ? configError : (configSaved ? 'Menü ayarları kaydedildi' : '') }}
         </span>

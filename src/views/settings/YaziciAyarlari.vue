@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8 max-w-5xl">
+  <div class="p-8 max-w-6xl">
 
     <!-- Başlık -->
     <div class="mb-6">
@@ -11,13 +11,15 @@
       Yükleniyor...
     </div>
 
+    <!-- Genel ayarlar solda dar sütun, kategori tablosu sağda geniş sütun -->
     <template v-else>
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
 
       <!-- ── Genel Ayarlar ─────────────────────────────────────────────── -->
-      <div class="bg-white rounded-2xl shadow-sm p-6 mb-2">
+      <div class="xl:col-span-1 bg-white rounded-2xl shadow-sm p-6">
         <h2 class="font-bold text-primary mb-5">Genel Ayarlar</h2>
 
-        <div class="flex flex-col md:flex-row gap-8 items-start">
+        <div class="flex flex-col gap-6 items-stretch">
 
           <!-- Sol: Varsayılan yazıcı -->
           <div class="flex-1 min-w-0">
@@ -32,8 +34,8 @@
             </select>
           </div>
 
-          <!-- Sağ: Toggle'lar -->
-          <div class="space-y-4 md:min-w-[300px]">
+          <!-- Toggle'lar -->
+          <div class="space-y-4">
             <div class="flex items-center justify-between gap-6">
               <span class="text-sm font-medium text-primary">
                 Ödeme Sonrasında Fişi Otomatik Yazdır.
@@ -62,15 +64,15 @@
             </div>
           </div>
         </div>
+
+        <!-- Info text -->
+        <p class="text-xs text-muted mt-5">
+          Yazıcılar lokal sistemden otomatik olarak çekilmektedir. Değişiklikler anında kasaya yansır.
+        </p>
       </div>
 
-      <!-- Info text -->
-      <p class="text-xs text-muted mb-6 px-1">
-        Yazıcılar lokal sistemden otomatik olarak çekilmektedir. Değişiklikler anında kasaya yansır.
-      </p>
-
       <!-- ── Kategori Yönlendirmesi ─────────────────────────────────────── -->
-      <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100">
           <h2 class="font-bold text-primary">Kategori Yönlendirmesi</h2>
           <p class="text-xs text-muted mt-0.5">
@@ -211,6 +213,8 @@
           </table>
         </div>
       </div>
+
+      </div><!-- /grid -->
 
       <!-- ── Hata / Başarı ─────────────────────────────────────────────── -->
       <div v-if="saveError"
