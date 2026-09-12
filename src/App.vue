@@ -1,7 +1,11 @@
 <template>
-  <div class="flex min-h-screen bg-bg">
+  <!-- Herkese açık dijital menü, yönetici kabuğunun (sidebar, koyu tema vb.)
+       tamamen dışında, kendi bağımsız sayfası olarak render edilir. -->
+  <RouterView v-if="isMenuRoute"/>
 
-    <aside v-if="auth.isLoggedIn && route.path !== '/login' && !route.path.startsWith('/menu/')"
+  <div v-else class="flex min-h-screen bg-bg">
+
+    <aside v-if="auth.isLoggedIn && route.path !== '/login'"
            class="fixed left-0 top-0 h-full w-60 bg-primary text-white
                   flex flex-col z-50 shadow-xl">
 
@@ -239,9 +243,7 @@
     <SettingsModal v-model:open="settingsOpen"/>
 
     <!-- İçerik -->
-    <main :class="auth.isLoggedIn &&
-                  route.path !== '/login' &&
-                  !route.path.startsWith('/menu/') ? 'ml-60' : ''"
+    <main :class="auth.isLoggedIn && route.path !== '/login' ? 'ml-60' : ''"
           class="flex-1">
       <RouterView v-slot="{ Component }">
         <Transition name="fade" mode="out-in">
@@ -279,6 +281,7 @@ watch(() => route.path, path => {
 
 const isReportsActive  = computed(() => route.path.startsWith('/reports'))
 const isCariActive     = computed(() => route.path.startsWith('/cari'))
+const isMenuRoute      = computed(() => route.path.startsWith('/menu/'))
 const isKasaYapiActive = computed(() => route.path.startsWith('/settings'))
 
 const menuTop = [
