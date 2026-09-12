@@ -1,6 +1,6 @@
 <template>
   <!-- Dijital menüde tek ürün satırı. Pasif ürünler gizlenmez, soluk gösterilir. -->
-  <div class="product-row" :class="{ 'is-inactive': !product.isActive }">
+  <div class="product-row" :class="{ 'is-inactive': isInactive }">
     <div class="product-thumb">
       <img v-if="product.imageBase64" :src="product.imageBase64" :alt="product.name"/>
     </div>
@@ -12,7 +12,7 @@
       </div>
       <div class="product-foot">
         <span class="price-tag">{{ fmt(product.price) }}</span>
-        <span v-if="!product.isActive" class="unavailable">Şu anda mevcut değil</span>
+        <span v-if="isInactive" class="unavailable">Şu anda mevcut değil</span>
       </div>
     </div>
   </div>
@@ -25,6 +25,10 @@ import { allergenLabels } from '../constants/allergens'
 const props = defineProps({ product: { type: Object, required: true } })
 
 const labels = computed(() => allergenLabels(props.product.allergens))
+
+// Yalnızca API açıkça false derse pasif say — alanı göndermeyen eski bir API
+// sürümü karşımıza çıkarsa ürünler yanlışlıkla "mevcut değil" görünmesin.
+const isInactive = computed(() => props.product.isActive === false)
 
 function fmt(v) {
   return new Intl.NumberFormat('tr-TR').format(v ?? 0) + ' ₺'
