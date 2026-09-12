@@ -78,7 +78,7 @@
       </div>
 
       <!-- Ürünler -->
-      <main class="max-w-2xl mx-auto px-4 pb-10 pt-2">
+      <div class="max-w-2xl mx-auto px-4 pb-10 pt-2">
         <TransitionGroup name="fade-slide" tag="div">
           <section v-for="c in visibleCategories" :key="c.id" class="mb-7">
             <h2 class="flex items-center gap-2 mb-3 pt-2">
@@ -113,7 +113,7 @@
           <div v-if="search">"{{ search }}" için sonuç bulunamadı</div>
           <div v-else>Bu kategoride ürün yok</div>
         </div>
-      </main>
+      </div>
 
       <footer class="text-center text-xs text-inkmuted/70 py-6 border-t border-black/5">
         🍴 Dijital menü · SatışKasası ile oluşturuldu
