@@ -39,6 +39,7 @@ export default {
   getAllTenants:      ()   => api.get('tenants'),
   updateSubscription:(id, d) => api.put(`tenants/${id}/subscription`, d),
   deleteTenant:      (id) => api.delete(`tenants/${id}`),
+  updateMenuSettings: (d) => api.put('tenants/me/menu-settings', d),
 
   // Lisans
   getLicenses:        ()       => api.get('licenses'),
