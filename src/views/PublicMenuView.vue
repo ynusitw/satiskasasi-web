@@ -206,7 +206,16 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
   background: #FFF8F0 !important;
 }
 
+/* Telefon/tarayıcı sistem genelinde koyu temadaysa, bazı tarayıcılar
+   (özellikle Android Chrome) açık renkli sayfaları otomatik olarak koyuya
+   çevirip lacivert bir filtre uygular ("force dark"). "light" bildirerek bu
+   otomatik karartmadan çıkıyoruz — sayfa kendi renklerini korur. */
+:global(html:has(.menu-page)) {
+  color-scheme: only light;
+}
+
 .menu-page {
+  color-scheme: only light;
   --brand: #D97706;
   --brand-dark: #92400E;
   --ink: #1F2937;
