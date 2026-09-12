@@ -12,20 +12,20 @@
     <!-- İstatistik Kartları -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <StatCard label="Toplam Müşteri" :value="tenants.length"
-                icon="🏢" color="bg-blue-50 text-blue-600"/>
+                color="bg-blue-50 text-blue-600"/>
       <StatCard label="Aktif" :value="activeCount"
-                icon="✅" color="bg-green-50 text-green-600"/>
+                color="bg-green-50 text-green-600"/>
       <StatCard label="Deneme" :value="trialCount"
-                icon="⏳" color="bg-yellow-50 text-yellow-600"/>
+                color="bg-yellow-50 text-yellow-600"/>
       <StatCard label="Süresi Dolan" :value="expiredCount"
-                icon="⚠️" color="bg-red-50 text-red-600"/>
+                color="bg-red-50 text-red-600"/>
     </div>
 
     <!-- Tablo -->
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-4">
         <input v-model="search"
-               placeholder="🔍 İşletme veya email ara..."
+               placeholder="İşletme veya email ara..."
                class="px-4 py-2 rounded-xl border border-gray-200
                       focus:border-accent focus:outline-none text-sm w-72"/>
         <button @click="load"

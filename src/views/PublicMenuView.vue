@@ -18,7 +18,6 @@
     <!-- ── Bulunamadı ───────────────────────────────────────────── -->
     <div v-else-if="notFound"
          class="flex flex-col items-center justify-center min-h-screen text-center p-8 menu-surface">
-      <div class="text-6xl mb-4">🍽️</div>
       <div class="font-bold text-xl text-ink">Menü bulunamadı</div>
       <div class="text-sm text-inkmuted mt-1">Bağlantıyı kontrol edin ya da işletmeyle iletişime geçin.</div>
     </div>
@@ -29,19 +28,18 @@
       <header class="hero px-5 pt-9 pb-7 text-center relative overflow-hidden">
         <div class="hero-glow"></div>
         <div class="relative">
-          <div class="hero-badge">🍴 DİJİTAL MENÜ</div>
-          <h1 class="text-[26px] leading-tight font-extrabold text-white mt-2">
+          <h1 class="text-[26px] leading-tight font-extrabold text-white">
             {{ menu.businessName }}
           </h1>
           <div v-if="menu.address || menu.phone"
                class="flex items-center justify-center gap-3 mt-3 flex-wrap">
             <a v-if="menu.phone" :href="`tel:${menu.phone}`"
                class="hero-chip">
-              📞 {{ menu.phone }}
+              {{ menu.phone }}
             </a>
             <a v-if="menu.address" :href="mapUrl" target="_blank" rel="noopener"
                class="hero-chip">
-              📍 Konum
+              Konum
             </a>
           </div>
         </div>
@@ -93,7 +91,7 @@
               <div v-for="p in c.products" :key="p.id" class="product-card">
                 <div class="product-media">
                   <img v-if="p.imageBase64" :src="p.imageBase64" :alt="p.name"/>
-                  <div v-else class="product-placeholder">🍽️</div>
+                  <div v-else class="product-placeholder"></div>
                 </div>
                 <div class="p-2.5">
                   <div class="font-semibold text-ink text-sm leading-snug line-clamp-2">
@@ -108,14 +106,13 @@
 
         <div v-if="visibleCategories.length === 0"
              class="text-center py-16 text-inkmuted">
-          <div class="text-4xl mb-3">🔍</div>
           <div v-if="search">"{{ search }}" için sonuç bulunamadı</div>
           <div v-else>Bu kategoride ürün yok</div>
         </div>
       </div>
 
       <footer class="text-center text-xs text-inkmuted/70 py-6 border-t border-black/5">
-        🍴 Dijital menü · SatışKasası ile oluşturuldu
+        Dijital menü · SatışKasası ile oluşturuldu
       </footer>
 
       <!-- Yukarı çık -->
@@ -260,12 +257,6 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
   position: absolute; inset: 0;
   background: radial-gradient(circle at 50% 0%, rgba(217,119,6,0.35), transparent 60%);
   pointer-events: none;
-}
-.hero-badge {
-  display: inline-block;
-  font-size: 10px; font-weight: 800; letter-spacing: .08em;
-  color: #FBBF24; background: rgba(251,191,36,0.12);
-  padding: 4px 10px; border-radius: 999px;
 }
 .hero-chip {
   display: inline-flex; align-items: center; gap: 4px;
