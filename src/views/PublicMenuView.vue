@@ -236,10 +236,13 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
   box-shadow: 0 0 0 3px rgba(217,119,6,0.15);
 }
 /* style.css'teki global ".theme-dark input {...}" kuralı çıplak <input>
-   etiketini hedefliyor — class'tan bağımsız, burayı da eziyordu. */
-:global(.theme-dark) .search-input {
+   etiketini hedefliyor — class'tan bağımsız, burayı da eziyordu.
+   Not: Vue'nun scoped CSS'inde :global() seçicinin TAMAMINI sarmalı,
+   yoksa (":global(.theme-dark) .search-input" gibi) kural derlemeye hiç
+   girmiyor — bu yüzden burada da tüm seçici :global() içinde. */
+:global(.theme-dark .search-input) {
   background: white !important;
-  color: var(--ink) !important;
+  color: #1F2937 !important;
   border-color: rgba(0,0,0,0.1) !important;
 }
 .text-ink { color: var(--ink); }
