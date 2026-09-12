@@ -51,9 +51,8 @@
       <div class="sticky top-0 z-20 bg-cream/95 backdrop-blur border-b border-black/5">
         <div class="max-w-2xl mx-auto px-4 pt-3">
           <div class="relative">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-inkmuted text-sm">🔎</span>
             <input v-model="search" type="text" placeholder="Menüde ara..."
-                   class="search-input w-full pl-10 pr-9 py-2.5 rounded-full text-sm
+                   class="search-input w-full pl-4 pr-9 py-2.5 rounded-full text-sm
                           text-ink placeholder:text-inkmuted/70 focus:outline-none"/>
             <button v-if="search" @click="search = ''"
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-inkmuted text-sm">✕</button>
@@ -235,6 +234,13 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 .search-input:focus {
   border-color: var(--brand);
   box-shadow: 0 0 0 3px rgba(217,119,6,0.15);
+}
+/* style.css'teki global ".theme-dark input {...}" kuralı çıplak <input>
+   etiketini hedefliyor — class'tan bağımsız, burayı da eziyordu. */
+:global(.theme-dark) .search-input {
+  background: white !important;
+  color: var(--ink) !important;
+  border-color: rgba(0,0,0,0.1) !important;
 }
 .text-ink { color: var(--ink); }
 .text-inkmuted { color: var(--ink-muted); }
