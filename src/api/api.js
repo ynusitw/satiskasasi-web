@@ -47,6 +47,12 @@ export default {
   rejectLicense:      (id, d)  => api.post(`licenses/requests/${id}/reject`, d),
   revokeLicense:      (id)     => api.post(`licenses/${id}/revoke`),
 
+  // Paketler
+  getPlans:   ()       => api.get('plans'),
+  createPlan: (d)      => api.post('plans', d),
+  updatePlan: (id, d)  => api.put(`plans/${id}`, d),
+  deletePlan: (id)     => api.delete(`plans/${id}`),
+
   // Dashboard
   dashboard: () => api.get('reports/dashboard'),
 
