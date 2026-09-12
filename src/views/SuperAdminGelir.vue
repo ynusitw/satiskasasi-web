@@ -244,7 +244,8 @@ const filters = [
 async function load() {
   loading.value = true
   try {
-    tenants.value = (await api.getAllTenants()).data
+    const [t] = await Promise.all([api.getAllTenants(), plansStore.load()])
+    tenants.value = t.data
   } finally {
     loading.value = false
   }

@@ -1,58 +1,36 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
-
-const STORAGE_KEY = 'satiskasasi_plans_v1'
-
-const DEFAULT_PLANS = [
-  {
-    id:          'basic',
-    name:        'Basic',
-    price:       299,
-    description: 'Küçük işletmeler için temel POS özellikleri',
-    features:    ['Ürün ve Kategori Yönetimi', 'Satış ve Ödeme Alma', 'Günlük Ciro Raporu', '1 Kullanıcı'],
-    color:       'blue',
-    isActive:    true,
-  },
-  {
-    id:          'pro',
-    name:        'Pro',
-    price:       599,
-    description: 'Büyüyen işletmeler için gelişmiş özellikler',
-    features:    ['Basic\'in tüm özellikleri', 'Cari Modülü', 'Detaylı Raporlar', 'Sınırsız Kullanıcı', 'Öncelikli Destek'],
-    color:       'purple',
-    isActive:    true,
-  },
-]
-
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch {}
-  return null
-}
+import { ref } from 'vue'
+import api from '../api/api'
 
 export const usePlansStore = defineStore('plans', () => {
-  const plans = ref(load() ?? DEFAULT_PLANS)
+  const plans  = ref([])
+  const loaded = ref(false)
 
-  watch(plans, v => localStorage.setItem(STORAGE_KEY, JSON.stringify(v)), { deep: true })
+  async function load() {
+    const res = await api.getPlans()
+    plans.value = res.data
+    loaded.value = true
+  }
 
   function priceOf(planId) {
     return plans.value.find(p => p.id === planId)?.price ?? 0
   }
 
-  function ekle(plan) {
-    plans.value.push({ ...plan, id: plan.name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now() })
+  async function ekle(plan) {
+    const res = await api.createPlan(plan)
+    plans.value.push(res.data)
   }
 
-  function guncelle(updated) {
-    const idx = plans.value.findIndex(p => p.id === updated.id)
-    if (idx !== -1) plans.value[idx] = { ...updated }
+  async function guncelle(updated) {
+    const res = await api.updatePlan(updated.dbId, updated)
+    const idx = plans.value.findIndex(p => p.dbId === updated.dbId)
+    if (idx !== -1) plans.value[idx] = res.data
   }
 
-  function sil(id) {
-    plans.value = plans.value.filter(p => p.id !== id)
+  async function sil(dbId) {
+    await api.deletePlan(dbId)
+    plans.value = plans.value.filter(p => p.dbId !== dbId)
   }
 
-  return { plans, priceOf, ekle, guncelle, sil }
+  return { plans, loaded, load, priceOf, ekle, guncelle, sil }
 })

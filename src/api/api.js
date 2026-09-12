@@ -53,6 +53,9 @@ export default {
   updatePlan: (id, d)  => api.put(`plans/${id}`, d),
   deletePlan: (id)     => api.delete(`plans/${id}`),
 
+  // Dijital Menü (herkese açık)
+  getPublicMenu: (slug) => api.get(`menu/${slug}`),
+
   // Dashboard
   dashboard: () => api.get('reports/dashboard'),
 

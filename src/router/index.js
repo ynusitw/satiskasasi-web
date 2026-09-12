@@ -7,6 +7,11 @@ const routes = [
     meta: { public: true }
   },
   {
+    path: '/menu/:slug',
+    component: () => import('../views/PublicMenuView.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/',
     component: () => import('../views/Dashboard.vue'),
   },
@@ -39,6 +44,7 @@ const routes = [
   // Kasa Yapılandırma — sayfalar henüz oluşturulmadı, placeholder route
   { path: '/settings',                redirect: '/settings/masa-ayarlari' },
   { path: '/settings/masa-ayarlari',   component: () => import('../views/settings/MasaAyarlari.vue') },
+  { path: '/settings/dijital-menu',    component: () => import('../views/settings/DigitalMenuView.vue') },
   { path: '/settings/fis-ayarlari',    redirect: '/settings/receipt' },
   { path: '/settings/receipt',         component: () => import('../views/settings/ReceiptSettings.vue') },
   { path: '/settings/yazici-ayarlari', component: () => import('../views/settings/YaziciAyarlari.vue') },

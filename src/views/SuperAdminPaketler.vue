@@ -257,7 +257,10 @@ const store   = usePlansStore()
 const tenants = ref([])
 
 onMounted(async () => {
-  try { tenants.value = (await api.getAllTenants()).data } catch {}
+  try {
+    tenants.value = (await api.getAllTenants()).data
+    await store.load()
+  } catch {}
 })
 
 function subscriberCount(planId) {
@@ -294,7 +297,7 @@ function openEdit(plan) {
 function addFeat()      { form.features.push('') }
 function removeFeat(i)  { form.features.splice(i, 1) }
 
-function save() {
+async function save() {
   formError.value = ''
   if (!form.name.trim())   { formError.value = 'Paket adı zorunludur.'; return }
   if (form.price < 0)      { formError.value = 'Fiyat 0\'dan küçük olamaz.'; return }
@@ -305,14 +308,22 @@ function save() {
     features: form.features.filter(f => f.trim()),
   }
 
-  modal.isEdit ? store.guncelle(clean) : store.ekle(clean)
-  modal.show = false
+  try {
+    modal.isEdit ? await store.guncelle(clean) : await store.ekle(clean)
+    modal.show = false
+  } catch (e) {
+    formError.value = e.response?.data?.message || 'Kaydedilirken hata oluştu.'
+  }
 }
 
-function deletePlan(plan) {
+async function deletePlan(plan) {
   if (subscriberCount(plan.id) > 0) return
   if (!confirm(`"${plan.name}" paketini silmek istediğinize emin misiniz?`)) return
-  store.sil(plan.id)
+  try {
+    await store.sil(plan.dbId)
+  } catch (e) {
+    alert(e.response?.data?.message || 'Silinirken hata oluştu.')
+  }
 }
 
 // ─── Renk sistemi ─────────────────────────────────────────────────────────────

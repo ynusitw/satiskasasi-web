@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-h-screen bg-bg">
 
-    <aside v-if="auth.isLoggedIn && route.path !== '/login'"
+    <aside v-if="auth.isLoggedIn && route.path !== '/login' && !route.path.startsWith('/menu/')"
            class="fixed left-0 top-0 h-full w-60 bg-primary text-white
                   flex flex-col z-50 shadow-xl">
 
@@ -240,7 +240,8 @@
 
     <!-- İçerik -->
     <main :class="auth.isLoggedIn &&
-                  route.path !== '/login' ? 'ml-60' : ''"
+                  route.path !== '/login' &&
+                  !route.path.startsWith('/menu/') ? 'ml-60' : ''"
           class="flex-1">
       <RouterView v-slot="{ Component }">
         <Transition name="fade" mode="out-in">
@@ -303,6 +304,7 @@ const reportSubMenu = [
 ]
 
 const kasaYapiSubMenu = [
+  { to: '/settings/dijital-menu',    label: '📱 Dijital Menü (QR)'  },
   { to: '/settings/masa-ayarlari',   label: 'Masa Ayarları'         },
   { to: '/settings/receipt',         label: '🖨 Fiş Tasarımı'       },
   { to: '/settings/yazici-ayarlari', label: 'Yazıcı Ayarları'       },
