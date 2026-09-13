@@ -1,8 +1,11 @@
 <template>
   <!-- Dijital menüde tek ürün satırı. Pasif ürünler gizlenmez, soluk gösterilir. -->
-  <div class="product-row" :class="{ 'is-inactive': isInactive }">
+  <div class="product-row"
+       :class="{ 'is-inactive': isInactive, 'is-clickable': hasImage }"
+       @click="hasImage && emit('open', product)">
     <div class="product-thumb">
-      <img v-if="product.imageBase64" :src="product.imageBase64" :alt="product.name"/>
+      <img v-if="hasImage" :src="product.imageBase64" :alt="product.name"/>
+      <span v-if="hasImage" class="zoom-hint" aria-hidden="true"></span>
     </div>
     <div class="product-body">
       <div class="product-name">{{ product.name }}</div>
@@ -23,6 +26,9 @@ import { computed } from 'vue'
 import { allergenLabels } from '../constants/allergens'
 
 const props = defineProps({ product: { type: Object, required: true } })
+const emit  = defineEmits(['open'])
+
+const hasImage = computed(() => !!props.product.imageBase64)
 
 const labels = computed(() => allergenLabels(props.product.allergens))
 
@@ -50,7 +56,34 @@ function fmt(v) {
   width: 76px; height: 76px; border-radius: 12px; overflow: hidden;
   background: #F3ECE3; flex-shrink: 0;
 }
+.product-thumb { position: relative; }
 .product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Fotoğrafın büyütülebileceğini belli eden büyüteç rozeti.
+   Artı işareti bilerek kullanılmadı — menüde sipariş yok, "sepete ekle"
+   sanılmaması gerekiyor. */
+.zoom-hint {
+  position: absolute; right: 4px; bottom: 4px;
+  width: 18px; height: 18px; border-radius: 6px;
+  background: rgba(0,0,0,0.45);
+}
+.zoom-hint::before {
+  content: ''; position: absolute;
+  left: 3.5px; top: 3.5px; width: 7px; height: 7px;
+  border: 1.5px solid white; border-radius: 50%;
+}
+.zoom-hint::after {
+  content: ''; position: absolute;
+  left: 11px; top: 10.5px; width: 4.5px; height: 1.5px;
+  background: white; border-radius: 1px;
+  transform: rotate(45deg); transform-origin: left center;
+}
+
+.product-row.is-clickable { cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+.product-row.is-clickable:active { transform: scale(.985); }
+@media (hover: hover) {
+  .product-row.is-clickable:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+}
 .product-body { flex: 1; min-width: 0; }
 .product-name {
   font-weight: 700; font-size: 14px; line-height: 1.3;

@@ -61,7 +61,7 @@
             Arama sonuçları
           </div>
           <div v-if="searchResults.length" class="space-y-2.5">
-            <ProductRow v-for="p in searchResults" :key="p.id" :product="p"/>
+            <ProductRow v-for="p in searchResults" :key="p.id" :product="p" @open="openPreview"/>
           </div>
           <div v-else class="text-center py-16 text-inkmuted">
             "{{ search }}" için sonuç bulunamadı
@@ -82,7 +82,7 @@
           </div>
 
           <div class="space-y-2.5">
-            <ProductRow v-for="p in activeCategory.products" :key="p.id" :product="p"/>
+            <ProductRow v-for="p in activeCategory.products" :key="p.id" :product="p" @open="openPreview"/>
           </div>
         </template>
 
@@ -94,7 +94,9 @@
               Bunları Beğenebilirsiniz
             </h2>
             <div class="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-              <div v-for="p in menu.featured" :key="p.id" class="featured-card">
+              <div v-for="p in menu.featured" :key="p.id" class="featured-card"
+                   :class="{ 'is-clickable': p.imageBase64 }"
+                   @click="p.imageBase64 && openPreview(p)">
                 <div class="featured-media">
                   <img v-if="p.imageBase64" :src="p.imageBase64" :alt="p.name"/>
                 </div>
@@ -137,6 +139,30 @@
         <button v-if="showScrollTop" @click="scrollToTop"
                 class="scroll-top-btn" aria-label="Yukarı çık">↑</button>
       </Transition>
+
+      <!-- ── Ürün fotoğrafı önizleme ──────────────────────────────── -->
+      <Transition name="fade">
+        <div v-if="preview" class="lightbox" @click="closePreview">
+          <div class="lightbox-inner" @click.stop>
+            <button class="lightbox-close" @click="closePreview" aria-label="Kapat">✕</button>
+            <img :src="preview.imageBase64" :alt="preview.name"
+                 :class="{ 'is-inactive': preview.isActive === false }"/>
+            <div class="lightbox-info">
+              <div class="lightbox-name">{{ preview.name }}</div>
+              <div v-if="preview.description" class="lightbox-desc">{{ preview.description }}</div>
+              <div v-if="previewAllergens.length" class="lightbox-allergens">
+                Alerjen: {{ previewAllergens.join(', ') }}
+              </div>
+              <div class="lightbox-foot">
+                <span class="lightbox-price">{{ fmt(preview.price) }}</span>
+                <span v-if="preview.isActive === false" class="lightbox-unavailable">
+                  Şu anda mevcut değil
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -146,6 +172,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../api/api'
 import ProductRow from '../components/MenuProductRow.vue'
+import { allergenLabels } from '../constants/allergens'
 
 const route      = useRoute()
 const loading    = ref(true)
@@ -154,6 +181,10 @@ const menu       = ref({ businessName: '', address: '', phone: '', featured: [],
 const activeCategory = ref(null)
 const search     = ref('')
 const showScrollTop = ref(false)
+const preview    = ref(null)
+
+const previewAllergens = computed(() =>
+  preview.value ? allergenLabels(preview.value.allergens) : [])
 
 const categoriesWithProducts = computed(() =>
   menu.value.categories.filter(c => c.products.length > 0))
@@ -179,6 +210,19 @@ function openCategory(c) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+function openPreview(p) {
+  preview.value = p
+  // Arkadaki menü kaymasın
+  document.body.style.overflow = 'hidden'
+}
+function closePreview() {
+  preview.value = null
+  document.body.style.overflow = ''
+}
+function onKeydown(e) {
+  if (e.key === 'Escape') closePreview()
+}
+
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -188,6 +232,7 @@ function onScroll() {
 
 onMounted(async () => {
   window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('keydown', onKeydown)
   try {
     const res = await api.getPublicMenu(route.params.slug)
     menu.value = res.data
@@ -198,7 +243,11 @@ onMounted(async () => {
   }
 })
 
-onUnmounted(() => window.removeEventListener('scroll', onScroll))
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('keydown', onKeydown)
+  document.body.style.overflow = ''
+})
 </script>
 
 <style scoped>
@@ -336,4 +385,47 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 
 .fade-enter-active, .fade-leave-active { transition: opacity .2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* ── Ürün fotoğrafı önizleme (lightbox) ──────────────────────────
+   Yönetici panelinin koyu teması yalnızca çıplak class/etiket
+   isimlerini eziyor; burada kendi isimlerimizi kullanıyoruz.       */
+.lightbox {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(28, 20, 12, 0.78);
+  backdrop-filter: blur(3px);
+}
+.lightbox-inner {
+  position: relative; width: 100%; max-width: 420px;
+  background: #FFFDFA; border-radius: 20px; overflow: hidden;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.4);
+  max-height: 90vh; display: flex; flex-direction: column;
+}
+.lightbox-inner img {
+  width: 100%; max-height: 62vh; object-fit: contain;
+  background: #F3ECE3; display: block;
+}
+.lightbox-inner img.is-inactive { filter: grayscale(1); opacity: .6; }
+.lightbox-close {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: rgba(0,0,0,0.5); color: white;
+  font-size: 14px; line-height: 1; cursor: pointer;
+}
+.lightbox-info { padding: 14px 16px 16px; overflow-y: auto; }
+.lightbox-name { font-size: 17px; font-weight: 800; color: #1F2937; line-height: 1.25; }
+.lightbox-desc { font-size: 13px; color: #8B8378; margin-top: 5px; line-height: 1.45; }
+.lightbox-allergens { font-size: 11.5px; color: #8B8378; margin-top: 7px; opacity: .9; }
+.lightbox-foot {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 10px;
+}
+.lightbox-price { font-size: 17px; font-weight: 800; color: #92400E; }
+.lightbox-unavailable {
+  font-size: 11px; font-weight: 700; color: #9CA3AF;
+  background: #F3F4F6; padding: 3px 9px; border-radius: 999px;
+}
+
+.featured-card.is-clickable { cursor: pointer; transition: transform .12s ease; }
+.featured-card.is-clickable:active { transform: scale(.97); }
 </style>
