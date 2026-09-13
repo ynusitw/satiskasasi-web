@@ -839,13 +839,16 @@ function onDrop(e) {
 //   LARGE — yalnızca QR menüde ürüne dokununca ayrı istekle inen tam ekran
 //           fotoğraf. Menü JSON'una konmaz, yoksa menü megabaytlara çıkar.
 const THUMB_SIZE   = 256
-const LARGE_SIZE   = 1024
 const THUMB_QUALITY = 0.82
-const LARGE_QUALITY = 0.86
+// Telefonda onizleme kutusu 335 CSS piksel; 3x ekranda 1005 cihaz pikseli
+// demek. 1024'luk fotograf orada birebir basildigi icin sikistirma izleri
+// gorunuyordu. 1440'ta telefon fotografi kucultuyor ve izler kayboluyor.
+const LARGE_SIZE    = 1440
+const LARGE_QUALITY = 0.82
 
 // Kaynak fotoğraftan küçükse büyütmeyiz — büyütmek kaliteyi artırmaz,
 // yalnızca dosyayı şişirir.
-function squareCrop(img, maxSize, quality) {
+function squareCrop(img, maxSize, quality, preferWebp = false) {
   const srcSize = Math.min(img.width, img.height)
   const size    = Math.min(maxSize, srcSize)
   const canvas  = document.createElement('canvas')
@@ -856,7 +859,15 @@ function squareCrop(img, maxSize, quality) {
   const sx = (img.width  - srcSize) / 2
   const sy = (img.height - srcSize) / 2
   ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, size, size)
-  return { dataUrl: canvas.toDataURL('image/jpeg', quality), size }
+
+  // WebP ayni kalitede JPEG'in ucte biri kadar yer kaplar; buyuk fotografi
+  // boylece buyutebiliyoruz. Destelemeyen tarayici sessizce PNG uretir
+  // (devasa olur), o yuzden cikti gercekten WebP mi diye bakiyoruz.
+  if (preferWebp) {
+    const webp = canvas.toDataURL('image/webp', quality)
+    if (webp.startsWith('data:image/webp')) return { dataUrl: webp, size, format: 'webp' }
+  }
+  return { dataUrl: canvas.toDataURL('image/jpeg', quality), size, format: 'jpeg' }
 }
 
 function loadImage(file) {
@@ -875,8 +886,10 @@ function loadImage(file) {
 
 async function buildImagePair(file) {
   const img   = await loadImage(file)
+  // Kucuk gorsel JPEG kalmali — kasa (WPF) WebP cozemiyor.
   const thumb = squareCrop(img, THUMB_SIZE, THUMB_QUALITY)
-  const large = squareCrop(img, LARGE_SIZE, LARGE_QUALITY)
+  // Buyugu yalnizca web menude kullaniliyor, WebP guvenli.
+  const large = squareCrop(img, LARGE_SIZE, LARGE_QUALITY, true)
   return { thumb, large, source: `${img.width}×${img.height}` }
 }
 
@@ -889,7 +902,7 @@ async function processImageFile(file) {
     form.imageLargeBase64 = large.dataUrl
     console.log(`Kaynak: ${source}`)
     console.log(`Küçük : ${thumb.size}×${thumb.size} |`, (thumb.dataUrl.length * 0.75 / 1024).toFixed(1), 'KB')
-    console.log(`Büyük : ${large.size}×${large.size} |`, (large.dataUrl.length * 0.75 / 1024).toFixed(1), 'KB')
+    console.log(`Büyük : ${large.size}×${large.size} ${large.format.toUpperCase()} |`, (large.dataUrl.length * 0.75 / 1024).toFixed(1), 'KB')
   } catch {
     console.error('Görsel okunamadı')
   } finally {

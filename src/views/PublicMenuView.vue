@@ -151,7 +151,7 @@
               <img class="lightbox-blur" :class="{ 'is-fallback': fullFailed }"
                    :src="preview.imageBase64" :alt="fullFailed ? preview.name : ''"
                    :aria-hidden="fullFailed ? null : 'true'"/>
-              <img class="lightbox-full" :class="{ 'is-ready': fullLoaded }"
+              <img v-if="previewFullUrl" class="lightbox-full" :class="{ 'is-ready': fullLoaded }"
                    :src="previewFullUrl" :alt="preview.name"
                    @load="fullLoaded = true" @error="onFullError"/>
             </div>
@@ -193,6 +193,7 @@ const preview    = ref(null)
 const previewFullUrl = ref('')
 const fullLoaded = ref(false)
 const fullFailed = ref(false)
+let fullObjectUrl = null
 
 const previewAllergens = computed(() =>
   preview.value ? allergenLabels(preview.value.allergens) : [])
@@ -221,14 +222,38 @@ function openCategory(c) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-function openPreview(p) {
+// Fotoğraf neden <img src> ile değil de fetch ile indiriliyor:
+// API ücretsiz bir ngrok tüneli arkasında ve ngrok, tanımadığı tarayıcıya
+// gerçek yanıt yerine bir uyarı sayfası döndürüyor. Bunu atlatan
+// "ngrok-skip-browser-warning" başlığını yalnızca fetch/XHR gönderebilir;
+// <img> etiketine özel başlık eklenemediği için büyük fotoğraf ilk ziyarette
+// hiç yüklenmiyordu (menü sessizce küçük görsele düşüyordu).
+async function openPreview(p) {
   preview.value = p
   fullLoaded.value = false
   fullFailed.value = false
-  // Büyük fotoğraf menü JSON'unda gelmiyor; yalnızca burada indiriliyor.
-  previewFullUrl.value = `${API_BASE}menu/${route.params.slug}/product/${p.id}/image`
+  previewFullUrl.value = ''
   // Arkadaki menü kaymasın
   document.body.style.overflow = 'hidden'
+
+  const url = `${API_BASE}menu/${route.params.slug}/product/${p.id}/image`
+  try {
+    const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': '1' } })
+    if (!res.ok) throw new Error(String(res.status))
+    const blob = await res.blob()
+    if (!blob.type.startsWith('image/')) throw new Error(blob.type || 'bilinmeyen tür')
+    // Kullanıcı beklerken pencereyi kapattıysa ya da başka ürüne geçtiyse bırak
+    if (preview.value?.id !== p.id) return
+    releaseFullUrl()
+    fullObjectUrl = URL.createObjectURL(blob)
+    previewFullUrl.value = fullObjectUrl
+  } catch {
+    if (preview.value?.id === p.id) fullFailed.value = true
+  }
+}
+
+function releaseFullUrl() {
+  if (fullObjectUrl) { URL.revokeObjectURL(fullObjectUrl); fullObjectUrl = null }
 }
 function onFullError() {
   // Sunucu büyük fotoğrafı veremiyorsa (eski API sürümü, ağ hatası) küçük
@@ -240,6 +265,7 @@ function onFullError() {
 function closePreview() {
   preview.value = null
   previewFullUrl.value = ''
+  releaseFullUrl()
   document.body.style.overflow = ''
 }
 function onKeydown(e) {
@@ -270,6 +296,7 @@ onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('keydown', onKeydown)
   document.body.style.overflow = ''
+  releaseFullUrl()
 })
 </script>
 
