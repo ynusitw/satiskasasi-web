@@ -734,7 +734,7 @@ const modal  = reactive({ show: false, editing: false })
 const form   = reactive({
   id: 0, name: '', barcode: '', categoryId: null,
   price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
-  isActive: true, imageBase64: '', description: '', allergens: '',
+  isActive: true, imageBase64: '', imageLargeBase64: null, description: '', allergens: '',
 })
 const dragOver  = ref(false)
 const fileInput = ref(null)
@@ -834,27 +834,67 @@ function onDrop(e) {
   if (file && file.type.startsWith('image/')) processImageFile(file)
 }
 
-function processImageFile(file) {
+// Her fotoğraftan iki boyut üretilir:
+//   THUMB — listelerde, kasada ve menü JSON'unda kullanılan küçük kare.
+//   LARGE — yalnızca QR menüde ürüne dokununca ayrı istekle inen tam ekran
+//           fotoğraf. Menü JSON'una konmaz, yoksa menü megabaytlara çıkar.
+const THUMB_SIZE   = 256
+const LARGE_SIZE   = 1024
+const THUMB_QUALITY = 0.82
+const LARGE_QUALITY = 0.86
+
+// Kaynak fotoğraftan küçükse büyütmeyiz — büyütmek kaliteyi artırmaz,
+// yalnızca dosyayı şişirir.
+function squareCrop(img, maxSize, quality) {
+  const srcSize = Math.min(img.width, img.height)
+  const size    = Math.min(maxSize, srcSize)
+  const canvas  = document.createElement('canvas')
+  canvas.width  = canvas.height = size
+  const ctx = canvas.getContext('2d')
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  const sx = (img.width  - srcSize) / 2
+  const sy = (img.height - srcSize) / 2
+  ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, size, size)
+  return { dataUrl: canvas.toDataURL('image/jpeg', quality), size }
+}
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload  = () => resolve(img)
+      img.onerror = reject
+      img.src = e.target.result
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+async function buildImagePair(file) {
+  const img   = await loadImage(file)
+  const thumb = squareCrop(img, THUMB_SIZE, THUMB_QUALITY)
+  const large = squareCrop(img, LARGE_SIZE, LARGE_QUALITY)
+  return { thumb, large, source: `${img.width}×${img.height}` }
+}
+
+async function processImageFile(file) {
   console.group('%c[ProductImage] Görsel işleniyor', 'color:#3b82f6;font-weight:bold')
   console.log('Dosya :', file.name, '|', file.type, '|', (file.size / 1024).toFixed(1), 'KB')
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = canvas.height = 192
-      const ctx = canvas.getContext('2d')
-      const srcSize = Math.min(img.width, img.height)
-      const sx = (img.width  - srcSize) / 2
-      const sy = (img.height - srcSize) / 2
-      ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, 192, 192)
-      form.imageBase64 = canvas.toDataURL('image/jpeg', 0.85)
-      console.log('Çıktı: 192×192 JPEG |', (form.imageBase64.length * 0.75 / 1024).toFixed(1), 'KB')
-      console.groupEnd()
-    }
-    img.src = e.target.result
+  try {
+    const { thumb, large, source } = await buildImagePair(file)
+    form.imageBase64      = thumb.dataUrl
+    form.imageLargeBase64 = large.dataUrl
+    console.log(`Kaynak: ${source}`)
+    console.log(`Küçük : ${thumb.size}×${thumb.size} |`, (thumb.dataUrl.length * 0.75 / 1024).toFixed(1), 'KB')
+    console.log(`Büyük : ${large.size}×${large.size} |`, (large.dataUrl.length * 0.75 / 1024).toFixed(1), 'KB')
+  } catch {
+    console.error('Görsel okunamadı')
+  } finally {
+    console.groupEnd()
   }
-  reader.readAsDataURL(file)
 }
 
 // ── API (mevcut, değiştirilmedi) ─────────────────────────────────────────
@@ -872,7 +912,7 @@ function openCreate() {
   Object.assign(form, {
     id: 0, name: '', barcode: '', categoryId: selectedCategoryId.value,
     price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
-    isActive: true, imageBase64: '', description: '', allergens: '',
+    isActive: true, imageBase64: '', imageLargeBase64: null, description: '', allergens: '',
   })
   modal.editing = false
   modal.show    = true
@@ -883,6 +923,9 @@ function openEdit(p) {
   Object.assign(form, {
     ...p,
     imageBase64: p.imageBase64 || '',
+    // Büyük fotoğraf listeye hiç dönmüyor. null = "sunucudaki kalsın";
+    // önceki üründen devreden bir değer kalırsa bu ürünün fotoğrafını ezerdi.
+    imageLargeBase64: null,
     description: p.description || '',
     allergens:   p.allergens   || '',
   })
@@ -970,24 +1013,15 @@ function onPhotoDrop(item, e) {
   if (file?.type.startsWith('image/')) processPhotoForItem(item, file)
 }
 
-function processPhotoForItem(item, file) {
-  const reader = new FileReader()
-  reader.onload = (ev) => {
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = canvas.height = 192
-      const ctx = canvas.getContext('2d')
-      const srcSize = Math.min(img.width, img.height)
-      const sx = (img.width  - srcSize) / 2
-      const sy = (img.height - srcSize) / 2
-      ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, 192, 192)
-      item.imageBase64 = canvas.toDataURL('image/jpeg', 0.85)
-      savePhotoForItem(item)
-    }
-    img.src = ev.target.result
+async function processPhotoForItem(item, file) {
+  try {
+    const { thumb, large } = await buildImagePair(file)
+    item.imageBase64      = thumb.dataUrl
+    item.imageLargeBase64 = large.dataUrl
+    savePhotoForItem(item)
+  } catch {
+    console.error('[ProductImage] Görsel okunamadı')
   }
-  reader.readAsDataURL(file)
 }
 
 async function savePhotoForItem(item) {
@@ -995,7 +1029,11 @@ async function savePhotoForItem(item) {
   item.saved  = false
   item.error  = ''
   try {
-    await api.updateProduct(item.id, { ...item._product, imageBase64: item.imageBase64 })
+    await api.updateProduct(item.id, {
+      ...item._product,
+      imageBase64: item.imageBase64,
+      imageLargeBase64: item.imageLargeBase64 ?? null
+    })
     item._product.imageBase64 = item.imageBase64
     const p = products.value.find(p => p.id === item.id)
     if (p) p.imageBase64 = item.imageBase64

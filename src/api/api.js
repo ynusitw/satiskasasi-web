@@ -29,6 +29,9 @@ api.interceptors.response.use(
   }
 )
 
+// Doğrudan <img src> ile yüklenen (XHR olmayan) kaynaklar için mutlak adres.
+export const API_BASE = api.defaults.baseURL
+
 export default {
   // Auth
   login:    (d) => api.post('auth/login', d),

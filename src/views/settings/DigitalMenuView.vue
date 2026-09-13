@@ -279,7 +279,9 @@ function processCategoryImage(file) {
   reader.onload = (ev) => {
     const img = new Image()
     img.onload = () => {
-      const W = 400, H = 260
+      // Kategori kartı telefonda ~172pt genişlikte; 3x ekranda ~516 piksele
+      // denk geliyor. 400 geniş görsel orada bulanık kalıyordu.
+      const W = 720, H = 468
       const canvas = document.createElement('canvas')
       canvas.width = W; canvas.height = H
       const ctx = canvas.getContext('2d')
@@ -295,10 +297,12 @@ function processCategoryImage(file) {
         sh = img.width / targetRatio
         sy = (img.height - sh) / 2
       }
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H)
 
       const cat = categories.value.find(c => c.id === categoryId)
-      if (cat) cat.menuImageBase64 = canvas.toDataURL('image/jpeg', 0.8)
+      if (cat) cat.menuImageBase64 = canvas.toDataURL('image/jpeg', 0.82)
     }
     img.src = ev.target.result
   }

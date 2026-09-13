@@ -145,8 +145,16 @@
         <div v-if="preview" class="lightbox" @click="closePreview">
           <div class="lightbox-inner" @click.stop>
             <button class="lightbox-close" @click="closePreview" aria-label="Kapat">✕</button>
-            <img :src="preview.imageBase64" :alt="preview.name"
-                 :class="{ 'is-inactive': preview.isActive === false }"/>
+            <!-- Küçük görsel anında görünür (bulanık), tam çözünürlüklü
+                 fotoğraf inince üstüne biner. -->
+            <div class="lightbox-media" :class="{ 'is-inactive': preview.isActive === false }">
+              <img class="lightbox-blur" :class="{ 'is-fallback': fullFailed }"
+                   :src="preview.imageBase64" :alt="fullFailed ? preview.name : ''"
+                   :aria-hidden="fullFailed ? null : 'true'"/>
+              <img class="lightbox-full" :class="{ 'is-ready': fullLoaded }"
+                   :src="previewFullUrl" :alt="preview.name"
+                   @load="fullLoaded = true" @error="onFullError"/>
+            </div>
             <div class="lightbox-info">
               <div class="lightbox-name">{{ preview.name }}</div>
               <div v-if="preview.description" class="lightbox-desc">{{ preview.description }}</div>
@@ -170,7 +178,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import api from '../api/api'
+import api, { API_BASE } from '../api/api'
 import ProductRow from '../components/MenuProductRow.vue'
 import { allergenLabels } from '../constants/allergens'
 
@@ -182,6 +190,9 @@ const activeCategory = ref(null)
 const search     = ref('')
 const showScrollTop = ref(false)
 const preview    = ref(null)
+const previewFullUrl = ref('')
+const fullLoaded = ref(false)
+const fullFailed = ref(false)
 
 const previewAllergens = computed(() =>
   preview.value ? allergenLabels(preview.value.allergens) : [])
@@ -212,11 +223,23 @@ function openCategory(c) {
 
 function openPreview(p) {
   preview.value = p
+  fullLoaded.value = false
+  fullFailed.value = false
+  // Büyük fotoğraf menü JSON'unda gelmiyor; yalnızca burada indiriliyor.
+  previewFullUrl.value = `${API_BASE}menu/${route.params.slug}/product/${p.id}/image`
   // Arkadaki menü kaymasın
   document.body.style.overflow = 'hidden'
 }
+function onFullError() {
+  // Sunucu büyük fotoğrafı veremiyorsa (eski API sürümü, ağ hatası) küçük
+  // görseli bulanıklaştırmadan gösteririz — bulanık bırakmak daha kötü olurdu.
+  fullLoaded.value = false
+  fullFailed.value = true
+}
+
 function closePreview() {
   preview.value = null
+  previewFullUrl.value = ''
   document.body.style.overflow = ''
 }
 function onKeydown(e) {
@@ -402,11 +425,21 @@ onUnmounted(() => {
   box-shadow: 0 18px 50px rgba(0,0,0,0.4);
   max-height: 90vh; display: flex; flex-direction: column;
 }
-.lightbox-inner img {
-  width: 100%; max-height: 62vh; object-fit: contain;
-  background: #F3ECE3; display: block;
+.lightbox-media {
+  position: relative; width: 100%; height: 62vh;
+  background: #F3ECE3; overflow: hidden;
 }
-.lightbox-inner img.is-inactive { filter: grayscale(1); opacity: .6; }
+.lightbox-media img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: contain; display: block;
+}
+/* Tam çözünürlüklü fotoğraf inene kadar küçük görsel bulanık dursun —
+   boş gri bir kutu görmektense. */
+.lightbox-blur { filter: blur(12px); transform: scale(1.08); }
+.lightbox-blur.is-fallback { filter: none; transform: none; }
+.lightbox-full { opacity: 0; transition: opacity .25s ease; }
+.lightbox-full.is-ready { opacity: 1; }
+.lightbox-media.is-inactive { filter: grayscale(1); opacity: .6; }
 .lightbox-close {
   position: absolute; top: 10px; right: 10px; z-index: 2;
   width: 32px; height: 32px; border-radius: 50%; border: none;
