@@ -4,7 +4,7 @@
        :class="{ 'is-inactive': isInactive, 'is-clickable': hasImage }"
        @click="hasImage && emit('open', product)">
     <div class="product-thumb">
-      <img v-if="hasImage" :src="product.imageBase64" :alt="product.name"/>
+      <MenuImage v-if="hasImage" :src="imageUrl" :alt="product.name" class="thumb-img"/>
       <span v-if="hasImage" class="zoom-hint" aria-hidden="true"></span>
     </div>
     <div class="product-body">
@@ -24,11 +24,16 @@
 <script setup>
 import { computed } from 'vue'
 import { allergenLabels } from '../constants/allergens'
+import MenuImage from './MenuImage.vue'
 
-const props = defineProps({ product: { type: Object, required: true } })
+const props = defineProps({
+  product:  { type: Object, required: true },
+  imageUrl: { type: String, default: '' }   // küçük görselin adresi (üst sayfa üretir)
+})
 const emit  = defineEmits(['open'])
 
-const hasImage = computed(() => !!props.product.imageBase64)
+// Görsel artık menü yanıtında gelmiyor; API yalnızca var/yok bilgisi veriyor.
+const hasImage = computed(() => !!props.product.hasImage && !!props.imageUrl)
 
 const labels = computed(() => allergenLabels(props.product.allergens))
 
@@ -57,7 +62,7 @@ function fmt(v) {
   background: #F3ECE3; flex-shrink: 0;
 }
 .product-thumb { position: relative; }
-.product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.product-thumb .thumb-img { width: 100%; height: 100%; }
 
 /* Fotoğrafın büyütülebileceğini belli eden büyüteç rozeti.
    Artı işareti bilerek kullanılmadı — menüde sipariş yok, "sepete ekle"

@@ -61,7 +61,8 @@
             Arama sonuçları
           </div>
           <div v-if="searchResults.length" class="space-y-2.5">
-            <ProductRow v-for="p in searchResults" :key="p.id" :product="p" @open="openPreview"/>
+            <ProductRow v-for="p in searchResults" :key="p.id" :product="p"
+                        :image-url="thumbUrl(p)" @open="openPreview"/>
           </div>
           <div v-else class="text-center py-16 text-inkmuted">
             "{{ search }}" için sonuç bulunamadı
@@ -82,7 +83,8 @@
           </div>
 
           <div class="space-y-2.5">
-            <ProductRow v-for="p in activeCategory.products" :key="p.id" :product="p" @open="openPreview"/>
+            <ProductRow v-for="p in activeCategory.products" :key="p.id" :product="p"
+                        :image-url="thumbUrl(p)" @open="openPreview"/>
           </div>
         </template>
 
@@ -95,10 +97,10 @@
             </h2>
             <div class="flex gap-3 overflow-x-auto no-scrollbar pb-1">
               <div v-for="p in menu.featured" :key="p.id" class="featured-card"
-                   :class="{ 'is-clickable': p.imageBase64 }"
-                   @click="p.imageBase64 && openPreview(p)">
+                   :class="{ 'is-clickable': p.hasImage }"
+                   @click="p.hasImage && openPreview(p)">
                 <div class="featured-media">
-                  <img v-if="p.imageBase64" :src="p.imageBase64" :alt="p.name"/>
+                  <MenuImage v-if="p.hasImage" :src="thumbUrl(p)" :alt="p.name" class="featured-img" eager/>
                 </div>
                 <div class="px-2 py-2 text-center">
                   <div class="text-xs font-bold text-ink truncate">{{ p.name }}</div>
@@ -113,9 +115,9 @@
             <button v-for="c in categoriesWithProducts" :key="c.id"
                     @click="openCategory(c)"
                     class="category-card"
-                    :style="c.menuImageBase64
-                      ? { backgroundImage: `url(${c.menuImageBase64})` }
-                      : { background: c.colorHex || '#D97706' }">
+                    :style="{ background: c.colorHex || '#D97706' }">
+              <MenuImage v-if="c.hasImage" :src="categoryUrl(c)" :alt="c.name"
+                         class="category-img" eager/>
               <span class="category-overlay"></span>
               <span class="category-label">
                 {{ c.name }}
@@ -148,9 +150,9 @@
             <!-- Küçük görsel anında görünür (bulanık), tam çözünürlüklü
                  fotoğraf inince üstüne biner. -->
             <div class="lightbox-media" :class="{ 'is-inactive': preview.isActive === false }">
-              <img class="lightbox-blur" :class="{ 'is-fallback': fullFailed }"
-                   :src="preview.imageBase64" :alt="fullFailed ? preview.name : ''"
-                   :aria-hidden="fullFailed ? null : 'true'"/>
+              <MenuImage v-if="preview.hasImage" class="lightbox-blur"
+                         :class="{ 'is-fallback': fullFailed }"
+                         :src="thumbUrl(preview)" :alt="preview.name" eager/>
               <img v-if="previewFullUrl" class="lightbox-full" :class="{ 'is-ready': fullLoaded }"
                    :src="previewFullUrl" :alt="preview.name"
                    @load="fullLoaded = true" @error="onFullError"/>
@@ -180,6 +182,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api, { API_BASE } from '../api/api'
 import ProductRow from '../components/MenuProductRow.vue'
+import MenuImage from '../components/MenuImage.vue'
 import { allergenLabels } from '../constants/allergens'
 
 const route      = useRoute()
@@ -213,6 +216,26 @@ const searchResults = computed(() => {
 const mapUrl = computed(() =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(menu.value.address || menu.value.businessName)}`)
 
+// Görseller menü yanıtında gelmiyor; her biri kendi adresinden iniyor.
+function imageBase(kind, id) {
+  return `${API_BASE}menu/${route.params.slug}/${kind}/${id}/image`
+}
+function thumbUrl(p)    { return `${imageBase('product', p.id)}?size=thumb` }
+function categoryUrl(c) { return imageBase('category', c.id) }
+
+// Eski API sürümü görselleri yanıtın içinde gönderiyordu; yenisi yalnızca
+// var/yok bilgisi veriyor. İkisi de çalışsın ki API ile Vue'nun hangi sırayla
+// yayına alındığı önemli olmasın.
+function normalize(data) {
+  const markProduct = p => { if (p.hasImage === undefined) p.hasImage = !!p.imageBase64 }
+  data.featured?.forEach(markProduct)
+  data.categories?.forEach(c => {
+    if (c.hasImage === undefined) c.hasImage = !!c.menuImageBase64
+    c.products?.forEach(markProduct)
+  })
+  return data
+}
+
 function fmt(v) {
   return new Intl.NumberFormat('tr-TR').format(v ?? 0) + ' ₺'
 }
@@ -236,7 +259,7 @@ async function openPreview(p) {
   // Arkadaki menü kaymasın
   document.body.style.overflow = 'hidden'
 
-  const url = `${API_BASE}menu/${route.params.slug}/product/${p.id}/image`
+  const url = imageBase('product', p.id)
   try {
     const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': '1' } })
     if (!res.ok) throw new Error(String(res.status))
@@ -284,7 +307,7 @@ onMounted(async () => {
   window.addEventListener('keydown', onKeydown)
   try {
     const res = await api.getPublicMenu(route.params.slug)
-    menu.value = res.data
+    menu.value = normalize(res.data)
   } catch {
     notFound.value = true
   } finally {
@@ -379,7 +402,7 @@ onUnmounted(() => {
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 .featured-media { height: 92px; background: #F3ECE3; }
-.featured-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.featured-media .featured-img { width: 100%; height: 100%; }
 
 /* Kategori kartları */
 .category-card {
@@ -390,6 +413,9 @@ onUnmounted(() => {
   transition: transform .12s ease;
 }
 .category-card:active { transform: scale(0.98); }
+/* Kategori görseli artık ayrı indiğinden kartın arka planı yerine
+   üstüne serilen bir katman. Görsel yoksa kartın kendi rengi kalır. */
+.category-img { position: absolute; inset: 0; }
 .category-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);
@@ -463,7 +489,8 @@ onUnmounted(() => {
 /* Tam çözünürlüklü fotoğraf inene kadar küçük görsel bulanık dursun —
    boş gri bir kutu görmektense. */
 .lightbox-blur { filter: blur(12px); transform: scale(1.08); }
-.lightbox-blur.is-fallback { filter: none; transform: none; }
+/* Tam fotoğraf gelmezse küçük görsel net ve kırpılmadan gösterilir. */
+.lightbox-blur.is-fallback { filter: none; transform: none; background-size: contain; }
 .lightbox-full { opacity: 0; transition: opacity .25s ease; }
 .lightbox-full.is-ready { opacity: 1; }
 .lightbox-media.is-inactive { filter: grayscale(1); opacity: .6; }
