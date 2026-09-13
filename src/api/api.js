@@ -58,7 +58,9 @@ export default {
   deletePlan: (id)     => api.delete(`plans/${id}`),
 
   // Dijital Menü (herkese açık)
-  getPublicMenu: (slug) => api.get(`menu/${slug}`),
+  // Menü yanıtı fotoğraflar yüzünden büyük ve ngrok tüneli yavaş (~64 KB/sn);
+  // 10 sn'lik genel zaman aşımı isteği kesip menüyü "bulunamadı" gösteriyordu.
+  getPublicMenu: (slug) => api.get(`menu/${slug}`, { timeout: 60000 }),
 
   // Dijital Menü yapılandırması (öne çıkanlar + kategori görselleri)
   getMenuConfig:  ()  => api.get('menu/config'),
