@@ -180,7 +180,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import api, { API_BASE } from '../api/api'
+import api from '../api/api'
 import ProductRow from '../components/MenuProductRow.vue'
 import MenuImage from '../components/MenuImage.vue'
 import { allergenLabels } from '../constants/allergens'
@@ -196,7 +196,6 @@ const preview    = ref(null)
 const previewFullUrl = ref('')
 const fullLoaded = ref(false)
 const fullFailed = ref(false)
-let fullObjectUrl = null
 
 const previewAllergens = computed(() =>
   preview.value ? allergenLabels(preview.value.allergens) : [])
@@ -217,11 +216,16 @@ const mapUrl = computed(() =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(menu.value.address || menu.value.businessName)}`)
 
 // Görseller menü yanıtında gelmiyor; her biri kendi adresinden iniyor.
-function imageBase(kind, id) {
-  return `${API_BASE}menu/${route.params.slug}/${kind}/${id}/image`
+// Adres API'ye değil, aynı alan adındaki /api/img geçidine gidiyor:
+// ngrok tarayıcı isteklerine uyarı sayfası döndürdüğü için doğrudan
+// <img> ile API'den görsel çekilemiyor (bkz. api/img.js).
+function imageUrl(kind, id, size) {
+  const p = encodeURIComponent(`${route.params.slug}/${kind}/${id}/image`)
+  return `/api/img?p=${p}${size ? `&size=${size}` : ''}`
 }
-function thumbUrl(p)    { return `${imageBase('product', p.id)}?size=thumb` }
-function categoryUrl(c) { return imageBase('category', c.id) }
+function thumbUrl(p)    { return imageUrl('product', p.id, 'thumb') }
+function categoryUrl(c) { return imageUrl('category', c.id) }
+function fullUrl(p)     { return imageUrl('product', p.id) }
 
 // Eski API sürümü görselleri yanıtın içinde gönderiyordu; yenisi yalnızca
 // var/yok bilgisi veriyor. İkisi de çalışsın ki API ile Vue'nun hangi sırayla
@@ -245,38 +249,13 @@ function openCategory(c) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// Fotoğraf neden <img src> ile değil de fetch ile indiriliyor:
-// API ücretsiz bir ngrok tüneli arkasında ve ngrok, tanımadığı tarayıcıya
-// gerçek yanıt yerine bir uyarı sayfası döndürüyor. Bunu atlatan
-// "ngrok-skip-browser-warning" başlığını yalnızca fetch/XHR gönderebilir;
-// <img> etiketine özel başlık eklenemediği için büyük fotoğraf ilk ziyarette
-// hiç yüklenmiyordu (menü sessizce küçük görsele düşüyordu).
-async function openPreview(p) {
+function openPreview(p) {
   preview.value = p
   fullLoaded.value = false
   fullFailed.value = false
-  previewFullUrl.value = ''
+  previewFullUrl.value = fullUrl(p)
   // Arkadaki menü kaymasın
   document.body.style.overflow = 'hidden'
-
-  const url = imageBase('product', p.id)
-  try {
-    const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': '1' } })
-    if (!res.ok) throw new Error(String(res.status))
-    const blob = await res.blob()
-    if (!blob.type.startsWith('image/')) throw new Error(blob.type || 'bilinmeyen tür')
-    // Kullanıcı beklerken pencereyi kapattıysa ya da başka ürüne geçtiyse bırak
-    if (preview.value?.id !== p.id) return
-    releaseFullUrl()
-    fullObjectUrl = URL.createObjectURL(blob)
-    previewFullUrl.value = fullObjectUrl
-  } catch {
-    if (preview.value?.id === p.id) fullFailed.value = true
-  }
-}
-
-function releaseFullUrl() {
-  if (fullObjectUrl) { URL.revokeObjectURL(fullObjectUrl); fullObjectUrl = null }
 }
 function onFullError() {
   // Sunucu büyük fotoğrafı veremiyorsa (eski API sürümü, ağ hatası) küçük
@@ -288,7 +267,6 @@ function onFullError() {
 function closePreview() {
   preview.value = null
   previewFullUrl.value = ''
-  releaseFullUrl()
   document.body.style.overflow = ''
 }
 function onKeydown(e) {
@@ -319,7 +297,6 @@ onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('keydown', onKeydown)
   document.body.style.overflow = ''
-  releaseFullUrl()
 })
 </script>
 
@@ -415,7 +392,7 @@ onUnmounted(() => {
 .category-card:active { transform: scale(0.98); }
 /* Kategori görseli artık ayrı indiğinden kartın arka planı yerine
    üstüne serilen bir katman. Görsel yoksa kartın kendi rengi kalır. */
-.category-img { position: absolute; inset: 0; }
+.category-img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .category-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);
@@ -484,13 +461,14 @@ onUnmounted(() => {
 }
 .lightbox-media img {
   position: absolute; inset: 0;
-  width: 100%; height: 100%; object-fit: contain; display: block;
+  width: 100%; height: 100%; display: block;
 }
+.lightbox-full { object-fit: contain; }
 /* Tam çözünürlüklü fotoğraf inene kadar küçük görsel bulanık dursun —
    boş gri bir kutu görmektense. */
-.lightbox-blur { filter: blur(12px); transform: scale(1.08); }
+.lightbox-blur { object-fit: cover; filter: blur(12px); transform: scale(1.08); }
 /* Tam fotoğraf gelmezse küçük görsel net ve kırpılmadan gösterilir. */
-.lightbox-blur.is-fallback { filter: none; transform: none; background-size: contain; }
+.lightbox-blur.is-fallback { filter: none; transform: none; object-fit: contain; }
 .lightbox-full { opacity: 0; transition: opacity .25s ease; }
 .lightbox-full.is-ready { opacity: 1; }
 .lightbox-media.is-inactive { filter: grayscale(1); opacity: .6; }
