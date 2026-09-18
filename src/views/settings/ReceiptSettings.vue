@@ -179,6 +179,42 @@
                       :class="form.autoPrintOnZReport ? 'translate-x-6' : 'translate-x-1'"/>
               </button>
             </div>
+
+            <div class="flex items-center justify-between py-3">
+              <div>
+                <div class="text-sm font-semibold text-primary">Her Siparişte Mutfak Kopyası</div>
+                <div class="text-xs text-muted mt-0.5">Masaya ürün gönderildiğinde mutfak fişi de basılır</div>
+              </div>
+              <button @click="form.kitchenCopyPerOrder = !form.kitchenCopyPerOrder"
+                      class="relative inline-flex h-6 items-center rounded-full flex-shrink-0
+                             transition-colors duration-300 ml-6" style="width:2.75rem"
+                      :class="form.kitchenCopyPerOrder ? 'bg-accent' : 'bg-gray-300'">
+                <span class="inline-block h-4 w-4 rounded-full bg-white shadow
+                             transition-transform duration-300"
+                      :class="form.kitchenCopyPerOrder ? 'translate-x-6' : 'translate-x-1'"/>
+              </button>
+            </div>
+
+            <!-- Nüsha sayısı — müşteri + esnaf nüshası için -->
+            <div class="flex items-center justify-between py-3">
+              <div>
+                <div class="text-sm font-semibold text-primary">Fiş Nüsha Sayısı</div>
+                <div class="text-xs text-muted mt-0.5">Satış fişi kaç kopya basılsın (esnaf nüshası için)</div>
+              </div>
+              <div class="flex items-center gap-2 ml-6">
+                <button @click="form.receiptCopies = Math.max(1, form.receiptCopies - 1)"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200
+                               text-muted hover:border-danger hover:text-danger hover:bg-red-50
+                               transition-colors font-bold select-none leading-none">−</button>
+                <span class="w-8 text-center font-bold text-sm text-primary select-none">
+                  {{ form.receiptCopies }}
+                </span>
+                <button @click="form.receiptCopies = Math.min(3, form.receiptCopies + 1)"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200
+                               text-muted hover:border-success hover:text-success hover:bg-green-50
+                               transition-colors font-bold select-none leading-none">+</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -358,18 +394,25 @@
       </div>
 
     </div>
+
+    <!-- Kategori yönlendirmesi — eskiden ayrı "Yazıcı Ayarları" sekmesindeydi -->
+    <div class="mt-6">
+      <PrinterRouting ref="routingRef" :printers="availablePrinters"/>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue'
 import api from '../../api/api'
+import PrinterRouting from '../../components/PrinterRouting.vue'
 
 const loading           = ref(false)
 const saving            = ref(false)
 const error             = ref('')
 const savedOk           = ref(false)
 const availablePrinters = ref([])
+const routingRef        = ref(null)
 
 const form = reactive({
   businessName:        '',
@@ -382,6 +425,8 @@ const form = reactive({
   printerName:         '',
   autoPrintOnPayment:  false,
   autoPrintOnZReport:  false,
+  kitchenCopyPerOrder: false,
+  receiptCopies:       1,
   showBusinessName:    true,
   showAddress:         true,
   showPhone:           true,
@@ -415,7 +460,9 @@ async function save() {
   error.value   = ''
   savedOk.value = false
   try {
+    // Tek kaydet düğmesi hem fiş ayarlarını hem kategori yönlendirmesini yazar.
     await api.updatePrinterSettings({ ...form })
+    await routingRef.value?.save()
     savedOk.value = true
     setTimeout(() => { savedOk.value = false }, 3500)
   } catch {

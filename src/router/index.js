@@ -48,7 +48,8 @@ const routes = [
   { path: '/settings/dijital-menu',    component: () => import('../views/settings/DigitalMenuView.vue') },
   { path: '/settings/fis-ayarlari',    redirect: '/settings/receipt' },
   { path: '/settings/receipt',         component: () => import('../views/settings/ReceiptSettings.vue') },
-  { path: '/settings/yazici-ayarlari', component: () => import('../views/settings/YaziciAyarlari.vue') },
+  // Yazıcı ayarları fiş sayfasıyla birleştirildi; eski bağlantılar oraya gider.
+  { path: '/settings/yazici-ayarlari', redirect: '/settings/receipt' },
   { path: '/settings/musteri-ekrani',  component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Müşteri Ekranı Ayarı</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
   { path: '/settings/okc-durum',       component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">ÖKC Durum</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
   { path: '/settings/terminal',        component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Terminal Ayarları</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
