@@ -309,6 +309,7 @@ const reportSubMenu = [
 const kasaYapiSubMenu = [
   { to: '/settings/dijital-menu',    label: '📱 Dijital Menü (QR)'  },
   { to: '/settings/masa-ayarlari',   label: 'Masa Ayarları'         },
+  { to: '/settings/hizli-notlar',    label: 'Hızlı Notlar'          },
   { to: '/settings/receipt',         label: '🖨 Fiş Tasarımı'       },
   { to: '/settings/yazici-ayarlari', label: 'Yazıcı Ayarları'       },
   { to: '/settings/musteri-ekrani',  label: 'Müşteri Ekranı Ayarı'  },

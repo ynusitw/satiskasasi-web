@@ -44,6 +44,7 @@ const routes = [
   // Kasa Yapılandırma — sayfalar henüz oluşturulmadı, placeholder route
   { path: '/settings',                redirect: '/settings/masa-ayarlari' },
   { path: '/settings/masa-ayarlari',   component: () => import('../views/settings/MasaAyarlari.vue') },
+  { path: '/settings/hizli-notlar',    component: () => import('../views/settings/HizliNotlar.vue') },
   { path: '/settings/dijital-menu',    component: () => import('../views/settings/DigitalMenuView.vue') },
   { path: '/settings/fis-ayarlari',    redirect: '/settings/receipt' },
   { path: '/settings/receipt',         component: () => import('../views/settings/ReceiptSettings.vue') },

@@ -98,6 +98,16 @@ export default {
   addCariTransaction: (id, d)   => api.post(`cari/${id}/transactions`, d),
 
   // Bölümler
+  // ── Hızlı Notlar (sipariş satırı kısayolları) ──────────────────────
+  // includeInactive: yönetim ekranı pasifleri de görsün; kasa yalnızca
+  // aktifleri çeker.
+  getQuickNotes:    (includeInactive = false) =>
+                      api.get(`quicknotes${includeInactive ? '?includeInactive=true' : ''}`),
+  createQuickNote:  (d)      => api.post('quicknotes', d),
+  updateQuickNote:  (id, d)  => api.put(`quicknotes/${id}`, d),
+  deleteQuickNote:  (id)     => api.delete(`quicknotes/${id}`),
+  reorderQuickNotes:(ids)    => api.put('quicknotes/order', ids),
+
   getSections:    ()       => api.get('sections'),
   createSection:  (d)      => api.post('sections', d),
   updateSection:  (id, d)  => api.put(`sections/${id}`, d),
