@@ -634,6 +634,36 @@
                             focus:border-accent focus:outline-none text-sm"/>
             </div>
 
+            <!-- Fiyat seçenekleri (porsiyon / dürüm / 1.5 porsiyon) -->
+            <div class="rounded-xl border border-gray-200 p-4">
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-sm font-semibold">Fiyat Seçenekleri</label>
+                <button type="button" @click="addVariant"
+                        class="text-xs font-semibold text-accent hover:underline">+ Seçenek Ekle</button>
+              </div>
+              <p class="text-xs text-muted mb-3">
+                Boş bırakırsanız ürün tek fiyatlıdır. Seçenek eklerseniz kasada
+                "Hangi porsiyon?" diye sorulur ve yukarıdaki fiyat kullanılmaz.
+              </p>
+
+              <div v-if="form.variants.length" class="space-y-2">
+                <div v-for="(v, i) in form.variants" :key="v._key"
+                     class="flex items-center gap-2">
+                  <input v-model="v.name" placeholder="Örn. Dürüm" maxlength="40"
+                         class="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm
+                                focus:border-accent focus:outline-none"/>
+                  <input v-model.number="v.price" type="number" step="0.01" min="0" placeholder="Fiyat"
+                         class="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm
+                                focus:border-accent focus:outline-none"/>
+                  <label class="flex items-center gap-1 text-xs text-muted whitespace-nowrap">
+                    <input type="checkbox" v-model="v.isActive"/> Aktif
+                  </label>
+                  <button type="button" @click="form.variants.splice(i, 1)"
+                          class="px-2 text-red-600 hover:bg-red-50 rounded" title="Kaldır">✕</button>
+                </div>
+              </div>
+            </div>
+
             <!-- Dijital menü alanları -->
             <div>
               <label class="block text-sm font-semibold mb-1">
@@ -735,6 +765,7 @@ const form   = reactive({
   id: 0, name: '', barcode: '', categoryId: null,
   price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
   isActive: true, imageBase64: '', imageLargeBase64: null, description: '', allergens: '',
+    variants: [],
 })
 const dragOver  = ref(false)
 const fileInput = ref(null)
@@ -926,10 +957,18 @@ function openCreate() {
     id: 0, name: '', barcode: '', categoryId: selectedCategoryId.value,
     price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
     isActive: true, imageBase64: '', imageLargeBase64: null, description: '', allergens: '',
+    variants: [],
   })
   modal.editing = false
   modal.show    = true
   error.value   = ''
+}
+
+// Fiyat seçenekleri — v-for anahtarı için geçici kimlik (yeni satırların
+// henüz sunucu Id'si yok).
+let nextVariantKey = 1
+function addVariant() {
+  form.variants.push({ id: 0, name: '', price: 0, isActive: true, _key: nextVariantKey++ })
 }
 
 function openEdit(p) {
@@ -941,10 +980,24 @@ function openEdit(p) {
     imageLargeBase64: null,
     description: p.description || '',
     allergens:   p.allergens   || '',
+    // Derin kopya: formda düzenleme kaydedilmeden listedeki satırı değiştirmesin.
+    variants: (p.variants || []).map(v => ({ ...v, _key: nextVariantKey++ })),
   })
   modal.editing = true
   modal.show    = true
   error.value   = ''
+}
+
+// Sunucuya giden gövde: seçeneklerdeki geçici anahtar atılır, boş adlı
+// satırlar gönderilmez, sıra ekrandaki sıradır.
+function productPayload() {
+  return {
+    ...form,
+    variants: form.variants
+      .filter(v => (v.name || '').trim())
+      .map((v, i) => ({ id: v.id || 0, name: v.name.trim(), price: Number(v.price) || 0,
+                        sortOrder: i + 1, isActive: v.isActive !== false })),
+  }
 }
 
 async function save() {
@@ -961,8 +1014,8 @@ async function save() {
   error.value  = ''
   try {
     const res = modal.editing
-      ? await api.updateProduct(form.id, form)
-      : await api.createProduct(form)
+      ? await api.updateProduct(form.id, productPayload())
+      : await api.createProduct(productPayload())
     console.log('[ProductSave]', modal.editing ? 'GÜNCELLEME' : 'OLUŞTURMA', res.status, res.data)
     modal.show = false
     await load()

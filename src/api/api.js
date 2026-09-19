@@ -58,6 +58,11 @@ export default {
   getLicenseRequests: ()       => api.get('licenses/requests'),
   approveLicense:     (id, d)  => api.post(`licenses/requests/${id}/approve`, d),
 
+  // ── Aşama 2: personel satışı ve indirim/ikram raporu ─────────────
+  getStaffSettings:   ()        => api.get('settings/staff'),
+  saveStaffSettings:  (d)       => api.put('settings/staff', d),
+  getAdjustmentsReport: (params) => api.get('reports/adjustments', { params }),
+
   // ── Modüler lisanslama ─────────────────────────────────────────────
   getModuleCatalog:   ()        => api.get('modules'),              // seçilebilir modüller
   getMyModules:       ()        => api.get('modules/me'),           // oturumdaki müşterinin aktif modülleri

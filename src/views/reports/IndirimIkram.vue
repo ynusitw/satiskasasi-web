@@ -1,0 +1,158 @@
+<template>
+  <div class="p-8">
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-primary">İndirim &amp; İkram</h1>
+        <p class="text-muted text-sm mt-1">
+          Kasada yönetici onayıyla yapılan indirim, ikram ve personel satışları
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-end gap-2">
+        <label class="text-xs text-muted">
+          Başlangıç
+          <input v-model="from" type="date"
+                 class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
+        </label>
+        <label class="text-xs text-muted">
+          Bitiş
+          <input v-model="to" type="date"
+                 class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
+        </label>
+        <button @click="load" :disabled="loading"
+                class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold
+                       hover:bg-blue-600 disabled:opacity-50">
+          {{ loading ? 'Yükleniyor...' : 'Getir' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Özet: türe tıklayınca liste o türe süzülür -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <button v-for="c in cards" :key="c.type" @click="toggleType(c.type)"
+              class="text-left bg-white rounded-2xl shadow-sm p-5 border-2 transition-colors"
+              :class="type === c.type ? 'border-accent' : 'border-transparent hover:border-gray-200'">
+        <div class="text-xs font-bold uppercase tracking-wide text-muted">{{ c.label }}</div>
+        <div class="text-2xl font-bold mt-1" :class="c.color">{{ fmt(c.total) }}</div>
+        <div class="text-xs text-muted mt-1">{{ c.count }} işlem</div>
+      </button>
+    </div>
+
+    <div v-if="error" class="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{{ error }}</div>
+
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-6 py-3 border-b border-gray-100 flex items-center justify-between text-sm">
+        <span class="font-semibold text-primary">
+          {{ type ? typeLabel(type) : 'Tüm işlemler' }}
+          <span class="text-muted font-normal">({{ filtered.length }})</span>
+        </span>
+        <button v-if="type" @click="type = null" class="text-xs text-accent hover:underline">
+          Filtreyi kaldır
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Tarih</th>
+              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Tür</th>
+              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Ürün</th>
+              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Adet</th>
+              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Ciro Etkisi</th>
+              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Kasiyer</th>
+              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Onaylayan</th>
+              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Açıklama</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in filtered" :key="r.id" class="border-t border-gray-50 hover:bg-gray-50">
+              <td class="px-4 py-3 whitespace-nowrap text-muted">{{ dt(r.createdAt) }}</td>
+              <td class="px-4 py-3">
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full" :class="badge(r.type)">
+                  {{ typeLabel(r.type) }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="font-semibold">{{ r.productName }}</span>
+                <span v-if="r.variantName" class="text-muted"> ({{ r.variantName }})</span>
+              </td>
+              <td class="px-4 py-3 text-right">{{ r.type === 'Staff' ? '—' : qty(r.quantity) }}</td>
+              <td class="px-4 py-3 text-right font-semibold text-red-600">−{{ fmt(r.amount) }}</td>
+              <td class="px-4 py-3">{{ r.cashierName }}</td>
+              <td class="px-4 py-3">{{ r.approvedBy || '—' }}</td>
+              <td class="px-4 py-3 text-muted">{{ detail(r) }}</td>
+            </tr>
+            <tr v-if="!loading && filtered.length === 0">
+              <td colspan="8" class="text-center py-12 text-muted">Bu aralıkta kayıt yok</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import api from '../../api/api'
+
+// Varsayılan aralık: son 7 gün
+const iso = d => d.toISOString().slice(0, 10)
+const today = new Date()
+const from = ref(iso(new Date(today.getTime() - 6 * 86400000)))
+const to   = ref(iso(today))
+
+const rows    = ref([])
+const summary = ref({})
+const type    = ref(null)
+const loading = ref(false)
+const error   = ref('')
+
+const cards = computed(() => [
+  { type: 'Discount', label: 'İndirim',  total: summary.value.discountTotal, count: summary.value.discountCount, color: 'text-amber-600' },
+  { type: 'Comp',     label: 'İkram',    total: summary.value.compTotal,     count: summary.value.compCount,     color: 'text-purple-600' },
+  { type: 'Staff',    label: 'Personel', total: summary.value.staffTotal,    count: summary.value.staffCount,    color: 'text-blue-600' },
+])
+
+const filtered = computed(() => type.value ? rows.value.filter(r => r.type === type.value) : rows.value)
+
+function toggleType(t) { type.value = type.value === t ? null : t }
+
+async function load() {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await api.getAdjustmentsReport({ from: from.value, to: to.value })
+    rows.value    = res.data.rows
+    summary.value = res.data.summary
+  } catch (e) {
+    error.value = e.response?.data?.message || 'Rapor alınamadı.'
+  } finally {
+    loading.value = false
+  }
+}
+
+const LABELS = { Discount: 'İndirim', Comp: 'İkram', Staff: 'Personel' }
+const typeLabel = t => LABELS[t] || t
+const badge = t => ({
+  Discount: 'bg-amber-100 text-amber-700',
+  Comp:     'bg-purple-100 text-purple-700',
+  Staff:    'bg-blue-100 text-blue-700',
+}[t] || 'bg-gray-100 text-gray-600')
+
+function detail(r) {
+  if (r.type === 'Staff') return r.staffName ? `Personel: ${r.staffName}` : 'Personel'
+  const parts = []
+  if (r.type === 'Discount' && r.discountType === 'Percent') parts.push(`%${Number(r.discountValue)}`)
+  if (r.type === 'Discount' && r.discountType === 'Amount')  parts.push(`${fmt(r.discountValue)} indirim`)
+  if (r.reason) parts.push(r.reason)
+  return parts.join(' · ') || '—'
+}
+
+const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(v || 0)
+const qty = v => Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 3 })
+const dt  = v => new Date(v).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })
+
+onMounted(load)
+</script>

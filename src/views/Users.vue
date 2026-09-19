@@ -4,6 +4,31 @@
       <h1 class="text-2xl font-bold text-primary">Kullanıcılar</h1>
       <button @click="openCreate" class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors">+ Yeni Kullanıcı</button>
     </div>
+
+    <!-- Personel satışı: kasadaki "İndirimli" seçeneğinin oranı -->
+    <div class="bg-white rounded-2xl shadow-sm p-5 mb-6 flex flex-wrap items-center gap-4">
+      <div class="flex-1 min-w-[240px]">
+        <div class="font-semibold text-primary text-sm">Personel Satışı</div>
+        <div class="text-xs text-muted mt-0.5">
+          Kasada personele "Ücretsiz" ya da bu oranda "İndirimli" satış yapılabilir.
+          Personel satışları stoktan düşer ama Z raporunda ciroya karışmaz.
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-muted">İndirim oranı</span>
+        <span class="text-sm font-semibold">%</span>
+        <input v-model.number="staffPercent" type="number" min="1" max="99"
+               class="w-20 px-3 py-2 border border-gray-200 rounded-xl text-sm
+                      focus:border-accent focus:outline-none"/>
+        <button @click="saveStaff" :disabled="staffSaving"
+                class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold
+                       hover:bg-blue-600 disabled:opacity-50">
+          {{ staffSaving ? '...' : 'Kaydet' }}
+        </button>
+        <span v-if="staffSaved" class="text-xs text-green-600">Kaydedildi</span>
+      </div>
+    </div>
+
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
       <table class="w-full">
         <thead class="bg-gray-50">
@@ -74,6 +99,41 @@
                 </label>
               </div>
             </div>
+
+            <!-- Yönetici onayı: kasada indirim / ikram / personel satışı -->
+            <div class="pt-4 border-t border-gray-100">
+              <p class="text-sm font-semibold mb-1">Yönetici Onayı</p>
+              <p class="text-xs text-muted mb-3">
+                Kasada indirim, ikram ve personel satışı bu PIN ile onaylanır.
+                Admin kullanıcılar her zaman onaylayabilir.
+              </p>
+              <label class="flex items-center gap-2 cursor-pointer mb-3">
+                <input v-model="form.canApproveAdjustments" type="checkbox" class="w-4 h-4"
+                       :disabled="form.isAdmin"/>
+                <span class="text-sm">İndirim / ikram onaylayabilir
+                  <span v-if="form.isAdmin" class="text-xs text-muted">(admin — zaten yetkili)</span>
+                </span>
+              </label>
+
+              <div v-if="form.isAdmin || form.canApproveAdjustments">
+                <label class="block text-xs font-semibold text-muted mb-1">
+                  PIN (4-8 rakam)
+                  <span v-if="form.hasManagerPin && !removePin" class="text-green-600 font-normal">
+                    — tanımlı; değiştirmek için yenisini yazın
+                  </span>
+                </label>
+                <div class="flex gap-2 items-center">
+                  <input v-model="form.managerPin" type="password" inputmode="numeric"
+                         maxlength="8" autocomplete="new-password" :disabled="removePin"
+                         :placeholder="form.hasManagerPin ? '••••' : 'Örn. 4821'"
+                         class="w-40 px-4 py-2 border border-gray-200 rounded-xl text-sm
+                                focus:border-accent focus:outline-none"/>
+                  <label v-if="form.hasManagerPin" class="flex items-center gap-1 text-xs text-red-600">
+                    <input v-model="removePin" type="checkbox"/> PIN'i kaldır
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
           <div v-if="error" class="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{{ error }}</div>
           <div class="flex gap-3 mt-6 justify-end">
@@ -90,7 +150,10 @@ import { ref, onMounted, reactive } from 'vue'
 import api from '../api/api'
 const users = ref([]); const loading = ref(true); const saving = ref(false); const error = ref('')
 const modal = reactive({ show: false, editing: false })
-const form = reactive({ id: 0, username: '', password: '', isAdmin: false, isActive: true, canTakePayment: true, canAccessMenu: true, canClearCart: false, canChangeQuantity: false, canAccessCashZReport: false })
+const EMPTY = { id: 0, username: '', password: '', isAdmin: false, isActive: true, canTakePayment: true, canAccessMenu: true, canClearCart: false, canChangeQuantity: false, canAccessCashZReport: false, canApproveAdjustments: false, hasManagerPin: false, managerPin: '' }
+const form = reactive({ ...EMPTY })
+// PIN kaldırma ayrı bir onay: boş PIN kutusu "değiştirme" anlamına gelir.
+const removePin = ref(false)
 const permissions = [
   { key: 'canTakePayment', label: 'Ödeme alabilir' },
   { key: 'canAccessMenu', label: 'Menüye erişebilir' },
@@ -99,14 +162,39 @@ const permissions = [
   { key: 'canAccessCashZReport', label: 'Kasa/Z-Raporu görebilir' },
 ]
 async function load() { loading.value = true; users.value = (await api.getUsers()).data; loading.value = false }
-function openCreate() { Object.assign(form, { id: 0, username: '', password: '', isAdmin: false, isActive: true, canTakePayment: true, canAccessMenu: true, canClearCart: false, canChangeQuantity: false, canAccessCashZReport: false }); modal.editing = false; modal.show = true; error.value = '' }
-function openEdit(u) { Object.assign(form, { ...u, password: '' }); modal.editing = true; modal.show = true; error.value = '' }
+function openCreate() { Object.assign(form, { ...EMPTY }); removePin.value = false; modal.editing = false; modal.show = true; error.value = '' }
+function openEdit(u) { Object.assign(form, { ...EMPTY, ...u, password: '', managerPin: '' }); removePin.value = false; modal.editing = true; modal.show = true; error.value = '' }
+
+// Sunucuya giden gövde. managerPin: null → dokunma, '' → kaldır, rakam → yeni PIN.
+function payload() {
+  const { hasManagerPin, ...body } = form
+  const pin = (form.managerPin || '').trim()
+  body.managerPin = removePin.value ? '' : (pin ? pin : null)
+  return body
+}
 async function save() {
   if (!form.username.trim()) { error.value = 'Kullanıcı adı zorunludur.'; return }
+  const pin = (form.managerPin || '').trim()
+  if (pin && !/^\d{4,8}$/.test(pin)) { error.value = "PIN 4-8 haneli ve yalnızca rakam olmalı."; return }
   saving.value = true; error.value = ''
-  try { modal.editing ? await api.updateUser(form.id, form) : await api.createUser(form); modal.show = false; await load() }
-  catch { error.value = 'Hata oluştu.' } finally { saving.value = false }
+  try { modal.editing ? await api.updateUser(form.id, payload()) : await api.createUser(payload()); modal.show = false; await load() }
+  catch (e) { error.value = e.response?.data?.message || 'Hata oluştu.' } finally { saving.value = false }
 }
+// Personel satışı indirim oranı
+const staffPercent = ref(50); const staffSaving = ref(false); const staffSaved = ref(false)
+async function loadStaff() {
+  try { staffPercent.value = (await api.getStaffSettings()).data.staffDiscountPercent } catch {}
+}
+async function saveStaff() {
+  const v = Math.min(99, Math.max(1, Math.round(Number(staffPercent.value) || 50)))
+  staffPercent.value = v; staffSaving.value = true; staffSaved.value = false
+  try {
+    await api.saveStaffSettings({ staffDiscountPercent: v })
+    staffSaved.value = true; setTimeout(() => { staffSaved.value = false }, 2500)
+  } catch (e) { alert(e.response?.data?.message || 'Kaydedilemedi.') }
+  finally { staffSaving.value = false }
+}
+
 async function deleteUser(u) { if (!confirm(`"${u.username}" silinsin mi?`)) return; await api.deleteUser(u.id); await load() }
-onMounted(load)
+onMounted(() => { load(); loadStaff() })
 </script>

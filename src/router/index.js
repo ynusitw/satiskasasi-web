@@ -31,6 +31,7 @@ const routes = [
   { path: '/reports/z-listesi',   component: () => import('../views/reports/ZListesi.vue') },
   { path: '/reports/satis',       component: () => import('../views/reports/SatisRaporlari.vue') },
   { path: '/reports/iptaller',    component: () => import('../views/reports/Iptaller.vue') },
+  { path: '/reports/indirim-ikram', component: () => import('../views/reports/IndirimIkram.vue') },
   { path: '/reports/masalar',     component: () => import('../views/reports/Masalar.vue'), meta: { module: MODULES.TABLES } },
   { path: '/reports/stoklar',     component: () => import('../views/reports/Stoklar.vue'), meta: { module: MODULES.STOCK } },
   {

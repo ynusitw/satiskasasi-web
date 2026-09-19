@@ -56,6 +56,8 @@
                 <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Kart</th>
                 <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">İndirim</th>
                 <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Toplam</th>
+                <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase"
+                    title="Personel satışları ciroya dahil değildir">Personel</th>
                 <th class="text-center px-6 py-3 text-xs font-bold text-muted uppercase">Detay</th>
               </tr>
             </thead>
@@ -80,6 +82,14 @@
                 <td class="px-6 py-4 text-sm text-right font-bold text-primary">
                   {{ fmt(z.grandTotal) }}
                 </td>
+                <!-- Personel satışı: ciroya dahil değil, kasaya giren tutar ayrı -->
+                <td class="px-6 py-4 text-sm text-right text-muted whitespace-nowrap">
+                  <template v-if="z.staffSaleCount">
+                    <div class="font-semibold">{{ fmt(z.staffCollected) }}</div>
+                    <div class="text-xs">{{ z.staffSaleCount }} işlem · tüketim {{ fmt(z.staffConsumption) }}</div>
+                  </template>
+                  <span v-else>—</span>
+                </td>
                 <td class="px-6 py-4 text-center">
                   <button @click="openDetail(z)"
                           class="px-3 py-1.5 text-xs font-semibold text-accent bg-accent/10
@@ -98,6 +108,7 @@
                 <td class="px-6 py-3 text-sm text-right font-bold text-accent">{{ fmt(totals.card) }}</td>
                 <td class="px-6 py-3 text-sm text-right font-bold text-danger">{{ fmt(totals.discount) }}</td>
                 <td class="px-6 py-3 text-sm text-right font-bold text-primary">{{ fmt(totals.grand) }}</td>
+                <td class="px-6 py-3 text-sm text-right font-bold text-muted">{{ fmt(totals.staff) }}</td>
                 <td/>
               </tr>
             </tfoot>
@@ -211,6 +222,7 @@ const totals = computed(() => ({
   discount: reports.value.reduce((s, z) => s + (z.totalDiscount ?? 0), 0),
   grand:    reports.value.reduce((s, z) => s + (z.grandTotal    ?? 0), 0),
   sales:    reports.value.reduce((s, z) => s + (z.saleCount     ?? 0), 0),
+  staff:    reports.value.reduce((s, z) => s + (z.staffCollected ?? 0), 0),
 }))
 
 function fmt(v) {
