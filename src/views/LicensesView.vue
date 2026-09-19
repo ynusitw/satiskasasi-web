@@ -35,11 +35,12 @@
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">İşletme</th>
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">İletişim</th>
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Cihaz Lisansı</th>
+              <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Modüller</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td colspan="3" class="text-center py-12 text-muted">Yükleniyor...</td>
+              <td colspan="4" class="text-center py-12 text-muted">Yükleniyor...</td>
             </tr>
             <tr v-for="t in tenants" :key="t.id"
                 class="border-t border-gray-50 hover:bg-gray-50 transition-colors">
@@ -61,9 +62,16 @@
                   Bekliyor
                 </span>
               </td>
+              <td class="px-6 py-4 text-right">
+                <button @click="openModules(t)"
+                        class="px-3 py-1.5 text-xs font-semibold text-accent bg-accent/10
+                               hover:bg-accent hover:text-white rounded-lg transition-all">
+                  Modülleri Düzenle
+                </button>
+              </td>
             </tr>
             <tr v-if="!loading && tenants.length === 0">
-              <td colspan="3" class="text-center py-12 text-muted">Müşteri bulunamadı</td>
+              <td colspan="4" class="text-center py-12 text-muted">Müşteri bulunamadı</td>
             </tr>
           </tbody>
         </table>
@@ -120,7 +128,8 @@
     <Teleport to="body">
       <div v-if="modal.show"
            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
+        <!-- Modül seçici eklenince form uzadı; küçük ekranda taşmasın diye kaydırılabilir -->
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
           <h2 class="text-xl font-bold mb-1">Yeni Müşteri Oluştur</h2>
           <p class="text-sm text-muted mb-6">Lisans, kasadan talep geldiğinde ayrıca onaylanır.</p>
 
@@ -182,6 +191,11 @@
               </div>
             </div>
 
+            <!-- Lisans modülleri — müşteriye özel açılır/kapanır -->
+            <div class="mt-5 pt-5 border-t border-gray-100">
+              <ModulePicker v-model="form.moduleCodes"/>
+            </div>
+
             <div v-if="error" class="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{{ error }}</div>
 
             <div class="flex gap-3 mt-6 justify-end">
@@ -199,6 +213,39 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Mevcut müşterinin modüllerini düzenle -->
+    <Teleport to="body">
+      <div v-if="modulesModal.show"
+           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
+          <h2 class="text-xl font-bold mb-1">Modüller</h2>
+          <p class="text-sm text-muted mb-6">
+            {{ modulesModal.tenant?.businessName }} — kapattığınız modül müşterinin
+            panelinden ve kasasından kaldırılır, en geç bir dakika içinde etkili olur.
+          </p>
+
+          <div v-if="modulesModal.loading" class="text-sm text-muted py-6">Yükleniyor...</div>
+          <ModulePicker v-else v-model="modulesModal.codes"/>
+
+          <div v-if="modulesModal.error" class="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">
+            {{ modulesModal.error }}
+          </div>
+
+          <div class="flex gap-3 mt-6 justify-end">
+            <button @click="modulesModal.show = false"
+                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+              İptal
+            </button>
+            <button @click="saveModules" :disabled="modulesModal.saving || !modulesModal.ready"
+                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm
+                           font-bold hover:bg-blue-600 disabled:opacity-50">
+              {{ modulesModal.saving ? 'Kaydediliyor...' : 'Kaydet' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -206,6 +253,7 @@
 import { ref, computed, onMounted, reactive } from 'vue'
 import api      from '../api/api'
 import StatCard from '../components/StatCard.vue'
+import ModulePicker from '../components/ModulePicker.vue'
 
 const tenants  = ref([])
 const licenses = ref([])
@@ -218,7 +266,47 @@ const form = reactive({
   businessName: '', contactPerson: '', email: '',
   phone: '', city: '', taxNumber: '',
   address: '', password: '', username: '',
+  moduleCodes: [],
 })
+
+// Katalogdaki tüm modül kodları — yeni müşteri formu hepsi seçili açılır.
+const allModuleCodes = ref([])
+
+// ── Mevcut müşterinin modüllerini düzenleme ──────────────────────────────
+const modulesModal = reactive({
+  show: false, tenant: null, codes: [], loading: false, saving: false, error: '',
+  // Mevcut modüller yüklenemediyse kaydetmeye izin verilmez: boş liste
+  // kaydedilirse müşterinin tüm modülleri silinirdi.
+  ready: false
+})
+
+async function openModules(t) {
+  Object.assign(modulesModal, {
+    show: true, tenant: t, codes: [], loading: true, saving: false, error: '', ready: false
+  })
+  try {
+    const res = await api.getTenantModules(t.id)
+    modulesModal.codes = res.data.map(m => m.moduleCode)
+    modulesModal.ready = true
+  } catch {
+    modulesModal.error = 'Modüller alınamadı.'
+  } finally {
+    modulesModal.loading = false
+  }
+}
+
+async function saveModules() {
+  modulesModal.saving = true
+  modulesModal.error  = ''
+  try {
+    await api.setTenantModules(modulesModal.tenant.id, modulesModal.codes)
+    modulesModal.show = false
+  } catch (e) {
+    modulesModal.error = e.response?.data?.message || 'Modüller kaydedilemedi.'
+  } finally {
+    modulesModal.saving = false
+  }
+}
 
 const licensedTenantCount = computed(() =>
   tenants.value.filter(t => tenantLicenseCount(t.id) > 0).length)
@@ -241,6 +329,15 @@ async function load() {
     const [t, l] = await Promise.all([api.getAllTenants(), api.getLicenses()])
     tenants.value  = t.data
     licenses.value = l.data
+
+    // Katalog ayrı ve hata-toleranslı yüklenir: modül ucu yanıt vermese de
+    // (örn. panel API'den önce yayına alındıysa) müşteri listesi görünsün.
+    try {
+      const m = await api.getModuleCatalog()
+      allModuleCodes.value = m.data.map(x => x.code)
+    } catch {
+      allModuleCodes.value = []
+    }
   } finally {
     loading.value = false
   }
@@ -251,6 +348,8 @@ function openCreate() {
     businessName: '', contactPerson: '', email: '',
     phone: '', city: '', taxNumber: '',
     address: '', password: '', username: '',
+    // Varsayılan: tüm modüller açık; yönetici kapatmak istediklerini kaldırır.
+    moduleCodes: [...allModuleCodes.value],
   })
   error.value = ''
   modal.show  = true
@@ -260,7 +359,11 @@ async function createTenant() {
   saving.value = true
   error.value   = ''
   try {
-    await api.register(form)
+    // Katalog yüklenemediyse modül listesi boştur; boş liste "hiçbir modül"
+    // demek olurdu. Bu durumda alanı göndermeyiz — API tüm modülleri verir.
+    const payload = { ...form }
+    if (allModuleCodes.value.length === 0) delete payload.moduleCodes
+    await api.register(payload)
     modal.show = false
     await load()
   } catch (e) {

@@ -61,7 +61,7 @@
     <Teleport to="body">
       <div v-if="modal.show"
            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
           <h2 class="text-xl font-bold mb-1">Lisansı Onayla</h2>
           <p class="text-xs font-mono text-muted mb-6">{{ modal.request?.deviceId }}</p>
 
@@ -95,6 +95,16 @@
                      class="w-full px-4 py-2 border border-gray-200 rounded-xl
                             focus:border-accent focus:outline-none text-sm"/>
             </div>
+
+            <!-- Modüller müşteriye aittir (tüm kasaları ve paneli kapsar);
+                 müşteri seçilince mevcut modülleri işaretli gelir. -->
+            <div v-if="form.tenantId" class="pt-4 border-t border-gray-100">
+              <div v-if="modulesLoading" class="text-sm text-muted py-2">Modüller yükleniyor...</div>
+              <ModulePicker v-else v-model="form.moduleCodes"/>
+              <p class="text-xs text-muted mt-2">
+                Bu seçim müşterinin tüm kasalarında ve web panelinde geçerlidir.
+              </p>
+            </div>
           </div>
 
           <div v-if="error" class="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{{ error }}</div>
@@ -117,8 +127,9 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import api from '../api/api'
+import ModulePicker from '../components/ModulePicker.vue'
 
 const requests = ref([])
 const tenants  = ref([])
@@ -126,7 +137,30 @@ const loading  = ref(true)
 const saving   = ref(false)
 const error    = ref('')
 const modal    = reactive({ show: false, request: null })
-const form     = reactive({ tenantId: null, licenseType: 'Demo', days: 30 })
+const form     = reactive({ tenantId: null, licenseType: 'Demo', days: 30, moduleCodes: [] })
+const modulesLoading = ref(false)
+// Mevcut modüller gerçekten yüklendi mi? Yüklenemediyse liste boş kalır ve
+// onay gönderilirse müşterinin TÜM modüllerini silerdi. Bu durumda
+// modüllere hiç dokunmamak için null gönderilir.
+const modulesReady = ref(false)
+
+// Müşteri seçildiğinde onun mevcut modüllerini getir — yönetici yalnızca
+// değiştirmek istediğine dokunsun, var olanları yanlışlıkla silmesin.
+watch(() => form.tenantId, async (tid) => {
+  form.moduleCodes = []
+  modulesReady.value = false
+  if (!tid) return
+  modulesLoading.value = true
+  try {
+    const res = await api.getTenantModules(tid)
+    form.moduleCodes = res.data.map(m => m.moduleCode)
+    modulesReady.value = true
+  } catch {
+    error.value = 'Müşterinin modülleri alınamadı.'
+  } finally {
+    modulesLoading.value = false
+  }
+})
 
 async function load() {
   loading.value = true
@@ -155,7 +189,8 @@ async function approve() {
     await api.approveLicense(modal.request.id, {
       tenantId: form.tenantId,
       licenseType: form.licenseType,
-      days: form.licenseType === 'Limited' ? form.days : null
+      days: form.licenseType === 'Limited' ? form.days : null,
+      moduleCodes: modulesReady.value ? form.moduleCodes : null
     })
     modal.show = false
     await load()

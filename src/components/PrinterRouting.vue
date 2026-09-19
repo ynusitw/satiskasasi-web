@@ -61,8 +61,11 @@
             </td>
           </tr>
 
+          <!-- Yönlendirmesi olmayan kategoriler soluk gösterilir. Açık renk
+               bir zemin vermiyoruz: yönetim panelinin koyu teması onu
+               okunmayan gri bir şeride çeviriyor. -->
           <tr v-for="cat in unroutedCategories" :key="cat.id"
-              class="border-t border-gray-50 bg-gray-50/40 hover:bg-gray-50 transition-colors">
+              class="border-t border-gray-100/60 opacity-60 hover:opacity-100 transition-opacity">
             <td class="px-6 py-3.5">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"/>

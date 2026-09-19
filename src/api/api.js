@@ -25,6 +25,15 @@ api.interceptors.response.use(
       localStorage.clear()
       window.location.href = '/login'
     }
+    // Sunucu "bu modül lisansınızda yok" dediyse elimizdeki modül listesi
+    // eskimiş demektir (yönetici kapatmış olabilir). App bu olayı dinleyip
+    // listeyi tazeler; menü kendiliğinden düzelir. (Depoyu burada doğrudan
+    // içe aktarmıyoruz: depo da bu dosyayı kullandığı için döngü olurdu.)
+    if (err.response?.status === 403 && err.response?.data?.module) {
+      window.dispatchEvent(new CustomEvent('module-denied', {
+        detail: err.response.data.module
+      }))
+    }
     return Promise.reject(err)
   }
 )
@@ -48,6 +57,12 @@ export default {
   getLicenses:        ()       => api.get('licenses'),
   getLicenseRequests: ()       => api.get('licenses/requests'),
   approveLicense:     (id, d)  => api.post(`licenses/requests/${id}/approve`, d),
+
+  // ── Modüler lisanslama ─────────────────────────────────────────────
+  getModuleCatalog:   ()        => api.get('modules'),              // seçilebilir modüller
+  getMyModules:       ()        => api.get('modules/me'),           // oturumdaki müşterinin aktif modülleri
+  getTenantModules:   (tid)     => api.get(`modules/tenant/${tid}`),
+  setTenantModules:   (tid, codes) => api.put(`modules/tenant/${tid}`, { moduleCodes: codes }),
   rejectLicense:      (id, d)  => api.post(`licenses/requests/${id}/reject`, d),
   revokeLicense:      (id)     => api.post(`licenses/${id}/revoke`),
 

@@ -4,8 +4,10 @@
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Fiş Tasarımı</h1>
-        <p class="text-muted text-sm mt-1">Yazıcı ve fiş görünüm ayarları</p>
+        <h1 class="text-2xl font-bold text-primary">Fiş &amp; Yazıcı Ayarları</h1>
+        <p class="text-muted text-sm mt-1">
+          Kasadan çıkan fişi bu sayfa belirler — tasarım, yazıcı ve yönlendirme
+        </p>
       </div>
       <div class="flex gap-3">
         <button @click="load" :disabled="loading || saving"
@@ -37,15 +39,17 @@
 
     <div v-else class="flex flex-col xl:flex-row gap-6 items-start">
 
-      <!-- ────────────────────── Sol: Form ───────────────────────────── -->
-      <!-- Ayar kartları geniş ekranda iki sütuna yayılır (önizleme sağda kalır) -->
-      <div class="flex-1 min-w-0 grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+      <!-- ── Sol: Ayarlar ─────────────────────────────────────────────
+           İki mantıksal öbek: fişin NE yazacağı (metinler, göster/gizle) ve
+           NASIL basılacağı (kağıt, yazıcı, nüsha, otomatik, yönlendirme).
+           Önizleme sağda sabit kalır. -->
+      <div class="flex-1 min-w-0 grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
 
-        <!-- İşletme Bilgileri -->
+        <!-- Fiş Metinleri: üstte işletme bilgileri, altta alt not -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
-          <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            İşletme Bilgileri
-          </h2>
+          <h2 class="font-bold text-primary text-sm mb-1">Fiş Metinleri</h2>
+          <p class="text-xs text-muted mb-4">Fişin üstünde ve altında görünecek bilgiler</p>
+
           <div class="space-y-3">
             <div v-for="f in businessFields" :key="f.key">
               <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
@@ -57,73 +61,8 @@
                             focus:border-accent focus:outline-none transition-colors"/>
             </div>
           </div>
-        </div>
 
-        <!-- Yazıcı Ayarları -->
-        <div class="bg-white rounded-2xl shadow-sm p-6">
-          <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            Yazıcı Ayarları
-          </h2>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-xs font-semibold text-muted mb-2 uppercase tracking-wide">
-                Kağıt Genişliği
-              </label>
-              <div class="flex gap-3">
-                <button v-for="w in [58, 80]" :key="w"
-                        @click="form.paperWidth = w"
-                        class="flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all"
-                        :class="form.paperWidth === w
-                          ? 'bg-accent text-white border-accent shadow-sm'
-                          : 'bg-white text-muted border-gray-200 hover:border-accent/40'">
-                  {{ w }} mm
-                  <div class="text-xs font-normal mt-0.5 opacity-80">
-                    {{ w === 58 ? 'Standart' : 'Geniş Format' }}
-                  </div>
-                </button>
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
-                Yazıcı Adı
-              </label>
-
-              <!-- Dropdown — liste doluysa -->
-              <select v-if="availablePrinters.length"
-                      v-model="form.printerName"
-                      class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                             focus:border-accent focus:outline-none bg-white">
-                <option value="">— Yazıcı seçin —</option>
-                <option v-for="p in availablePrinters" :key="p" :value="p">{{ p }}</option>
-              </select>
-
-              <!-- Text input — liste boşsa -->
-              <template v-else>
-                <input v-model="form.printerName"
-                       placeholder="POS58 Thermal Printer"
-                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                              focus:border-accent focus:outline-none"/>
-                <p class="flex items-center gap-1.5 text-xs text-warning mt-1.5 font-medium">
-                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                  </svg>
-                  Kasa henüz bağlanmadı — yazıcı adını elle girin
-                </p>
-              </template>
-
-              <p v-if="availablePrinters.length"
-                 class="text-xs text-muted mt-1">İşletim sistemindeki yazıcı adıyla eşleşmeli</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Alt Not -->
-        <div class="bg-white rounded-2xl shadow-sm p-6">
-          <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            Alt Not
-          </h2>
-          <div class="space-y-3">
+          <div class="border-t border-gray-100 mt-5 pt-5 space-y-3">
             <div>
               <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
                 Alt Not 1
@@ -145,61 +84,63 @@
           </div>
         </div>
 
-        <!-- Otomatik Yazdırma -->
+        <!-- Yazdırma: kağıt, yazıcı, nüsha ve otomatik yazdırma bir arada -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
-          <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            Otomatik Yazdırma
-          </h2>
-          <div class="divide-y divide-gray-50">
-            <div class="flex items-center justify-between py-3">
-              <div>
-                <div class="text-sm font-semibold text-primary">Ödeme Sonrası Otomatik Yazdır</div>
-                <div class="text-xs text-muted mt-0.5">Satış tamamlandığında fiş otomatik yazdırılır</div>
+          <h2 class="font-bold text-primary text-sm mb-1">Yazdırma</h2>
+          <p class="text-xs text-muted mb-4">Fişin hangi yazıcıdan, nasıl basılacağı</p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-muted mb-2 uppercase tracking-wide">
+                Kağıt Genişliği
+              </label>
+              <div class="flex gap-3">
+                <button v-for="w in [58, 80]" :key="w"
+                        @click="form.paperWidth = w"
+                        class="flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all"
+                        :class="form.paperWidth === w
+                          ? 'bg-accent text-white border-accent shadow-sm'
+                          : 'bg-white text-muted border-gray-200 hover:border-accent/40'">
+                  {{ w }} mm
+                  <div class="text-xs font-normal mt-0.5 opacity-80">
+                    {{ w === 58 ? 'Standart' : 'Geniş Format' }}
+                  </div>
+                </button>
               </div>
-              <button @click="form.autoPrintOnPayment = !form.autoPrintOnPayment"
-                      class="relative inline-flex h-6 items-center rounded-full flex-shrink-0
-                             transition-colors duration-300 ml-6" style="width:2.75rem"
-                      :class="form.autoPrintOnPayment ? 'bg-accent' : 'bg-gray-300'">
-                <span class="inline-block h-4 w-4 rounded-full bg-white shadow
-                             transition-transform duration-300"
-                      :class="form.autoPrintOnPayment ? 'translate-x-6' : 'translate-x-1'"/>
-              </button>
-            </div>
-            <div class="flex items-center justify-between py-3">
-              <div>
-                <div class="text-sm font-semibold text-primary">Z Raporu Sonrası Otomatik Yazdır</div>
-                <div class="text-xs text-muted mt-0.5">Gün sonu Z raporu alındığında fiş yazdırılır</div>
-              </div>
-              <button @click="form.autoPrintOnZReport = !form.autoPrintOnZReport"
-                      class="relative inline-flex h-6 items-center rounded-full flex-shrink-0
-                             transition-colors duration-300 ml-6" style="width:2.75rem"
-                      :class="form.autoPrintOnZReport ? 'bg-accent' : 'bg-gray-300'">
-                <span class="inline-block h-4 w-4 rounded-full bg-white shadow
-                             transition-transform duration-300"
-                      :class="form.autoPrintOnZReport ? 'translate-x-6' : 'translate-x-1'"/>
-              </button>
             </div>
 
-            <div class="flex items-center justify-between py-3">
-              <div>
-                <div class="text-sm font-semibold text-primary">Her Siparişte Mutfak Kopyası</div>
-                <div class="text-xs text-muted mt-0.5">Masaya ürün gönderildiğinde mutfak fişi de basılır</div>
-              </div>
-              <button @click="form.kitchenCopyPerOrder = !form.kitchenCopyPerOrder"
-                      class="relative inline-flex h-6 items-center rounded-full flex-shrink-0
-                             transition-colors duration-300 ml-6" style="width:2.75rem"
-                      :class="form.kitchenCopyPerOrder ? 'bg-accent' : 'bg-gray-300'">
-                <span class="inline-block h-4 w-4 rounded-full bg-white shadow
-                             transition-transform duration-300"
-                      :class="form.kitchenCopyPerOrder ? 'translate-x-6' : 'translate-x-1'"/>
-              </button>
+            <div>
+              <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
+                Varsayılan Fiş Yazıcısı
+              </label>
+
+              <select v-if="availablePrinters.length"
+                      v-model="form.printerName"
+                      class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                             focus:border-accent focus:outline-none bg-white">
+                <option value="">— Yazıcı seçin —</option>
+                <option v-for="p in availablePrinters" :key="p" :value="p">{{ p }}</option>
+              </select>
+
+              <template v-else>
+                <input v-model="form.printerName"
+                       placeholder="POS58 Thermal Printer"
+                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
+                              focus:border-accent focus:outline-none"/>
+                <p class="flex items-center gap-1.5 text-xs text-warning mt-1.5 font-medium">
+                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                  </svg>
+                  Kasa henüz bağlanmadı — yazıcı adını elle girin
+                </p>
+              </template>
             </div>
 
-            <!-- Nüsha sayısı — müşteri + esnaf nüshası için -->
-            <div class="flex items-center justify-between py-3">
+            <div class="flex items-center justify-between">
               <div>
-                <div class="text-sm font-semibold text-primary">Fiş Nüsha Sayısı</div>
-                <div class="text-xs text-muted mt-0.5">Satış fişi kaç kopya basılsın (esnaf nüshası için)</div>
+                <div class="text-sm font-semibold text-primary">Nüsha Sayısı</div>
+                <div class="text-xs text-muted mt-0.5">Esnaf nüshası için artırın</div>
               </div>
               <div class="flex items-center gap-2 ml-6">
                 <button @click="form.receiptCopies = Math.max(1, form.receiptCopies - 1)"
@@ -216,29 +157,26 @@
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Gösterim Seçenekleri -->
-        <div class="bg-white rounded-2xl shadow-sm p-6">
-          <h2 class="font-bold text-primary text-sm mb-4 flex items-center gap-2">
-            Fişte Göster / Gizle
-          </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">
-            <div v-for="opt in visibilityOptions" :key="opt.key"
-                 class="flex items-center justify-between py-2 px-3 rounded-xl
-                        hover:bg-gray-50 transition-colors cursor-pointer"
-                 @click="form[opt.key] = !form[opt.key]">
-              <span class="text-sm text-primary select-none">{{ opt.label }}</span>
-              <div class="relative inline-flex h-5 items-center rounded-full flex-shrink-0
-                          transition-colors duration-300 ml-3" style="width:2.25rem"
-                   :class="form[opt.key] ? 'bg-accent' : 'bg-gray-300'">
-                <span class="inline-block h-3.5 w-3.5 rounded-full bg-white shadow
+          <div class="border-t border-gray-100 mt-5 pt-2 divide-y divide-gray-50">
+            <div v-for="t in autoPrintOptions" :key="t.key"
+                 class="flex items-center justify-between py-3 cursor-pointer"
+                 @click="form[t.key] = !form[t.key]">
+              <div>
+                <div class="text-sm font-semibold text-primary select-none">{{ t.label }}</div>
+                <div class="text-xs text-muted mt-0.5 select-none">{{ t.hint }}</div>
+              </div>
+              <div class="relative inline-flex h-6 items-center rounded-full flex-shrink-0
+                          transition-colors duration-300 ml-6" style="width:2.75rem"
+                   :class="form[t.key] ? 'bg-accent' : 'bg-gray-300'">
+                <span class="inline-block h-4 w-4 rounded-full bg-white shadow
                              transition-transform duration-300"
-                      :class="form[opt.key] ? 'translate-x-5' : 'translate-x-0.5'"/>
+                      :class="form[t.key] ? 'translate-x-6' : 'translate-x-1'"/>
               </div>
             </div>
           </div>
         </div>
+
 
       </div>
 
@@ -395,9 +333,36 @@
 
     </div>
 
-    <!-- Kategori yönlendirmesi — eskiden ayrı "Yazıcı Ayarları" sekmesindeydi -->
-    <div class="mt-6">
-      <PrinterRouting ref="routingRef" :printers="availablePrinters"/>
+    <!-- Tam sayfa genişliğindeki bölümler — önizlemenin altındaki
+         boşluğu kullanır, iki kolona sıkışmazlar -->
+    <div class="space-y-5 mt-5">
+        <!-- Fişte göster/gizle — tam genişlik -->
+        <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+          <h2 class="font-bold text-primary text-sm mb-1">Fişte Göster / Gizle</h2>
+          <p class="text-xs text-muted mb-4">
+            Kapattığınız bölüm kasadan çıkan fişte de görünmez
+          </p>
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1">
+            <div v-for="opt in visibilityOptions" :key="opt.key"
+                 class="flex items-center justify-between py-2 px-3 rounded-xl
+                        hover:bg-gray-50 transition-colors cursor-pointer"
+                 @click="form[opt.key] = !form[opt.key]">
+              <span class="text-sm text-primary select-none">{{ opt.label }}</span>
+              <div class="relative inline-flex h-5 items-center rounded-full flex-shrink-0
+                          transition-colors duration-300 ml-3" style="width:2.25rem"
+                   :class="form[opt.key] ? 'bg-accent' : 'bg-gray-300'">
+                <span class="inline-block h-3.5 w-3.5 rounded-full bg-white shadow
+                             transition-transform duration-300"
+                      :class="form[opt.key] ? 'translate-x-5' : 'translate-x-0.5'"/>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kategori yönlendirmesi — tam genişlik -->
+        <div>
+          <PrinterRouting ref="routingRef" :printers="availablePrinters"/>
+        </div>
     </div>
   </div>
 </template>
@@ -510,6 +475,17 @@ const businessFields = [
   { key: 'businessAddress', label: 'Adres',             placeholder: 'Atatürk Cad. No:5, Beşiktaş / İstanbul' },
   { key: 'businessPhone',   label: 'Telefon',           placeholder: '0212 555 00 00'                          },
   { key: 'headerExtraLine', label: 'Başlık Ek Satır',   placeholder: 'Teşekkürler! Lütfen tekrar gelin.'       },
+]
+
+// Otomatik yazdırma anahtarları tek listede — şablonda tekrarlanan
+// toggle işaretlemesini çoğaltmamak için.
+const autoPrintOptions = [
+  { key: 'autoPrintOnPayment',  label: 'Ödeme Sonrası Yazdır',
+    hint: 'Satış tamamlanınca fiş otomatik basılır' },
+  { key: 'autoPrintOnZReport',  label: 'Z Raporu Sonrası Yazdır',
+    hint: 'Gün sonu Z raporu alındığında basılır' },
+  { key: 'kitchenCopyPerOrder', label: 'Her Siparişte Mutfak Kopyası',
+    hint: 'Masaya ürün gönderildiğinde mutfak fişi de basılır' },
 ]
 
 const visibilityOptions = [

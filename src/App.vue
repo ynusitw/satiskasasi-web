@@ -92,8 +92,8 @@
             <span>{{ item.label }}</span>
           </RouterLink>
 
-          <!-- Cari İşlemler Accordion -->
-          <div>
+          <!-- Cari İşlemler Accordion — "cari" modülü yoksa grubun tamamı gizlenir -->
+          <div v-if="showCari">
             <button @click="cariOpen = !cariOpen"
                     class="w-full flex items-center gap-3 px-6 py-3 text-sm border-l-4
                            border-transparent transition-all"
@@ -142,7 +142,7 @@
 
             <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
                  :style="{ maxHeight: reportsOpen ? '320px' : '0px' }">
-              <RouterLink v-for="sub in reportSubMenu" :key="sub.to" :to="sub.to"
+              <RouterLink v-for="sub in visibleReportSubMenu" :key="sub.to" :to="sub.to"
                           class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
                                  text-white/50 hover:text-white hover:bg-white/5
                                  border-l-4 border-transparent transition-all"
@@ -186,7 +186,7 @@
 
             <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
                  :style="{ maxHeight: kasaYapiOpen ? '280px' : '0px' }">
-              <RouterLink v-for="sub in kasaYapiSubMenu" :key="sub.to" :to="sub.to"
+              <RouterLink v-for="sub in visibleKasaYapiSubMenu" :key="sub.to" :to="sub.to"
                           class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
                                  text-white/50 hover:text-white hover:bg-white/5
                                  border-l-4 border-transparent transition-all"
@@ -245,6 +245,18 @@
     <!-- İçerik -->
     <main :class="auth.isLoggedIn && route.path !== '/login' ? 'ml-60' : ''"
           class="flex-1">
+      <!-- Lisansta olmayan bir modüle gidilmek istendi -->
+      <div v-if="deniedModule"
+           class="mx-8 mt-6 flex items-center justify-between gap-4 rounded-xl
+                  border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <span>
+          <strong>{{ deniedModule }}</strong> lisansınızda bulunmuyor.
+          Bu özelliği kullanmak için yetkilinizle iletişime geçin.
+        </span>
+        <button @click="dismissDenied"
+                class="text-amber-700 hover:text-amber-900 font-semibold">Kapat</button>
+      </div>
+
       <RouterView v-slot="{ Component }">
         <Transition name="fade" mode="out-in">
           <component :is="Component"/>
@@ -255,10 +267,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute }  from 'vue-router'
 import { useAuthStore }         from './stores/auth'
 import { useSettingsStore }     from './stores/settings'
+import { useModulesStore }      from './stores/modules'
+import { MODULES }              from './constants/modules'
 import SettingsModal            from './components/SettingsModal.vue'
 
 const auth     = useAuthStore()
@@ -266,6 +280,37 @@ const router   = useRouter()
 const route    = useRoute()
 const _settings = useSettingsStore()
 _settings.init()
+
+const modulesStore = useModulesStore()
+
+// Sayfa yenilendiğinde modül listesi localStorage'dan anında gelir (menü boş
+// görünmesin); ardından sunucudan tazelenir ki yöneticinin yaptığı
+// değişiklik yeniden giriş beklemeden yansısın.
+onMounted(() => {
+  if (auth.isLoggedIn && !auth.isSuperAdmin) modulesStore.load()
+
+  // API bir isteği "modül yok" diye reddettiyse (api.js yayınlar) liste
+  // eskimiştir; tazele ki menü de hemen güncellensin.
+  window.addEventListener('module-denied', () => modulesStore.load())
+})
+
+// Modülü olmayan bir sayfaya gidilmek istendiğinde yönlendirici panoya
+// "?yetkisiz=<kod>" ile döner; kullanıcıya sebebini söyleyelim.
+const MODULE_NAMES = {
+  [MODULES.QR_MENU]: 'QR Menü',
+  [MODULES.TABLES]:  'Masa Yönetimi',
+  [MODULES.OKC]:     'ÖKC',
+  [MODULES.STOCK]:   'Stok Yönetimi',
+  [MODULES.CARI]:    'Cari İşlemler',
+}
+const deniedModule = computed(() => {
+  const code = route.query.yetkisiz
+  return code ? (MODULE_NAMES[code] ?? code) : null
+})
+function dismissDenied() {
+  const { yetkisiz, ...rest } = route.query
+  router.replace({ query: rest })
+}
 
 const settingsOpen = ref(false)
 
@@ -302,19 +347,29 @@ const reportSubMenu = [
   { to: '/reports/z-listesi', label: 'Z-Listesi'       },
   { to: '/reports/satis',     label: 'Satış Raporları' },
   { to: '/reports/iptaller',  label: 'İptaller'        },
-  { to: '/reports/masalar',   label: 'Masalar'         },
-  { to: '/reports/stoklar',   label: 'Stoklar'         },
+  { to: '/reports/masalar',   label: 'Masalar',         module: MODULES.TABLES },
+  { to: '/reports/stoklar',   label: 'Stoklar',         module: MODULES.STOCK  },
 ]
 
 const kasaYapiSubMenu = [
-  { to: '/settings/dijital-menu',    label: '📱 Dijital Menü (QR)'  },
-  { to: '/settings/masa-ayarlari',   label: 'Masa Ayarları'         },
-  { to: '/settings/hizli-notlar',    label: 'Hızlı Notlar'          },
+  { to: '/settings/dijital-menu',    label: '📱 Dijital Menü (QR)',  module: MODULES.QR_MENU },
+  { to: '/settings/masa-ayarlari',   label: 'Masa Ayarları',         module: MODULES.TABLES  },
+  { to: '/settings/hizli-notlar',    label: 'Hızlı Notlar',          module: MODULES.TABLES  },
   { to: '/settings/receipt',         label: 'Fiş & Yazıcı Ayarları' },
   { to: '/settings/musteri-ekrani',  label: 'Müşteri Ekranı Ayarı'  },
-  { to: '/settings/okc-durum',       label: 'ÖKC Durum'             },
+  { to: '/settings/okc-durum',       label: 'ÖKC Durum',             module: MODULES.OKC     },
   { to: '/settings/terminal',        label: 'Terminal Ayarları'      },
 ]
+
+// ── Lisans modülüne göre menü ────────────────────────────────────────────
+// Etiketsiz öğeler herkese açık. Süper yönetici bir müşteriye bağlı değil,
+// her şeyi görür. (Asıl kilit sunucuda — bu yalnızca menüyü sadeleştirir.)
+function allowed(item) {
+  return !item.module || auth.isSuperAdmin || modulesStore.has(item.module)
+}
+const visibleReportSubMenu   = computed(() => reportSubMenu.filter(allowed))
+const visibleKasaYapiSubMenu = computed(() => kasaYapiSubMenu.filter(allowed))
+const showCari               = computed(() => allowed({ module: MODULES.CARI }))
 
 const menuBottom = [
   { to: '/users', icon: '👥', label: 'Kullanıcılar' },

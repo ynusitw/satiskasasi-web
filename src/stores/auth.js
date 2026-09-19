@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '../api/api'
+import { useModulesStore } from './modules'
 
 export const useAuthStore = defineStore('auth', () => {
   const token       = ref(localStorage.getItem('token')       || '')
@@ -35,10 +36,16 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('tenantName',    d.tenantName)
     localStorage.setItem('tenantPlan',    d.tenantPlan)
     localStorage.setItem('tenantExpires', d.tenantExpires || '')
+
+    // Lisans modülleri giriş yanıtıyla gelir; menü ve yönlendirme bunu kullanır.
+    useModulesStore().set(d.modules)
   }
 
   function logout() {
     token.value = ''
+    // Bellekteki modül listesi de sıfırlanmalı; yoksa aynı sekmede başka
+    // bir müşteriyle giriş yapılınca öncekinin menüsü görünürdü.
+    useModulesStore().clear()
     localStorage.clear()
   }
 
