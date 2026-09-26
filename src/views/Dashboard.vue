@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-2xl font-bold text-primary">Dashboard</h1>
-        <p class="text-muted text-sm mt-1">{{ todayLabel }}</p>
+        <p class="text-muted text-sm mt-1">{{ periodLabel }}</p>
       </div>
       <button @click="load"
               class="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-xl
@@ -33,11 +33,11 @@
         <!-- Bugün Nakit -->
         <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-bold text-muted uppercase tracking-wide">Bugün Nakit</span>
+            <span class="text-xs font-bold text-muted uppercase tracking-wide">Nakit</span>
             <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center text-base">💵</div>
           </div>
           <div class="flex items-center gap-2 mt-1">
-            <span class="text-2xl font-bold text-primary">{{ fmt(data?.todayCash) }}</span>
+            <span class="text-2xl font-bold text-primary">{{ fmt(data?.periodCash) }}</span>
             <span v-if="trends.cash !== null"
                   :class="trendBadge(trends.cash)"
                   class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
@@ -48,17 +48,17 @@
             <VueApexCharts type="area" height="50"
                            :options="sparkOpts('#27AE60')" :series="[{ data: sparkCash }]"/>
           </div>
-          <div class="text-xs text-muted mt-1">Saatlik trend</div>
+          <div class="text-xs text-muted mt-1">Z öncesi dönem</div>
         </div>
 
         <!-- Bugün Kart -->
         <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-bold text-muted uppercase tracking-wide">Bugün Kart</span>
+            <span class="text-xs font-bold text-muted uppercase tracking-wide">Kart</span>
             <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-base">💳</div>
           </div>
           <div class="flex items-center gap-2 mt-1">
-            <span class="text-2xl font-bold text-primary">{{ fmt(data?.todayCard) }}</span>
+            <span class="text-2xl font-bold text-primary">{{ fmt(data?.periodCard) }}</span>
             <span v-if="trends.card !== null"
                   :class="trendBadge(trends.card)"
                   class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
@@ -69,17 +69,17 @@
             <VueApexCharts type="area" height="50"
                            :options="sparkOpts('#3498DB')" :series="[{ data: sparkCard }]"/>
           </div>
-          <div class="text-xs text-muted mt-1">Saatlik trend</div>
+          <div class="text-xs text-muted mt-1">Z öncesi dönem</div>
         </div>
 
         <!-- Bugün Toplam -->
         <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-bold text-muted uppercase tracking-wide">Bugün Toplam</span>
+            <span class="text-xs font-bold text-muted uppercase tracking-wide">Toplam Ciro</span>
             <div class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-base">💰</div>
           </div>
           <div class="flex items-center gap-2 mt-1">
-            <span class="text-2xl font-bold text-primary">{{ fmt(data?.todayTotal) }}</span>
+            <span class="text-2xl font-bold text-primary">{{ fmt(data?.periodTotal) }}</span>
             <span v-if="trends.total !== null"
                   :class="trendBadge(trends.total)"
                   class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
@@ -90,7 +90,7 @@
             <VueApexCharts type="area" height="50"
                            :options="sparkOpts('#8B5CF6')" :series="[{ data: sparkTotal }]"/>
           </div>
-          <div class="text-xs text-muted mt-1">{{ data?.todaySaleCount ?? 0 }} işlem</div>
+          <div class="text-xs text-muted mt-1">{{ data?.periodSaleCount ?? 0 }} işlem</div>
         </div>
 
         <!-- Kritik Stok -->
@@ -115,6 +115,32 @@
         </div>
       </div>
 
+      <!-- ── Ciroya girmeyen kalemler (Z raporundaki ayrı satırlar) ────── -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl shadow-sm p-5">
+          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-2">İndirim</div>
+          <div class="text-xl font-bold text-danger">{{ fmt(data?.periodDiscount) }}</div>
+          <div class="text-xs text-muted mt-1">Ciroya yansımış indirimler</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-5">
+          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-2">İkram</div>
+          <div class="text-xl font-bold text-purple-600">{{ fmt(data?.periodCompTotal) }}</div>
+          <div class="text-xs text-muted mt-1">Satır ve hesap ikramları</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-5">
+          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-2">Personel Tüketimi</div>
+          <div class="text-xl font-bold text-primary">{{ fmt(data?.periodStaffConsumption) }}</div>
+          <div class="text-xs text-muted mt-1">
+            {{ data?.periodStaffSaleCount ?? 0 }} işlem · ciroya dahil değil
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-5">
+          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-2">Personelden Tahsil</div>
+          <div class="text-xl font-bold text-success">{{ fmt(data?.periodStaffCollected) }}</div>
+          <div class="text-xs text-muted mt-1">Kasaya giren, ciro dışı tutar</div>
+        </div>
+      </div>
+
       <!-- ── Orta bölüm: Alan Grafiği + En Çok Satılanlar ─────────────── -->
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
@@ -123,7 +149,7 @@
           <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
             <div>
               <h2 class="font-bold text-primary text-base">Satış Trendi</h2>
-              <p class="text-xs text-muted mt-0.5">Nakit ve kart ciro</p>
+              <p class="text-xs text-muted mt-0.5">{{ trendSubtitle }}</p>
             </div>
             <div class="flex items-center gap-3">
               <!-- Legend -->
@@ -224,7 +250,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import api from '../api/api'
 
@@ -237,17 +263,28 @@ const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl',
 // ── State ─────────────────────────────────────────────────────────────────
 const data         = ref(null)
 const loading      = ref(true)
-const activeFilter = ref('month')
+// Pano kartlarıyla aynı dönem açılışta seçili olsun.
+const activeFilter = ref('period')
+// Grafik serileri: {period: {cash, card}, week: ..., ...} — süzgeç
+// değiştikçe API'dan çekilir ve tekrar istenmesin diye saklanır.
+const trendCache = ref({})
 
 const periodFilters = [
-  { key: 'today', label: 'Bugün'    },
-  { key: 'week',  label: 'Bu Hafta' },
-  { key: 'month', label: 'Bu Ay'    },
-  { key: 'year',  label: 'Bu Yıl'   },
+  { key: 'period', label: 'Z Dönemi' },
+  { key: 'week',   label: 'Bu Hafta' },
+  { key: 'month',  label: 'Bu Ay'    },
+  { key: 'year',   label: 'Bu Yıl'   },
 ]
 
-const todayLabel = new Date().toLocaleDateString('tr-TR', {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+// Pano, kasadaki Z raporuyla aynı dönemi gösterir: son Z'den bu yana.
+// Z alınınca bu rakamlar sıfırlanır.
+const periodLabel = computed(() => {
+  const start = data.value?.periodStart
+  if (!start) return 'Z raporu alınana kadarki tüm satışlar'
+  const d = new Date(start)
+  return 'Son Z raporundan bu yana — ' + d.toLocaleString('tr-TR', {
+    day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+  })
 })
 
 function fmt(v) {
@@ -269,26 +306,47 @@ const rankColors = ['#3498DB', '#27AE60', '#8B5CF6', '#F59E0B', '#E74C3C']
 function rankColor(i) { return rankColors[i % rankColors.length] }
 
 // ── Trend rozetleri — API'dan gelirse göster, yoksa gizle ────────────────
-// API şu alanları dönerse: todayCashChange, todayCardChange, todayTotalChange (number | null)
+// API şu alanları dönerse: periodCashChange, periodCardChange, periodTotalChange (number | null)
 const trends = computed(() => ({
-  cash:  data.value?.todayCashChange  ?? null,
-  card:  data.value?.todayCardChange  ?? null,
-  total: data.value?.todayTotalChange ?? null,
+  cash:  data.value?.periodCashChange  ?? null,
+  card:  data.value?.periodCardChange  ?? null,
+  total: data.value?.periodTotalChange ?? null,
 }))
 function trendBadge(pct) {
   return pct >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
 }
 
 // ── Sparkline serileri — satış yoksa düz çizgi ────────────────────────────
-const sparkCash  = computed(() => (data.value?.todayCash  ?? 0) > 0 ? FLAT8 : FLAT8)
-const sparkCard  = computed(() => (data.value?.todayCard  ?? 0) > 0 ? FLAT8 : FLAT8)
-const sparkTotal = computed(() => (data.value?.todayTotal ?? 0) > 0 ? FLAT8 : FLAT8)
+const sparkCash  = computed(() => (data.value?.periodCash  ?? 0) > 0 ? FLAT8 : FLAT8)
+const sparkCard  = computed(() => (data.value?.periodCard  ?? 0) > 0 ? FLAT8 : FLAT8)
+const sparkTotal = computed(() => (data.value?.periodTotal ?? 0) > 0 ? FLAT8 : FLAT8)
 
-// ── Alan grafiği boş mu? ─────────────────────────────────────────────────
+// ── Alan grafiği ─────────────────────────────────────────────────────────
+const trendData = computed(() => trendCache.value[activeFilter.value] ?? null)
+
 const chartHasData = computed(() => {
-  if (activeFilter.value === 'today') return (data.value?.todayTotal ?? 0) > 0
-  return (data.value?.monthTotal ?? 0) > 0
+  const t = trendData.value
+  if (!t) return false
+  return t.cash.some(v => v > 0) || t.card.some(v => v > 0)
 })
+
+const trendSubtitle = computed(() =>
+  activeFilter.value === 'period'
+    ? 'Son Z raporundan bu yana, saat saat'
+    : 'Nakit ve kart ciro')
+
+async function loadTrend(range) {
+  if (trendCache.value[range]) return
+  try {
+    const res = await api.getTrend(range)
+    trendCache.value = {
+      ...trendCache.value,
+      [range]: { cash: res.data.cash ?? [], card: res.data.card ?? [] },
+    }
+  } catch { /* trend gösterilemezse boş durum görünür */ }
+}
+
+watch(activeFilter, (r) => loadTrend(r))
 
 // ── Sparkline seçenekleri ─────────────────────────────────────────────────
 function sparkOpts(color) {
@@ -321,39 +379,44 @@ function sparkOpts(color) {
 
 // ── Alan grafiği — filtre bazlı reaktif veri (API'dan gelene kadar sıfır) ─
 const chartPeriod = computed(() => {
+  // Diziler API'dan gelir; gelmediyse kova sayısı kadar sıfır.
+  const zeros = (n) => Array(n).fill(0)
+  const series = (n) => ({
+    cash: trendData.value?.cash?.length ? trendData.value.cash : zeros(n),
+    card: trendData.value?.card?.length ? trendData.value.card : zeros(n),
+  })
+
   switch (activeFilter.value) {
-    case 'today':
+    case 'period':
       return {
         categories: Array.from({ length: 24 }, (_, i) => `${i}:00`),
-        cash:       Array(24).fill(0),
-        card:       Array(24).fill(0),
+        ...series(24),
         xLabel:     (v) => (parseInt(v) % 6 === 0 ? v : ''),
         xTooltip:   (v) => v,
       }
     case 'week':
       return {
         categories: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'],
-        cash:       Array(7).fill(0),
-        card:       Array(7).fill(0),
+        ...series(7),
         xLabel:     (v) => v,
         xTooltip:   (v) => v,
       }
     case 'year':
       return {
         categories: MONTHS,
-        cash:       Array(12).fill(0),
-        card:       Array(12).fill(0),
+        ...series(12),
         xLabel:     (v) => v,
         xTooltip:   (v) => v,
       }
-    default: // month
+    default: { // month — ayın gün sayısı kadar
+      const days = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()
       return {
-        categories: Array.from({ length: 30 }, (_, i) => `${i + 1}`),
-        cash:       Array(30).fill(0),
-        card:       Array(30).fill(0),
+        categories: Array.from({ length: days }, (_, i) => `${i + 1}`),
+        ...series(days),
         xLabel:     (v) => (Number(v) % 5 === 0 ? v : ''),
         xTooltip:   (v) => `${v}. Gün`,
       }
+    }
   }
 })
 
@@ -409,8 +472,11 @@ const areaOpts = computed(() => ({
 // ── Yükleme ───────────────────────────────────────────────────────────────
 async function load() {
   loading.value = true
+  // Yenile'de trend de tazelensin.
+  trendCache.value = {}
   try {
     data.value = (await api.dashboard()).data
+    await loadTrend(activeFilter.value)
   } catch (e) {
     console.error('[Dashboard] yükleme hatası:', e?.response?.status, e?.response?.data ?? e?.message)
     data.value = null

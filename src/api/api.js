@@ -88,6 +88,8 @@ export default {
 
   // Dashboard
   dashboard: () => api.get('reports/dashboard'),
+  // Pano satış trendi: range=period (Z dönemi) | week | month | year
+  getTrend: (range) => api.get('reports/trend', { params: { range } }),
 
   // Ürünler
   getProducts:    ()       => api.get('products'),

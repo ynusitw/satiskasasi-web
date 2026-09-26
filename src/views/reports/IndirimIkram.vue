@@ -6,17 +6,32 @@
         <p class="text-muted text-sm mt-1">
           Kasada yönetici onayıyla yapılan indirim, ikram ve personel satışları
         </p>
+        <p class="text-muted text-xs mt-1">
+          {{ mode === 'current'
+              ? 'Son Z raporundan bu yana — panodaki dönemin aynısı'
+              : 'Seçilen tarih aralığı' }}
+        </p>
       </div>
 
       <div class="flex flex-wrap items-end gap-2">
-        <label class="text-xs text-muted">
+        <!-- Z Dönemi: panodaki ve kasadaki X raporundaki dönemin aynısı -->
+        <div class="flex rounded-xl overflow-hidden border border-gray-200 mr-1">
+          <button v-for="m in modes" :key="m.key" @click="setMode(m.key)"
+                  class="px-3 py-2 text-xs font-semibold transition-all"
+                  :class="mode === m.key
+                    ? 'bg-accent text-white'
+                    : 'bg-white text-muted hover:text-primary hover:bg-gray-50'">
+            {{ m.label }}
+          </button>
+        </div>
+        <label class="text-xs text-muted" :class="mode === 'current' ? 'opacity-40' : ''">
           Başlangıç
-          <input v-model="from" type="date"
+          <input v-model="from" type="date" :disabled="mode === 'current'"
                  class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
         </label>
-        <label class="text-xs text-muted">
+        <label class="text-xs text-muted" :class="mode === 'current' ? 'opacity-40' : ''">
           Bitiş
-          <input v-model="to" type="date"
+          <input v-model="to" type="date" :disabled="mode === 'current'"
                  class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
         </label>
         <button @click="load" :disabled="loading"
@@ -103,6 +118,14 @@ const today = new Date()
 const from = ref(iso(new Date(today.getTime() - 6 * 86400000)))
 const to   = ref(iso(today))
 
+// Varsayılan görünüm Z dönemi: panoyla ve kasadaki X raporuyla aynı küme.
+// Z alınınca bu liste de sıfırlanır.
+const modes = [
+  { key: 'current', label: 'Z Dönemi' },
+  { key: 'range',   label: 'Tarih Aralığı' },
+]
+const mode = ref('current')
+
 const rows    = ref([])
 const summary = ref({})
 const type    = ref(null)
@@ -119,11 +142,19 @@ const filtered = computed(() => type.value ? rows.value.filter(r => r.type === t
 
 function toggleType(t) { type.value = type.value === t ? null : t }
 
+function setMode(m) {
+  if (mode.value === m) return
+  mode.value = m
+  load()
+}
+
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.getAdjustmentsReport({ from: from.value, to: to.value })
+    const res = mode.value === 'current'
+      ? await api.getAdjustmentsReport({ period: 'current' })
+      : await api.getAdjustmentsReport({ from: from.value, to: to.value })
     rows.value    = res.data.rows
     summary.value = res.data.summary
   } catch (e) {
