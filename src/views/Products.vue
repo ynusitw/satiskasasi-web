@@ -171,6 +171,19 @@
             </svg>
             Excel İçe Aktar
           </button>
+          <!-- Excel Dışa Aktar -->
+          <button @click="exportExcel" :disabled="exporting"
+                  title="Listelenen ürünleri fotoğraflarıyla Excel'e aktar"
+                  class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-muted
+                         rounded-lg text-xs font-semibold hover:border-accent hover:text-accent
+                         transition-colors flex-shrink-0 disabled:opacity-50">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            {{ exporting ? 'Aktarılıyor...' : 'Excel Dışa Aktar' }}
+          </button>
+
           <input ref="importFileInput" type="file" accept=".xlsx,.xls" class="hidden" @change="onImportFile"/>
         </div>
 
@@ -1130,6 +1143,115 @@ function downloadTemplate() {
   ws['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 20 }, { wch: 14 }, { wch: 8 }]
   utils.book_append_sheet(wb, ws, 'Ürünler')
   writeFileXLSX(wb, 'urun-import-sablonu.xlsx')
+}
+
+// ── Excel Dışa Aktarma ────────────────────────────────────────────────────
+// Sütun sırası içe aktarma şablonuyla aynı başlar (Barkod, Ürün Adı, Ürün
+// Grubu, Fiyat, Stok); ek sütunlar sona eklenir. Böylece dışa aktarılan
+// dosya düzenlenip tekrar içe aktarılabiliyor — içe aktarma ilk beş sütunu
+// okur, sonrasını yok sayar.
+const exporting = ref(false)
+
+// Fotoğraflar listeden gelen 256 px JPEG küçük görseller. Büyük görsel
+// (1440 px) WebP olduğu için Excel'de görüntülenemez; ayrıca hücreye
+// sığdırıldığında bir farkı da olmaz.
+function dataUrlParts(dataUrl) {
+  const m = /^data:image\/(png|jpe?g|gif);base64,(.+)$/i.exec(dataUrl || '')
+  if (!m) return null
+  const ext = m[1].toLowerCase() === 'png' ? 'png'
+            : m[1].toLowerCase() === 'gif' ? 'gif' : 'jpeg'
+  return { ext, base64: m[2] }
+}
+
+async function exportExcel() {
+  if (exporting.value) return
+  const list = filtered.value
+  if (!list.length) {
+    alert('Aktarılacak ürün yok.')
+    return
+  }
+
+  exporting.value = true
+  try {
+    // exceljs yalnızca dışa aktarmada gerekiyor; sayfa açılışını yavaşlatmasın.
+    // Paketleyiciye göre modül ya default'ta ya da doğrudan ad alanında gelir.
+    const mod = await import('exceljs')
+    const ExcelJS = mod.default ?? mod
+    const wb = new ExcelJS.Workbook()
+    wb.created = new Date()
+    const ws = wb.addWorksheet('Ürünler', {
+      views: [{ state: 'frozen', ySplit: 1 }],
+    })
+
+    ws.columns = [
+      { header: 'Barkod',            key: 'barcode',  width: 18 },
+      { header: 'Ürün Adı',          key: 'name',     width: 34 },
+      { header: 'Ürün Grubu',        key: 'group',    width: 20 },
+      { header: 'Satış Fiyatı',      key: 'price',    width: 14, style: { numFmt: '#,##0.00' } },
+      { header: 'Stok',              key: 'stock',    width: 9 },
+      { header: 'KDV %',             key: 'vat',      width: 8 },
+      { header: 'Min. Stok',         key: 'minStock', width: 10 },
+      { header: 'Aktif',             key: 'active',   width: 8 },
+      { header: 'Açıklama',          key: 'desc',     width: 40 },
+      { header: 'Alerjenler',        key: 'allerg',   width: 24 },
+      { header: 'Fiyat Seçenekleri', key: 'variants', width: 32 },
+      { header: 'Görsel',            key: 'image',    width: 12 },
+    ]
+
+    const header = ws.getRow(1)
+    header.font = { bold: true }
+    header.alignment = { vertical: 'middle' }
+    header.height = 22
+
+    for (const p of list) {
+      const row = ws.addRow({
+        barcode:  p.barcode || '',
+        name:     p.name,
+        group:    p.categoryName || '',
+        price:    Number(p.price) || 0,
+        stock:    Number(p.currentStock) || 0,
+        vat:      Number(p.vatRate) || 0,
+        minStock: Number(p.minimumStock) || 0,
+        active:   p.isActive === false ? 'Hayır' : 'Evet',
+        desc:     p.description || '',
+        allerg:   p.allergens || '',
+        // "Porsiyon=25; Dürüm=30" — pasif seçenekler (pasif) diye işaretlenir.
+        variants: (p.variants || [])
+          .map(v => `${v.name}=${Number(v.price) || 0}${v.isActive === false ? ' (pasif)' : ''}`)
+          .join('; '),
+      })
+      row.alignment = { vertical: 'middle', wrapText: false }
+
+      const img = dataUrlParts(p.imageBase64)
+      if (!img) continue
+
+      row.height = 48
+      const id = wb.addImage({ base64: img.base64, extension: img.ext })
+      // Son sütuna, hücrenin içine küçük bir kare olarak yerleştirilir.
+      ws.addImage(id, {
+        tl: { col: 11.15, row: row.number - 0.85 },
+        ext: { width: 56, height: 56 },
+      })
+    }
+
+    ws.autoFilter = { from: 'A1', to: { row: 1, column: ws.columns.length } }
+
+    const buf = await wb.xlsx.writeBuffer()
+    const stamp = new Date().toISOString().slice(0, 10)
+    const url = URL.createObjectURL(
+      new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    )
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `urunler-${stamp}.xlsx`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('[Products] Excel dışa aktarma hatası:', e)
+    alert('Excel dosyası oluşturulamadı.')
+  } finally {
+    exporting.value = false
+  }
 }
 
 // ── Excel İçe Aktarma ─────────────────────────────────────────────────────
