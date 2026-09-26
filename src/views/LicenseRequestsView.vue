@@ -21,18 +21,28 @@
             <tr>
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Cihaz Kodu</th>
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Cihaz Bilgisi</th>
+              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">İstenen Firma</th>
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Talep Tarihi</th>
               <th class="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td colspan="4" class="text-center py-12 text-muted">Yükleniyor...</td>
+              <td colspan="5" class="text-center py-12 text-muted">Yükleniyor...</td>
             </tr>
             <tr v-for="r in requests" :key="r.id"
                 class="border-t border-gray-50 hover:bg-gray-50 transition-colors">
               <td class="px-6 py-4 text-xs font-mono">{{ r.deviceId }}</td>
               <td class="px-6 py-4 text-sm text-muted">{{ r.deviceInfo || '—' }}</td>
+              <!-- Kasa hangi hesapla talep açtıysa firması burada görünür;
+                   firma değiştirmede onay tek tıkla yapılabilsin diye. -->
+              <td class="px-6 py-4 text-sm">
+                <template v-if="r.requestedBusinessName">
+                  <div class="font-semibold text-primary">{{ r.requestedBusinessName }}</div>
+                  <div class="text-xs text-muted">{{ r.requestedUsername }}</div>
+                </template>
+                <span v-else class="text-muted">—</span>
+              </td>
               <td class="px-6 py-4 text-sm">{{ formatDate(r.requestedAt) }}</td>
               <td class="px-6 py-4">
                 <div class="flex gap-2 justify-end">
@@ -68,6 +78,11 @@
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-semibold mb-1">Müşteri *</label>
+              <p v-if="modal.request?.requestedBusinessName"
+                 class="text-xs text-muted mb-1">
+                Kasa bu firmayı bildirdi: <b>{{ modal.request.requestedBusinessName }}</b>
+                ({{ modal.request.requestedUsername }})
+              </p>
               <select v-model="form.tenantId"
                       class="w-full px-4 py-2 border border-gray-200 rounded-xl
                              focus:border-accent focus:outline-none text-sm">
@@ -175,7 +190,8 @@ async function load() {
 
 function openApprove(r) {
   modal.request = r
-  form.tenantId = null
+  // Kasanın bildirdiği firma varsa hazır seçili gelir.
+  form.tenantId = r.requestedTenantId ?? null
   form.licenseType = 'Demo'
   form.days = 30
   error.value = ''
