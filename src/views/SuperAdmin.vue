@@ -138,6 +138,16 @@
                             focus:border-accent focus:outline-none text-sm"/>
             </div>
 
+            <!-- Kaç kasa lisanslanabilir. Lisans onayında kontrol edilir. -->
+            <div>
+              <label class="block text-sm font-semibold mb-1">Kasa (Cihaz) Sınırı</label>
+              <input v-model.number="form.maxDevices" type="number" min="0"
+                     class="w-full px-4 py-2 border border-gray-200 rounded-xl
+                            focus:border-accent focus:outline-none text-sm"/>
+              <p class="text-xs text-muted mt-1">0 = sınırsız. Sınır dolduğunda yeni cihaz
+                lisansı onaylanamaz; önce eski cihazın lisansı iptal edilmelidir.</p>
+            </div>
+
             <label class="flex items-center gap-2 cursor-pointer">
               <input v-model="form.isActive" type="checkbox" class="w-4 h-4"/>
               <span class="text-sm font-semibold">Hesap Aktif</span>
@@ -178,7 +188,7 @@ const search  = ref('')
 const saving  = ref(false)
 const error   = ref('')
 const modal   = reactive({ show: false, tenant: null })
-const form    = reactive({ plan: 'basic', isActive: true, expiresAt: '' })
+const form    = reactive({ plan: 'basic', isActive: true, expiresAt: '', maxDevices: 0 })
 
 const filtered = computed(() => {
   const q = search.value.toLowerCase()
@@ -221,6 +231,7 @@ function openEdit(t) {
   form.expiresAt = t.expiresAt
     ? new Date(t.expiresAt).toISOString().split('T')[0]
     : ''
+  form.maxDevices = t.maxDevices ?? 0
   modal.show = true
   error.value = ''
 }
@@ -232,7 +243,8 @@ async function save() {
     await api.updateSubscription(modal.tenant.id, {
       plan:      form.plan,
       isActive:  form.isActive,
-      expiresAt: form.expiresAt ? new Date(form.expiresAt) : null
+      expiresAt: form.expiresAt ? new Date(form.expiresAt) : null,
+      maxDevices: Number(form.maxDevices) || 0
     })
     modal.show = false
     await load()

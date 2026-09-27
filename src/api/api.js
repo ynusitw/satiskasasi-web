@@ -55,7 +55,9 @@ export default {
 
   // Lisans
   getLicenses:        ()       => api.get('licenses'),
-  getLicenseRequests: ()       => api.get('licenses/requests'),
+  // status: 'pending' (varsayılan) | 'rejected' | 'all'
+  getLicenseRequests: (status)  => api.get('licenses/requests', { params: { status } }),
+  reopenLicenseRequest: (id)    => api.post(`licenses/requests/${id}/reopen`),
   approveLicense:     (id, d)  => api.post(`licenses/requests/${id}/approve`, d),
 
   // ── Aşama 2: personel satışı ve indirim/ikram raporu ─────────────

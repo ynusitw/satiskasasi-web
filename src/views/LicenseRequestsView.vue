@@ -7,11 +7,24 @@
           Kasadan gelen, onay bekleyen cihaz talepleri
         </p>
       </div>
-      <button @click="load"
-              class="px-4 py-2 bg-accent text-white rounded-lg
-                     text-sm font-semibold hover:bg-blue-600 transition-colors">
-        ↻ Yenile
-      </button>
+      <div class="flex items-center gap-2">
+        <!-- Reddedilenler de görünebilsin: yanlış ret müşterinin kasasını kilitler -->
+        <div class="flex rounded-xl overflow-hidden border border-gray-200">
+          <button v-for="f in statusFilters" :key="f.key"
+                  @click="setStatus(f.key)"
+                  class="px-3 py-2 text-xs font-semibold transition-all"
+                  :class="statusFilter === f.key
+                    ? 'bg-accent text-white'
+                    : 'bg-white text-muted hover:text-primary hover:bg-gray-50'">
+            {{ f.label }}
+          </button>
+        </div>
+        <button @click="load"
+                class="px-4 py-2 bg-accent text-white rounded-lg
+                       text-sm font-semibold hover:bg-blue-600 transition-colors">
+          ↻ Yenile
+        </button>
+      </div>
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -23,12 +36,13 @@
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Cihaz Bilgisi</th>
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">İstenen Firma</th>
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Talep Tarihi</th>
+              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Durum</th>
               <th class="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td colspan="5" class="text-center py-12 text-muted">Yükleniyor...</td>
+              <td colspan="6" class="text-center py-12 text-muted">Yükleniyor...</td>
             </tr>
             <tr v-for="r in requests" :key="r.id"
                 class="border-t border-gray-50 hover:bg-gray-50 transition-colors">
@@ -45,7 +59,22 @@
               </td>
               <td class="px-6 py-4 text-sm">{{ formatDate(r.requestedAt) }}</td>
               <td class="px-6 py-4">
+                <span :class="r.status === 'Rejected'
+                        ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700'"
+                      class="text-xs font-bold px-3 py-1 rounded-full">
+                  {{ r.status === 'Rejected' ? 'Reddedildi' : 'Bekliyor' }}
+                </span>
+                <div v-if="r.note" class="text-xs text-muted mt-1">{{ r.note }}</div>
+              </td>
+              <td class="px-6 py-4">
                 <div class="flex gap-2 justify-end">
+                  <!-- Reddedilen talep panelden geri alınabilir; aksi hâlde
+                       müşterinin kasası o firma için kilitli kalıyordu. -->
+                  <button v-if="r.status === 'Rejected'" @click="reopen(r)"
+                          class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent
+                                 rounded-lg hover:bg-accent hover:text-white transition-colors">
+                    Yeniden Aç
+                  </button>
                   <button @click="openApprove(r)"
                           class="px-3 py-1 text-xs font-bold bg-green-50 text-green-600
                                  rounded-lg hover:bg-green-600 hover:text-white transition-colors">
@@ -60,7 +89,9 @@
               </td>
             </tr>
             <tr v-if="!loading && requests.length === 0">
-              <td colspan="4" class="text-center py-12 text-muted">Bekleyen talep yok</td>
+              <td colspan="6" class="text-center py-12 text-muted">
+                {{ statusFilter === 'rejected' ? 'Reddedilmiş talep yok' : 'Bekleyen talep yok' }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -146,6 +177,19 @@ import { onMounted, reactive, ref, watch } from 'vue'
 import api from '../api/api'
 import ModulePicker from '../components/ModulePicker.vue'
 
+const statusFilters = [
+  { key: 'pending',  label: 'Bekleyen' },
+  { key: 'rejected', label: 'Reddedilen' },
+  { key: 'all',      label: 'Tümü' },
+]
+const statusFilter = ref('pending')
+
+function setStatus(key) {
+  if (statusFilter.value === key) return
+  statusFilter.value = key
+  load()
+}
+
 const requests = ref([])
 const tenants  = ref([])
 const loading  = ref(true)
@@ -180,7 +224,9 @@ watch(() => form.tenantId, async (tid) => {
 async function load() {
   loading.value = true
   try {
-    const [r, t] = await Promise.all([api.getLicenseRequests(), api.getAllTenants()])
+    const [r, t] = await Promise.all([
+      api.getLicenseRequests(statusFilter.value), api.getAllTenants(),
+    ])
     requests.value = r.data
     tenants.value  = t.data
   } finally {
@@ -215,6 +261,13 @@ async function approve() {
   } finally {
     saving.value = false
   }
+}
+
+// Yanlışlıkla reddedilen talebi tekrar sıraya alır.
+async function reopen(r) {
+  if (!confirm('Bu talep yeniden değerlendirmeye alınsın mı?')) return
+  await api.reopenLicenseRequest(r.id)
+  await load()
 }
 
 async function reject(r) {

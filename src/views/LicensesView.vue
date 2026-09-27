@@ -92,6 +92,7 @@
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Tip</th>
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Bitiş</th>
               <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Durum</th>
+              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Son Bağlantı</th>
               <th class="px-6 py-3"></th>
             </tr>
           </thead>
@@ -108,6 +109,17 @@
                   {{ l.isActive ? 'Aktif' : 'İptal' }}
                 </span>
               </td>
+              <!-- Kasa periyodik haber veriyor: iptal etmeden önce
+                   gönderilmemiş kayıt var mı, buradan görülür. -->
+              <td class="px-6 py-4 text-sm">
+                <template v-if="l.lastSeenAt">
+                  <div :class="staleClass(l.lastSeenAt)">{{ formatDate(l.lastSeenAt) }}</div>
+                  <div v-if="l.pendingCount > 0" class="text-xs font-bold text-danger">
+                    {{ l.pendingCount }} kayıt gönderilmedi
+                  </div>
+                </template>
+                <span v-else class="text-muted">—</span>
+              </td>
               <td class="px-6 py-4 text-right">
                 <button v-if="l.isActive" @click="revoke(l)"
                         class="px-3 py-1 text-xs font-bold bg-red-50 text-danger
@@ -117,7 +129,7 @@
               </td>
             </tr>
             <tr v-if="licenses.length === 0">
-              <td colspan="6" class="text-center py-12 text-muted">Henüz lisans verilmemiş</td>
+              <td colspan="7" class="text-center py-12 text-muted">Henüz lisans verilmemiş</td>
             </tr>
           </tbody>
         </table>
@@ -373,7 +385,19 @@ async function createTenant() {
   }
 }
 
+// Gönderilmemiş kayıt varsa iptal etmek veri kaybı demek: iptal edilen kasa
+// bir daha giriş yapamaz, dolayısıyla o kayıtları hiç gönderemez.
+function staleClass(lastSeenAt) {
+  const hours = (Date.now() - new Date(lastSeenAt).getTime()) / 3600000
+  return hours > 24 ? 'text-danger font-semibold' : 'text-muted'
+}
+
 async function revoke(l) {
+  if (l.pendingCount > 0 && !confirm(
+      `DİKKAT: Bu kasada gönderilmemiş ${l.pendingCount} kayıt var ` +
+      `(satış / Z raporu).\n\nLisans iptal edilirse kasa giriş yapamaz ve bu ` +
+      `kayıtlar sunucuya hiç ulaşmaz.\n\nYine de devam edilsin mi?`)) return
+
   if (!confirm(`${l.tenantName} — bu cihazın lisansı iptal edilsin mi?`)) return
   await api.revokeLicense(l.id)
   await load()
