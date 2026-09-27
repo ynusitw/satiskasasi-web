@@ -97,6 +97,8 @@ export default {
   getProducts:    ()       => api.get('products'),
   // Pasifler dahil — yalnızca ürün yönetim ekranı kullanır
   getProductsAll: ()       => api.get('products?includeInactive=true'),
+  // Web menüde kullanılan büyük fotoğraf; liste yanıtında yalnızca küçüğü var.
+  getProductLargeImage: (id) => api.get(`products/${id}/image`, { params: { size: 'large' } }),
   createProduct:  (d)      => api.post('products', d),
   updateProduct:  (id, d)  => api.put(`products/${id}`, d),
   deleteProduct:  (id)     => api.delete(`products/${id}`),

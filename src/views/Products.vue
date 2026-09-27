@@ -181,7 +181,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
-            {{ exporting ? 'Aktarılıyor...' : 'Excel Dışa Aktar' }}
+            {{ exporting ? `Aktarılıyor... ${exportProgress}` : 'Excel Dışa Aktar' }}
           </button>
 
           <input ref="importFileInput" type="file" accept=".xlsx,.xls" class="hidden" @change="onImportFile"/>
@@ -493,7 +493,7 @@
 
           <!-- Sonuç -->
           <div v-else-if="importModal.done > 0 || importModal.errors.length">
-            <div class="grid grid-cols-3 gap-3 mt-4 mb-5">
+            <div class="grid grid-cols-4 gap-3 mt-4 mb-5">
               <div class="bg-green-50 rounded-xl p-3 text-center">
                 <div class="text-2xl font-bold text-success">{{ importModal.productsCreated }}</div>
                 <div class="text-xs text-muted mt-0.5">Ürün Eklendi</div>
@@ -501,6 +501,10 @@
               <div class="bg-blue-50 rounded-xl p-3 text-center">
                 <div class="text-2xl font-bold text-accent">{{ importModal.catsCreated }}</div>
                 <div class="text-xs text-muted mt-0.5">Grup Oluşturuldu</div>
+              </div>
+              <div class="bg-purple-50 rounded-xl p-3 text-center">
+                <div class="text-2xl font-bold text-purple-600">{{ importModal.photosUpdated }}</div>
+                <div class="text-xs text-muted mt-0.5">Fotoğraf Eklendi</div>
               </div>
               <div class="bg-gray-50 rounded-xl p-3 text-center">
                 <div class="text-2xl font-bold text-muted">{{ importModal.skipped }}</div>
@@ -914,17 +918,23 @@ function squareCrop(img, maxSize, quality, preferWebp = false) {
   return { dataUrl: canvas.toDataURL('image/jpeg', quality), size, format: 'jpeg' }
 }
 
-function loadImage(file) {
+// Dosya (File/Blob) ya da hazır data URL kabul eder: Excel'e aktarırken
+// kaynak sunucudan gelen base64 oluyor, yüklemede ise seçilen dosya.
+function loadImage(source) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
+    const show = (src) => {
       const img = new Image()
       img.onload  = () => resolve(img)
       img.onerror = reject
-      img.src = e.target.result
+      img.src = src
     }
+
+    if (typeof source === 'string') { show(source); return }
+
+    const reader = new FileReader()
+    reader.onload = (e) => show(e.target.result)
     reader.onerror = reject
-    reader.readAsDataURL(file)
+    reader.readAsDataURL(source)
   })
 }
 
@@ -1151,10 +1161,27 @@ function downloadTemplate() {
 // dosya düzenlenip tekrar içe aktarılabiliyor — içe aktarma ilk beş sütunu
 // okur, sonrasını yok sayar.
 const exporting = ref(false)
+const exportProgress = ref('')
 
-// Fotoğraflar listeden gelen 256 px JPEG küçük görseller. Büyük görsel
-// (1440 px) WebP olduğu için Excel'de görüntülenemez; ayrıca hücreye
-// sığdırıldığında bir farkı da olmaz.
+// Excel'e gömülecek fotoğraf. Kaynak, ürünün BÜYÜK görselidir: dosya başka
+// bir firmaya aktarıldığında web menü için de yeterli kalsın diye. Büyük
+// görsel WebP olduğundan ve Excel WebP göstermediğinden JPEG'e çevrilir.
+const EXPORT_IMAGE_SIZE    = 1440
+const EXPORT_IMAGE_QUALITY = 0.85
+
+async function exportImageDataUrl(product) {
+  try {
+    const res = await api.getProductLargeImage(product.id)
+    const source = res.data?.imageBase64
+    if (source) {
+      const img = await loadImage(source)
+      const out = squareCrop(img, EXPORT_IMAGE_SIZE, EXPORT_IMAGE_QUALITY)  // JPEG
+      return out.dataUrl
+    }
+  } catch { /* büyüğü alınamadıysa küçüğüyle yetiniriz */ }
+  return product.imageBase64 || ''
+}
+
 function dataUrlParts(dataUrl) {
   const m = /^data:image\/(png|jpe?g|gif);base64,(.+)$/i.exec(dataUrl || '')
   if (!m) return null
@@ -1203,7 +1230,9 @@ async function exportExcel() {
     header.alignment = { vertical: 'middle' }
     header.height = 22
 
+    let done = 0
     for (const p of list) {
+      exportProgress.value = `${++done}/${list.length}`
       const row = ws.addRow({
         barcode:  p.barcode || '',
         name:     p.name,
@@ -1222,7 +1251,9 @@ async function exportExcel() {
       })
       row.alignment = { vertical: 'middle', wrapText: false }
 
-      const img = dataUrlParts(p.imageBase64)
+      // Fotoğraf satır satır indirilir; liste yanıtı büyük görselleri
+      // taşımıyor (30 üründe ~10 MB tutardı).
+      const img = dataUrlParts(p.imageBase64 ? await exportImageDataUrl(p) : '')
       if (!img) continue
 
       row.height = 48
@@ -1251,6 +1282,7 @@ async function exportExcel() {
     alert('Excel dosyası oluşturulamadı.')
   } finally {
     exporting.value = false
+    exportProgress.value = ''
   }
 }
 
@@ -1264,11 +1296,49 @@ const importModal = reactive({
   productsCreated: 0,
   catsCreated: 0,
   skipped: 0,
+  photosUpdated: 0,
   errors: [],
 })
 
 function triggerImport() {
   importFileInput.value?.click()
+}
+
+// Excel'e gömülü fotoğrafları satır numarasına göre çıkarır.
+// SheetJS görselleri hiç göremediği için okuma exceljs ile yapılır; .xls gibi
+// eski biçimlerde exceljs çuvallarsa SheetJS'e düşülür (fotoğrafsız).
+async function readWorkbook(buffer) {
+  try {
+    const mod = await import('exceljs')
+    const ExcelJS = mod.default ?? mod
+    const wb = new ExcelJS.Workbook()
+    await wb.xlsx.load(buffer)
+
+    const ws = wb.worksheets[0]
+    if (!ws) throw new Error('sayfa yok')
+
+    const rows = []
+    ws.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      // values[0] boştur (exceljs 1 tabanlı sütun verir)
+      rows[rowNumber - 1] = row.values.slice(1).map(v => (v ?? '').toString())
+    })
+
+    // Görseller hücreye değil sayfaya çapalanır; satırını tl.nativeRow verir.
+    const images = {}
+    for (const img of ws.getImages()) {
+      const media = wb.getImage(Number(img.imageId))
+      if (!media?.buffer) continue
+      const type = media.extension === 'png' ? 'image/png'
+                 : media.extension === 'gif' ? 'image/gif' : 'image/jpeg'
+      images[img.range.tl.nativeRow] = new Blob([media.buffer], { type })
+    }
+
+    return { rows: rows.filter(Boolean), images }
+  } catch {
+    const wb = read(buffer)
+    const ws = wb.Sheets[wb.SheetNames[0]]
+    return { rows: utils.sheet_to_json(ws, { header: 1, defval: '' }), images: {} }
+  }
 }
 
 async function onImportFile(e) {
@@ -1277,12 +1347,15 @@ async function onImportFile(e) {
   e.target.value = ''
 
   const buffer = await file.arrayBuffer()
-  const wb = read(buffer)
-  const ws = wb.Sheets[wb.SheetNames[0]]
-  const rows = utils.sheet_to_json(ws, { header: 1, defval: '' })
+  const { rows, images } = await readWorkbook(buffer)
 
-  // İlk satır başlık, atla; Ürün Adı boş olan satırları da atla
-  const dataRows = rows.slice(1).filter(r => r[1]?.toString().trim())
+  // İlk satır başlık, atla; Ürün Adı boş olan satırları da atla.
+  // Fotoğrafın çapası 0 tabanlı satır numarası: başlık 0, ilk ürün 1.
+  const dataRows = rows
+    .map((r, i) => ({ cells: r, image: images[i] }))
+    .slice(1)
+    .filter(r => r.cells[1]?.toString().trim())
+
   if (!dataRows.length) {
     alert('Excel dosyasında işlenecek ürün bulunamadı.')
     return
@@ -1291,7 +1364,7 @@ async function onImportFile(e) {
   Object.assign(importModal, {
     show: true, processing: true,
     total: dataRows.length, done: 0,
-    productsCreated: 0, catsCreated: 0, skipped: 0, errors: [],
+    productsCreated: 0, catsCreated: 0, skipped: 0, photosUpdated: 0, errors: [],
   })
 
   // Mevcut kategorileri önbelleğe al (isim → id)
@@ -1303,7 +1376,9 @@ async function onImportFile(e) {
   const existingBarcodes = new Set(products.value.map(p => p.barcode).filter(Boolean))
 
   for (let i = 0; i < dataRows.length; i++) {
-    const [barcodeRaw, nameRaw, groupRaw, priceRaw, stockRaw] = dataRows[i]
+    const [barcodeRaw, nameRaw, groupRaw, priceRaw, stockRaw,
+           vatRaw, minStockRaw, activeRaw, descRaw, allergRaw] = dataRows[i].cells
+    const imageBlob = dataRows[i].image
     const rowNum  = i + 2  // Excel satır numarası (1 başlık)
     const name    = nameRaw?.toString().trim()
     const barcode = barcodeRaw?.toString().trim() || ''
@@ -1312,13 +1387,61 @@ async function onImportFile(e) {
     const stock   = parseInt(stockRaw)   || 0
 
     try {
-      // Duplicate kontrolü
-      if (existingNames.has(name.toLowerCase())) {
-        importModal.skipped++
+      // Gömülü fotoğraf varsa kasanın ve web menünün beklediği iki boyut
+      // yeniden üretilir (küçük JPEG + büyük WebP) — elle yüklemeyle aynı yol.
+      let images = {}
+      if (imageBlob) {
+        try {
+          const { thumb, large } = await buildImagePair(imageBlob)
+          images = { imageBase64: thumb.dataUrl, imageLargeBase64: large.dataUrl }
+        } catch {
+          importModal.errors.push({ row: rowNum, msg: 'Fotoğraf okunamadı, ürün fotoğrafsız işlendi.' })
+        }
+      }
+
+      // Duplicate kontrolü. Ürün zaten varsa eklenmez; ama fotoğrafı yoksa
+      // ve dosyada fotoğraf geldiyse yalnızca fotoğrafı tamamlanır —
+      // ürünleri önceden aktarıp fotoğrafsız kalan durumu kurtarır.
+      const existing = products.value.find(p =>
+        p.name.trim().toLowerCase() === name.toLowerCase() ||
+        (barcode && p.barcode === barcode))
+
+      if (existing) {
+        if (images.imageBase64 && !existing.imageBase64) {
+          try {
+            // Update ucu tam gövde bekliyor: eksik alan gönderilirse sıfırlanır.
+            await api.updateProduct(existing.id, {
+              name: existing.name,
+              barcode: existing.barcode,
+              price: existing.price,
+              vatRate: existing.vatRate,
+              isActive: existing.isActive,
+              categoryId: existing.categoryId,
+              currentStock: existing.currentStock,
+              minimumStock: existing.minimumStock,
+              description: existing.description,
+              allergens: existing.allergens,
+              ...images,
+            })
+            existing.imageBase64 = images.imageBase64
+            importModal.photosUpdated++
+          } catch (err) {
+            importModal.errors.push({
+              row: rowNum,
+              msg: err?.response?.data?.message ?? 'Fotoğraf güncellenemedi.',
+            })
+          }
+        } else {
+          importModal.skipped++
+        }
         importModal.done++
         continue
       }
-      if (barcode && existingBarcodes.has(barcode)) {
+
+      // Aynı dosyada ürün ikinci kez geçiyorsa (bu turda oluşturulmuş olabilir)
+      // tekrar eklenmez; products listesi tur içinde tazelenmiyor.
+      if (existingNames.has(name.toLowerCase()) ||
+          (barcode && existingBarcodes.has(barcode))) {
         importModal.skipped++
         importModal.done++
         continue
@@ -1340,7 +1463,14 @@ async function onImportFile(e) {
       }
 
       // Ürün oluştur
-      await api.createProduct({ name, barcode, categoryId, price, currentStock: stock, isActive: true })
+      await api.createProduct({
+        name, barcode, categoryId, price, currentStock: stock, isActive: activeRaw !== 'Hayır',
+        vatRate: parseFloat(vatRaw) || 0,
+        minimumStock: parseFloat(minStockRaw) || 0,
+        description: (descRaw ?? '').toString().trim(),
+        allergens: (allergRaw ?? '').toString().trim(),
+        ...images,
+      })
       existingNames.add(name.toLowerCase())
       if (barcode) existingBarcodes.add(barcode)
       importModal.productsCreated++
