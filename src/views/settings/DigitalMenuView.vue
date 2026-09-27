@@ -128,11 +128,38 @@
 
       <!-- Kategori Görselleri -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-1">Kategori Görselleri</h2>
-        <p class="text-xs text-muted mb-4">
+        <div class="flex items-start justify-between gap-3 mb-1">
+          <h2 class="font-bold text-primary">Kategori Görselleri</h2>
+
+          <!-- Başka bir firmaya taşımak için: görseller yeniden
+               sıkıştırılmadan, olduğu gibi aktarılır. -->
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <button @click="exportCategoryImages" :disabled="imgBusy"
+                    class="px-3 py-1.5 border border-gray-200 text-muted rounded-lg
+                           text-xs font-semibold hover:border-accent hover:text-accent
+                           disabled:opacity-50">
+              Dışa Aktar
+            </button>
+            <button @click="categoryZipInput?.click()" :disabled="imgBusy"
+                    class="px-3 py-1.5 border border-gray-200 text-muted rounded-lg
+                           text-xs font-semibold hover:border-success hover:text-success
+                           disabled:opacity-50">
+              İçe Aktar
+            </button>
+            <input ref="categoryZipInput" type="file" accept=".zip"
+                   class="hidden" @change="importCategoryImages"/>
+          </div>
+        </div>
+
+        <p class="text-xs text-muted mb-3">
           Menü açılışında kategoriler kart olarak gösterilir. Buraya yüklediğiniz
           görseller <strong>sadece dijital menüde</strong> kullanılır, kasayı etkilemez.
         </p>
+
+        <label class="flex items-center gap-2 text-xs text-muted cursor-pointer mb-4 select-none">
+          <input type="checkbox" v-model="overwriteCategoryImages" class="w-4 h-4"/>
+          İçe aktarırken mevcut görsellerin üzerine yaz
+        </label>
 
         <div class="space-y-3">
           <div v-for="c in categories" :key="c.id"
@@ -307,6 +334,140 @@ function processCategoryImage(file) {
     img.src = ev.target.result
   }
   reader.readAsDataURL(file)
+}
+
+// ── Kategori görsellerini dışa / içe aktar ───────────────────────────────
+// Görseller yeniden sıkıştırılmaz: kaynak firmadaki dosyanın birebir kopyası
+// taşınır. Eşleştirme kategori ADIna göre yapılır; paketteki kategoriler.json
+// adı taşır, dosya adı yalnızca yedek eşleşmedir.
+const categoryZipInput = ref(null)
+const imgBusy = ref(false)
+const overwriteCategoryImages = ref(false)
+
+function normalizeName(n) {
+  return (n || '').trim().toLocaleLowerCase('tr')
+}
+
+function safeFileName(n) {
+  return (n || 'kategori').replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40)
+}
+
+function dataUrlToParts(dataUrl) {
+  const m = /^data:image\/(png|gif|webp|jpe?g);base64,(.+)$/i.exec(dataUrl || '')
+  if (!m) return null
+  const ext = m[1].toLowerCase() === 'jpeg' ? 'jpg' : m[1].toLowerCase()
+  return { ext, base64: m[2] }
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => resolve(e.target.result)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
+
+async function exportCategoryImages() {
+  const withImage = categories.value.filter(c => c.menuImageBase64)
+  if (!withImage.length) {
+    alert('Dışa aktarılacak kategori görseli yok.')
+    return
+  }
+
+  imgBusy.value = true
+  try {
+    const JSZip = (await import('jszip')).default
+    const zip = new JSZip()
+    const dir = zip.folder('gorseller')
+    const index = []
+
+    withImage.forEach((c, i) => {
+      const parts = dataUrlToParts(c.menuImageBase64)
+      if (!parts) return
+      const file = `${String(i + 1).padStart(3, '0')}-${safeFileName(c.name)}.${parts.ext}`
+      dir.file(file, parts.base64, { base64: true })
+      index.push({ name: c.name, file })
+    })
+
+    zip.file('kategoriler.json', JSON.stringify(index, null, 2))
+
+    const blob = await zip.generateAsync({ type: 'blob' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `kategori-gorselleri-${new Date().toISOString().slice(0, 10)}.zip`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('[DigitalMenu] Kategori görselleri dışa aktarılamadı:', e)
+    alert('Dosya oluşturulamadı.')
+  } finally {
+    imgBusy.value = false
+  }
+}
+
+async function importCategoryImages(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  e.target.value = ''
+
+  imgBusy.value = true
+  try {
+    const JSZip = (await import('jszip')).default
+    const zip = await JSZip.loadAsync(await file.arrayBuffer())
+
+    // Dosya türü uzantıdan verilmezse görsel octet-stream olarak kaydediliyor.
+    const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+                   gif: 'image/gif', webp: 'image/webp' }
+
+    const blobs = {}
+    await Promise.all(Object.keys(zip.files).map(async (name) => {
+      if (zip.files[name].dir) return
+      const ext = /\.(jpe?g|png|gif|webp)$/i.exec(name)?.[1]?.toLowerCase()
+      if (!ext) return
+      const bytes = await zip.file(name).async('arraybuffer')
+      blobs[name.split('/').pop().toLowerCase()] =
+        new Blob([bytes], { type: MIME[ext] || 'image/jpeg' })
+    }))
+
+    // Ad → dosya eşlemesi; paket listesi yoksa dosya adından çıkarılır.
+    const byName = {}
+    const indexFile = zip.file('kategoriler.json')
+    if (indexFile) {
+      for (const row of JSON.parse(await indexFile.async('string'))) {
+        const blob = blobs[(row.file || '').split('/').pop().toLowerCase()]
+        if (blob) byName[normalizeName(row.name)] = blob
+      }
+    } else {
+      for (const [file, blob] of Object.entries(blobs)) {
+        const bare = file.replace(/^\d+-/, '').replace(/\.[^.]+$/, '')
+        byName[normalizeName(bare.replace(/-/g, ' '))] = blob
+      }
+    }
+
+    let applied = 0, kept = 0
+    for (const c of categories.value) {
+      const blob = byName[normalizeName(c.name)]
+      if (!blob) continue
+      if (c.menuImageBase64 && !overwriteCategoryImages.value) { kept++; continue }
+      c.menuImageBase64 = await blobToDataUrl(blob)
+      applied++
+    }
+
+    const missing = categories.value.filter(c => !byName[normalizeName(c.name)]).length
+    alert(
+      `${applied} kategori görseli yüklendi.` +
+      (kept ? `\n${kept} kategoride görsel zaten vardı (üzerine yazılmadı).` : '') +
+      (missing ? `\n${missing} kategori pakette bulunamadı (adı farklı olabilir).` : '') +
+      '\n\nDeğişiklikler için aşağıdaki Kaydet düğmesine basın.'
+    )
+  } catch (err) {
+    console.error('[DigitalMenu] Kategori görselleri içe aktarılamadı:', err)
+    alert('Paket okunamadı. Dışa aktarma ile oluşturulmuş bir .zip dosyası seçin.')
+  } finally {
+    imgBusy.value = false
+  }
 }
 
 // ── Kaydet ───────────────────────────────────────────────────────────────
