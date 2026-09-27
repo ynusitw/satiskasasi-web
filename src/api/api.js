@@ -65,6 +65,22 @@ export default {
   saveStaffSettings:  (d)       => api.put('settings/staff', d),
   getAdjustmentsReport: (params) => api.get('reports/adjustments', { params }),
 
+  // ── Aşama 3: hammadde, reçete ve çeşniler ──────────────────────────
+  getIngredients:     (includeInactive) =>
+    api.get('ingredients', { params: { includeInactive } }),
+  createIngredient:   (d)      => api.post('ingredients', d),
+  updateIngredient:   (id, d)  => api.put(`ingredients/${id}`, d),
+  deleteIngredient:   (id)     => api.delete(`ingredients/${id}`),
+  // Depoya giriş / fire / sayım. Stok yalnızca hareketle değişir.
+  createIngredientMovement: (id, d) => api.post(`ingredients/${id}/movement`, d),
+  getIngredientMovements:   (id)    => api.get(`ingredients/${id}/movements`),
+
+  getModifierGroups:   (includeInactive) =>
+    api.get('modifiers', { params: { includeInactive } }),
+  createModifierGroup: (d)     => api.post('modifiers', d),
+  updateModifierGroup: (id, d) => api.put(`modifiers/${id}`, d),
+  deleteModifierGroup: (id)    => api.delete(`modifiers/${id}`),
+
   // ── Modüler lisanslama ─────────────────────────────────────────────
   getModuleCatalog:   ()        => api.get('modules'),              // seçilebilir modüller
   getMyModules:       ()        => api.get('modules/me'),           // oturumdaki müşterinin aktif modülleri

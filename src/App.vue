@@ -353,9 +353,11 @@ const lisansSubMenu = [
   { to: '/superadmin/lisans/reddedilen', label: 'Reddedilen Lisanslar' },
 ]
 
-const menuTop = [
-  { to: '/',         icon: '📊', label: 'Dashboard'       },
-  { to: '/products', icon: '📦', label: 'Ürün Düzenleme'  },
+const menuTopAll = [
+  { to: '/',            icon: '📊', label: 'Dashboard'       },
+  { to: '/products',    icon: '📦', label: 'Ürün Düzenleme'  },
+  { to: '/modifiers',   icon: '🧂', label: 'Çeşni & Ekstra'  },
+  { to: '/ingredients', icon: '🥫', label: 'Hammaddeler', module: MODULES.STOCK },
 ]
 
 const cariSubMenu = [
@@ -392,6 +394,8 @@ const kasaYapiSubMenu = [
 function allowed(item) {
   return !item.module || auth.isSuperAdmin || modulesStore.has(item.module)
 }
+// Hammaddeler stok modülüne bağlı; modülü olmayan müşteride menüde yok.
+const menuTop = computed(() => menuTopAll.filter(allowed))
 const visibleReportSubMenu   = computed(() => reportSubMenu.filter(allowed))
 const visibleKasaYapiSubMenu = computed(() => kasaYapiSubMenu.filter(allowed))
 const showCari               = computed(() => allowed({ module: MODULES.CARI }))

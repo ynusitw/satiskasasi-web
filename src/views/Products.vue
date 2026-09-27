@@ -690,6 +690,114 @@
               </div>
             </div>
 
+
+            <!-- ── Aşama 3: çeşni, menü ve reçete ───────────────────── -->
+
+            <!-- Çeşni grupları: kasada satış anında sorulur -->
+            <div class="rounded-xl border border-gray-200 p-4">
+              <label class="text-sm font-semibold">Çeşni & Ekstra Seçimler</label>
+              <p class="text-xs text-muted mt-1 mb-3">
+                İşaretlenen gruplar kasada bu ürün satılırken sorulur
+                (Hamur Tipi, Ekstra Malzemeler). Gruplar
+                <RouterLink to="/modifiers" class="text-accent hover:underline">Çeşni &amp; Ekstra</RouterLink>
+                sayfasından tanımlanır.
+              </p>
+
+              <div v-if="!modifierGroups.length" class="text-xs text-muted">
+                Henüz çeşni grubu tanımlanmamış.
+              </div>
+              <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label v-for="g in modifierGroups" :key="g.id"
+                       class="flex items-start gap-2 p-2 rounded-lg border cursor-pointer transition-colors"
+                       :class="form.modifierGroupIds.includes(g.id)
+                         ? 'border-accent bg-accent/5' : 'border-gray-200 hover:border-accent/40'">
+                  <input type="checkbox" class="mt-0.5"
+                         :checked="form.modifierGroupIds.includes(g.id)"
+                         @change="toggleModifierGroup(g.id)"/>
+                  <span class="min-w-0">
+                    <span class="block text-sm font-semibold">{{ g.name }}</span>
+                    <span class="block text-xs text-muted">
+                      {{ g.options.map(o => o.name).join(', ') || 'Seçenek yok' }}
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Menü (combo) -->
+            <div class="rounded-xl border border-gray-200 p-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" v-model="form.isCombo"/>
+                <span class="text-sm font-semibold">Bu ürün bir menü (combo)</span>
+              </label>
+              <p class="text-xs text-muted mt-1">
+                Menü satıldığında arka planda bileşenleri satılmış sayılır; stok ve
+                reçete düşümü bileşenler üzerinden yapılır.
+              </p>
+
+              <div v-if="form.isCombo" class="mt-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-semibold text-muted">Bileşenler</span>
+                  <button type="button" @click="addComboComponent"
+                          class="text-xs font-semibold text-accent hover:underline">+ Ürün Ekle</button>
+                </div>
+
+                <div v-for="(c, i) in form.comboComponents" :key="c._key"
+                     class="flex items-center gap-2 mb-2">
+                  <select v-model.number="c.componentProductId"
+                          class="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    <option :value="null" disabled>Ürün seçin</option>
+                    <option v-for="p in otherProducts" :key="p.id" :value="p.id">{{ p.name }}</option>
+                  </select>
+                  <input v-model.number="c.quantity" type="number" step="0.001" min="0.001"
+                         class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm"/>
+                  <button type="button" @click="form.comboComponents.splice(i, 1)"
+                          class="px-2 text-red-600 hover:bg-red-50 rounded" title="Kaldır">✕</button>
+                </div>
+                <p v-if="!form.comboComponents.length" class="text-xs text-muted">
+                  Bileşen eklenmedi.
+                </p>
+              </div>
+            </div>
+
+            <!-- Reçete -->
+            <div class="rounded-xl border border-gray-200 p-4">
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-sm font-semibold">Reçete</label>
+                <button type="button" @click="addRecipeItem" :disabled="!ingredients.length"
+                        class="text-xs font-semibold text-accent hover:underline disabled:opacity-40">
+                  + Hammadde Ekle
+                </button>
+              </div>
+              <p class="text-xs text-muted mb-3">
+                Reçete girerseniz satışta ürünün kendi stoğu DEĞİL, buradaki hammaddeler düşer.
+                <template v-if="!ingredients.length">
+                  Önce
+                  <RouterLink to="/ingredients" class="text-accent hover:underline">Hammaddeler</RouterLink>
+                  sayfasından malzeme tanımlayın.
+                </template>
+              </p>
+
+              <div v-for="(r, i) in form.recipe" :key="r._key" class="flex items-center gap-2 mb-2">
+                <select v-model.number="r.ingredientId"
+                        class="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                  <option :value="null" disabled>Hammadde seçin</option>
+                  <option v-for="ing in ingredients" :key="ing.id" :value="ing.id">
+                    {{ ing.name }} ({{ ing.unit }})
+                  </option>
+                </select>
+                <input v-model.number="r.quantity" type="number" step="0.001" min="0"
+                       placeholder="Miktar"
+                       class="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm"/>
+                <button type="button" @click="form.recipe.splice(i, 1)"
+                        class="px-2 text-red-600 hover:bg-red-50 rounded" title="Kaldır">✕</button>
+              </div>
+
+              <div v-if="form.recipe.length" class="text-xs text-muted mt-2">
+                Hesaplanan maliyet: <b>{{ recipeCost }}</b>
+              </div>
+            </div>
+
             <!-- Dijital menü alanları -->
             <div>
               <label class="block text-sm font-semibold mb-1">
@@ -792,7 +900,12 @@ const form   = reactive({
   price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
   isActive: true, imageBase64: '', imageLargeBase64: null, description: '', allergens: '',
     variants: [],
+    isCombo: false, modifierGroupIds: [], comboComponents: [], recipe: [],
 })
+// Aşama 3: ürün formunda seçilebilmeleri için katalogla birlikte yüklenir.
+const modifierGroups = ref([])
+const ingredients    = ref([])
+
 const dragOver  = ref(false)
 const fileInput = ref(null)
 
@@ -993,6 +1106,12 @@ async function load() {
   const [prod, cats] = await Promise.all([api.getProductsAll(), api.getCategories()])
   products.value   = prod.data
   categories.value = cats.data
+
+  // Aşama 3 listeleri hataya toleranslı yüklenir: çeşni ya da stok modülü
+  // olmayan müşteride ürün ekranı yine açılsın.
+  try { modifierGroups.value = (await api.getModifierGroups()).data } catch { modifierGroups.value = [] }
+  try { ingredients.value    = (await api.getIngredients()).data }    catch { ingredients.value = [] }
+
   loading.value    = false
 }
 
@@ -1002,6 +1121,7 @@ function openCreate() {
     price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
     isActive: true, imageBase64: '', imageLargeBase64: null, description: '', allergens: '',
     variants: [],
+    isCombo: false, modifierGroupIds: [], comboComponents: [], recipe: [],
   })
   modal.editing = false
   modal.show    = true
@@ -1026,6 +1146,11 @@ function openEdit(p) {
     allergens:   p.allergens   || '',
     // Derin kopya: formda düzenleme kaydedilmeden listedeki satırı değiştirmesin.
     variants: (p.variants || []).map(v => ({ ...v, _key: nextVariantKey++ })),
+    isCombo: !!p.isCombo,
+    modifierGroupIds: (p.modifierGroups || []).map(g => g.modifierGroupId),
+    comboComponents: (p.comboComponents || [])
+      .map(c => ({ ...c, _key: nextVariantKey++ })),
+    recipe: (p.recipe || []).map(r => ({ ...r, _key: nextVariantKey++ })),
   })
   modal.editing = true
   modal.show    = true
@@ -1041,8 +1166,47 @@ function productPayload() {
       .filter(v => (v.name || '').trim())
       .map((v, i) => ({ id: v.id || 0, name: v.name.trim(), price: Number(v.price) || 0,
                         sortOrder: i + 1, isActive: v.isActive !== false })),
+
+    // Aşama 3: eksik satırlar gönderilmez, geçici anahtarlar atılır.
+    isCombo: !!form.isCombo,
+    modifierGroupIds: [...form.modifierGroupIds],
+    comboComponents: form.isCombo
+      ? form.comboComponents
+          .filter(c => c.componentProductId && Number(c.quantity) > 0)
+          .map(c => ({ componentProductId: c.componentProductId, quantity: Number(c.quantity) }))
+      : [],
+    recipe: form.recipe
+      .filter(r => r.ingredientId && Number(r.quantity) > 0)
+      .map(r => ({ ingredientId: r.ingredientId, quantity: Number(r.quantity) })),
   }
 }
+
+// ── Aşama 3: çeşni, menü ve reçete yardımcıları ──────────────────────────
+function toggleModifierGroup(id) {
+  const i = form.modifierGroupIds.indexOf(id)
+  if (i >= 0) form.modifierGroupIds.splice(i, 1)
+  else        form.modifierGroupIds.push(id)
+}
+
+function addComboComponent() {
+  form.comboComponents.push({ componentProductId: null, quantity: 1, _key: nextVariantKey++ })
+}
+
+function addRecipeItem() {
+  form.recipe.push({ ingredientId: null, quantity: 1, _key: nextVariantKey++ })
+}
+
+// Menü kendini içeremez: sonsuz döngü olurdu (sunucu da reddediyor).
+const otherProducts = computed(() => products.value.filter(p => p.id !== form.id))
+
+// Reçeteden hesaplanan maliyet — hammadde birim maliyetleri üzerinden.
+const recipeCost = computed(() => {
+  const total = form.recipe.reduce((sum, r) => {
+    const ing = ingredients.value.find(i => i.id === r.ingredientId)
+    return sum + (ing ? (Number(r.quantity) || 0) * (ing.costPerUnit || 0) : 0)
+  }, 0)
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(total) + ' ₺'
+})
 
 async function save() {
   if (!form.name.trim()) { error.value = 'Ürün adı zorunludur.'; return }
