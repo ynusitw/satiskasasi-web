@@ -186,6 +186,14 @@
 
           <input ref="importFileInput" type="file" accept=".xlsx,.xls,.zip"
                  class="hidden" @change="onImportFile"/>
+
+          <!-- İçe aktarmada mevcut fotoğrafın üzerine yazılsın mı -->
+          <label class="flex items-center gap-1.5 px-2 text-xs text-muted cursor-pointer
+                        flex-shrink-0 select-none"
+                 title="İşaretliyse dosyadaki fotoğraf, ürünün mevcut fotoğrafının yerine yazılır">
+            <input type="checkbox" v-model="overwritePhotos" class="w-4 h-4"/>
+            Fotoğrafları üzerine yaz
+          </label>
         </div>
 
         <!-- Tablo -->
@@ -505,7 +513,7 @@
               </div>
               <div class="bg-purple-50 rounded-xl p-3 text-center">
                 <div class="text-2xl font-bold text-purple-600">{{ importModal.photosUpdated }}</div>
-                <div class="text-xs text-muted mt-0.5">Fotoğraf Eklendi</div>
+                <div class="text-xs text-muted mt-0.5">Fotoğraf Güncellendi</div>
               </div>
               <div class="bg-gray-50 rounded-xl p-3 text-center">
                 <div class="text-2xl font-bold text-muted">{{ importModal.skipped }}</div>
@@ -1174,6 +1182,9 @@ function downloadTemplate() {
 // dosya düzenlenip tekrar içe aktarılabiliyor — içe aktarma ilk beş sütunu
 // okur, sonrasını yok sayar.
 const exporting = ref(false)
+// İçe aktarmada mevcut fotoğraflar korunur; bu seçenek işaretliyse dosyadaki
+// fotoğraf onların yerine yazılır (bozuk/eski fotoğrafları toplu düzeltmek için).
+const overwritePhotos = ref(false)
 const exportProgress = ref('')
 
 // Excel'e gömülecek fotoğraf. Kaynak, ürünün BÜYÜK görselidir: dosya başka
@@ -1541,7 +1552,7 @@ async function onImportFile(e) {
         (barcode && p.barcode === barcode))
 
       if (existing) {
-        if (images.imageBase64 && !existing.imageBase64) {
+        if (images.imageBase64 && (!existing.imageBase64 || overwritePhotos.value)) {
           try {
             // Update ucu tam gövde bekliyor: eksik alan gönderilirse sıfırlanır.
             await api.updateProduct(existing.id, {
