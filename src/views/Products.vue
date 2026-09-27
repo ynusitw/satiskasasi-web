@@ -1210,12 +1210,15 @@ async function fetchLargeImage(product) {
     const source = res.data?.imageBase64
     if (source) {
       const img = await loadImage(source)
-      if (img.width < 600 || img.height < 600) exportLowRes.value.push(product.name)
+      // 1440'ın altındaki fotoğraf telefonun 3x ekranında birebir basılıyor
+      // ve sıkıştırma izleri görünüyor; kullanıcıya sonunda bildirilir.
+      const px = Math.min(img.width, img.height)
+      if (px < LARGE_SIZE) exportLowRes.value.push(`${product.name} (${px} px)`)
       return source
     }
   } catch { /* büyüğü alınamadıysa küçüğüyle yetiniriz */ }
 
-  if (product.imageBase64) exportLowRes.value.push(product.name)
+  if (product.imageBase64) exportLowRes.value.push(`${product.name} (yalnızca küçük görsel)`)
   return product.imageBase64 || ''
 }
 
@@ -1361,12 +1364,13 @@ async function exportExcel() {
 
     if (exportLowRes.value.length) {
       alert(
-        `${exportLowRes.value.length} ürünün yüksek çözünürlüklü fotoğrafı yok; ` +
-        'küçük görselleriyle aktarıldılar ve yeni firmada menü fotoğrafları ' +
-        'bulanık görünecek:\n\n' +
+        `${exportLowRes.value.length} ürünün fotoğrafı ${LARGE_SIZE} pikselin altında. ` +
+        'Aktarım kayıpsız, ama bu fotoğraflar menüde bulanık görünür — eski ' +
+        'sürümle yüklenmiş olabilirler:\n\n' +
         exportLowRes.value.slice(0, 15).join(', ') +
         (exportLowRes.value.length > 15 ? ' …' : '') +
-        '\n\nBu ürünlerin fotoğrafını kaynak firmada yeniden yükleyip tekrar aktarın.'
+        '\n\nKaliteyi artırmak için bu ürünlerin fotoğrafını özgün hâlinden ' +
+        'yeniden yükleyin; aktarmaya gerek kalmadan menüye de yansır.'
       )
     }
   } catch (e) {
@@ -1452,11 +1456,19 @@ async function readPackage(file) {
   const parsed = await readWorkbook(sheet)
 
   // Fotoğraflar dosya adıyla eşlenir (klasör yolu yok sayılır).
+  // JSZip türsüz blob döndürüyor; tür uzantıdan verilmezse fotoğraf
+  // sunucuya "application/octet-stream" olarak yazılıyor.
+  const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+                 gif: 'image/gif', webp: 'image/webp' }
+
   const files = {}
   await Promise.all(Object.keys(zip.files).map(async (name) => {
     if (zip.files[name].dir || name === sheetEntry) return
-    if (!/\.(jpe?g|png|gif|webp)$/i.test(name)) return
-    files[name.split('/').pop().toLowerCase()] = await zip.file(name).async('blob')
+    const ext = /\.(jpe?g|png|gif|webp)$/i.exec(name)?.[1]?.toLowerCase()
+    if (!ext) return
+    const bytes = await zip.file(name).async('arraybuffer')
+    files[name.split('/').pop().toLowerCase()] =
+      new Blob([bytes], { type: MIME[ext] || 'image/jpeg' })
   }))
 
   return { ...parsed, files }
