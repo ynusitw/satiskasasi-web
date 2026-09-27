@@ -161,7 +161,7 @@
 
           <!-- Excel İçe Aktar -->
           <button @click="triggerImport"
-                  title="Excel dosyasından ürün içe aktar"
+                  title="Excel (.xlsx) ya da fotoğraflı paket (.zip) içe aktar"
                   class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-muted
                          rounded-lg text-xs font-semibold hover:border-success hover:text-success
                          transition-colors flex-shrink-0">
@@ -184,7 +184,8 @@
             {{ exporting ? `Aktarılıyor... ${exportProgress}` : 'Excel Dışa Aktar' }}
           </button>
 
-          <input ref="importFileInput" type="file" accept=".xlsx,.xls" class="hidden" @change="onImportFile"/>
+          <input ref="importFileInput" type="file" accept=".xlsx,.xls,.zip"
+                 class="hidden" @change="onImportFile"/>
         </div>
 
         <!-- Tablo -->
@@ -893,6 +894,9 @@ const THUMB_QUALITY = 0.82
 // gorunuyordu. 1440'ta telefon fotografi kucultuyor ve izler kayboluyor.
 const LARGE_SIZE    = 1440
 const LARGE_QUALITY = 0.82
+// Excel'den içe aktarmada fotoğraf zaten bir kez yeniden sıkıştırılmış
+// oluyor; ikinci turda 0.82 kullanmak bozulmayı görünür hâle getiriyordu.
+const IMPORT_LARGE_QUALITY = 0.92
 
 // Kaynak fotoğraftan küçükse büyütmeyiz — büyütmek kaliteyi artırmaz,
 // yalnızca dosyayı şişirir.
@@ -916,6 +920,15 @@ function squareCrop(img, maxSize, quality, preferWebp = false) {
     if (webp.startsWith('data:image/webp')) return { dataUrl: webp, size, format: 'webp' }
   }
   return { dataUrl: canvas.toDataURL('image/jpeg', quality), size, format: 'jpeg' }
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => resolve(e.target.result)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
 }
 
 // Dosya (File/Blob) ya da hazır data URL kabul eder: Excel'e aktarırken
@@ -1166,20 +1179,46 @@ const exportProgress = ref('')
 // Excel'e gömülecek fotoğraf. Kaynak, ürünün BÜYÜK görselidir: dosya başka
 // bir firmaya aktarıldığında web menü için de yeterli kalsın diye. Büyük
 // görsel WebP olduğundan ve Excel WebP göstermediğinden JPEG'e çevrilir.
+//
+// Kalite yüksek tutulur (0.95): fotoğraf aktarım boyunca iki kez yeniden
+// sıkıştırılıyor (burada JPEG, içe aktarmada WebP). Her tur kayıplı olduğu
+// için aradaki taşıma adımında cimrilik, menüde gözle görülür bozulma
+// olarak geri geliyordu. Dosya büyür ama taşıma dosyası kalıcı değil.
 const EXPORT_IMAGE_SIZE    = 1440
-const EXPORT_IMAGE_QUALITY = 0.85
+const EXPORT_IMAGE_QUALITY = 0.95
 
-async function exportImageDataUrl(product) {
+// Büyük görseli olmayan ürünler: küçük (256 px) görselle aktarılırlar, yeni
+// firmada menü fotoğrafı bulanık kalır. Kullanıcıya sonunda söylenir.
+const exportLowRes = ref([])
+
+// Ürünün büyük fotoğrafını olduğu gibi döner (data URL). Dosyaya bu hâliyle
+// konur: yeniden sıkıştırılmadığı için aktarım kayıpsızdır.
+async function fetchLargeImage(product) {
   try {
     const res = await api.getProductLargeImage(product.id)
     const source = res.data?.imageBase64
     if (source) {
       const img = await loadImage(source)
-      const out = squareCrop(img, EXPORT_IMAGE_SIZE, EXPORT_IMAGE_QUALITY)  // JPEG
-      return out.dataUrl
+      if (img.width < 600 || img.height < 600) exportLowRes.value.push(product.name)
+      return source
     }
   } catch { /* büyüğü alınamadıysa küçüğüyle yetiniriz */ }
+
+  if (product.imageBase64) exportLowRes.value.push(product.name)
   return product.imageBase64 || ''
+}
+
+// Excel sayfasına gömülen küçük önizleme. Yalnızca dosyaya bakarken görünsün
+// diye; içe aktarma bunu değil, zipteki özgün dosyayı kullanır.
+function previewDataUrl(img) {
+  return squareCrop(img, 480, 0.8).dataUrl
+}
+
+// Dosya adı: aynı ada sahip iki ürün birbirinin fotoğrafını ezmesin.
+function photoFileName(product, index, dataUrl) {
+  const ext  = /^data:image\/(png|gif|webp|jpe?g)/i.exec(dataUrl)?.[1]?.toLowerCase() || 'jpg'
+  const safe = (product.name || 'urun').replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40)
+  return `${String(index).padStart(3, '0')}-${safe}.${ext === 'jpeg' ? 'jpg' : ext}`
 }
 
 function dataUrlParts(dataUrl) {
@@ -1199,6 +1238,7 @@ async function exportExcel() {
   }
 
   exporting.value = true
+  exportLowRes.value = []
   try {
     // exceljs yalnızca dışa aktarmada gerekiyor; sayfa açılışını yavaşlatmasın.
     // Paketleyiciye göre modül ya default'ta ya da doğrudan ad alanında gelir.
@@ -1223,6 +1263,9 @@ async function exportExcel() {
       { header: 'Alerjenler',        key: 'allerg',   width: 24 },
       { header: 'Fiyat Seçenekleri', key: 'variants', width: 32 },
       { header: 'Görsel',            key: 'image',    width: 12 },
+      // Zip içindeki özgün fotoğrafın adı; içe aktarma eşleştirmeyi
+      // bununla yapar (satır çapasına güvenmek yerine).
+      { header: 'Fotoğraf Dosyası',  key: 'photoFile', width: 28 },
     ]
 
     const header = ws.getRow(1)
@@ -1230,6 +1273,7 @@ async function exportExcel() {
     header.alignment = { vertical: 'middle' }
     header.height = 22
 
+    const photos = []
     let done = 0
     for (const p of list) {
       exportProgress.value = `${++done}/${list.length}`
@@ -1253,12 +1297,20 @@ async function exportExcel() {
 
       // Fotoğraf satır satır indirilir; liste yanıtı büyük görselleri
       // taşımıyor (30 üründe ~10 MB tutardı).
-      const img = dataUrlParts(p.imageBase64 ? await exportImageDataUrl(p) : '')
-      if (!img) continue
+      if (!p.imageBase64) continue
+      const original = await fetchLargeImage(p)
+      const parts = dataUrlParts(original)
+      if (!parts) continue
 
+      // Özgün dosya zip'e: içe aktarma bunu hiç dokunmadan kullanır.
+      const fileName = photoFileName(p, done, original)
+      photos.push({ name: fileName, base64: parts.base64 })
+      row.getCell('photoFile').value = fileName
+
+      // Sayfadaki önizleme (Excel WebP göstermediği için JPEG'e çevrilir)
+      const preview = dataUrlParts(previewDataUrl(await loadImage(original)))
       row.height = 48
-      const id = wb.addImage({ base64: img.base64, extension: img.ext })
-      // Son sütuna, hücrenin içine küçük bir kare olarak yerleştirilir.
+      const id = wb.addImage({ base64: preview.base64, extension: preview.ext })
       ws.addImage(id, {
         tl: { col: 11.15, row: row.number - 0.85 },
         ext: { width: 56, height: 56 },
@@ -1269,14 +1321,43 @@ async function exportExcel() {
 
     const buf = await wb.xlsx.writeBuffer()
     const stamp = new Date().toISOString().slice(0, 10)
-    const url = URL.createObjectURL(
-      new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-    )
+
+    // Fotoğraf yoksa tek Excel dosyası; varsa Excel + özgün fotoğraflar
+    // birlikte zip'lenir. Zip sayesinde fotoğraflar hiç yeniden
+    // sıkıştırılmadan taşınır — kalite birebir korunur.
+    let blob, fileName
+    if (photos.length) {
+      const JSZip = (await import('jszip')).default
+      const zip = new JSZip()
+      zip.file('urunler.xlsx', buf)
+      const dir = zip.folder('fotograflar')
+      for (const ph of photos) dir.file(ph.name, ph.base64, { base64: true })
+      blob = await zip.generateAsync({ type: 'blob' })
+      fileName = `urunler-${stamp}.zip`
+    } else {
+      blob = new Blob([buf], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      fileName = `urunler-${stamp}.xlsx`
+    }
+
+    const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `urunler-${stamp}.xlsx`
+    a.download = fileName
     a.click()
     URL.revokeObjectURL(url)
+
+    if (exportLowRes.value.length) {
+      alert(
+        `${exportLowRes.value.length} ürünün yüksek çözünürlüklü fotoğrafı yok; ` +
+        'küçük görselleriyle aktarıldılar ve yeni firmada menü fotoğrafları ' +
+        'bulanık görünecek:\n\n' +
+        exportLowRes.value.slice(0, 15).join(', ') +
+        (exportLowRes.value.length > 15 ? ' …' : '') +
+        '\n\nBu ürünlerin fotoğrafını kaynak firmada yeniden yükleyip tekrar aktarın.'
+      )
+    }
   } catch (e) {
     console.error('[Products] Excel dışa aktarma hatası:', e)
     alert('Excel dosyası oluşturulamadı.')
@@ -1341,18 +1422,61 @@ async function readWorkbook(buffer) {
   }
 }
 
+// Dışa aktarma fotoğraflı paketi .zip olarak verir: içinde urunler.xlsx ve
+// özgün fotoğraflar durur. Fotoğraflar hiç yeniden sıkıştırılmadığı için
+// aktarım kayıpsızdır; Excel'e gömülü görseller yalnızca önizlemedir.
+async function readPackage(file) {
+  const buffer = await file.arrayBuffer()
+  if (!file.name.toLowerCase().endsWith('.zip')) {
+    return { ...(await readWorkbook(buffer)), files: {} }
+  }
+
+  const JSZip = (await import('jszip')).default
+  const zip = await JSZip.loadAsync(buffer)
+
+  const sheetEntry = Object.keys(zip.files).find(n => n.toLowerCase().endsWith('.xlsx'))
+  if (!sheetEntry) throw new Error('Pakette Excel dosyası yok.')
+
+  const sheet = await zip.file(sheetEntry).async('arraybuffer')
+  const parsed = await readWorkbook(sheet)
+
+  // Fotoğraflar dosya adıyla eşlenir (klasör yolu yok sayılır).
+  const files = {}
+  await Promise.all(Object.keys(zip.files).map(async (name) => {
+    if (zip.files[name].dir || name === sheetEntry) return
+    if (!/\.(jpe?g|png|gif|webp)$/i.test(name)) return
+    files[name.split('/').pop().toLowerCase()] = await zip.file(name).async('blob')
+  }))
+
+  return { ...parsed, files }
+}
+
 async function onImportFile(e) {
   const file = e.target.files?.[0]
   if (!file) return
   e.target.value = ''
 
-  const buffer = await file.arrayBuffer()
-  const { rows, images } = await readWorkbook(buffer)
+  let rows, images, files
+  try {
+    ({ rows, images, files } = await readPackage(file))
+  } catch (err) {
+    alert(err.message || 'Dosya okunamadı.')
+    return
+  }
 
   // İlk satır başlık, atla; Ürün Adı boş olan satırları da atla.
   // Fotoğrafın çapası 0 tabanlı satır numarası: başlık 0, ilk ürün 1.
+  // Fotoğraf kaynağı önceliği: zipteki özgün dosya (kayıpsız), yoksa
+  // Excel'e gömülü görsel (önizleme kalitesinde).
   const dataRows = rows
-    .map((r, i) => ({ cells: r, image: images[i] }))
+    .map((r, i) => {
+      const fileName = (r[12] ?? '').toString().trim().toLowerCase()
+      return {
+        cells: r,
+        image: files[fileName] || images[i],
+        original: !!files[fileName],
+      }
+    })
     .slice(1)
     .filter(r => r.cells[1]?.toString().trim())
 
@@ -1379,6 +1503,7 @@ async function onImportFile(e) {
     const [barcodeRaw, nameRaw, groupRaw, priceRaw, stockRaw,
            vatRaw, minStockRaw, activeRaw, descRaw, allergRaw] = dataRows[i].cells
     const imageBlob = dataRows[i].image
+    const imageIsOriginal = dataRows[i].original
     const rowNum  = i + 2  // Excel satır numarası (1 başlık)
     const name    = nameRaw?.toString().trim()
     const barcode = barcodeRaw?.toString().trim() || ''
@@ -1392,7 +1517,16 @@ async function onImportFile(e) {
       let images = {}
       if (imageBlob) {
         try {
-          const { thumb, large } = await buildImagePair(imageBlob)
+          const img   = await loadImage(imageBlob)
+          const thumb = squareCrop(img, THUMB_SIZE, THUMB_QUALITY)
+
+          // Zipten gelen fotoğraf kaynak firmadaki dosyanın aynısı: yeniden
+          // sıkıştırmadan saklanır, böylece aktarımda kalite kaybı olmaz.
+          // Yalnızca gömülü önizleme varsa yeniden üretmek zorundayız.
+          const large = imageIsOriginal
+            ? { dataUrl: await blobToDataUrl(imageBlob) }
+            : squareCrop(img, LARGE_SIZE, IMPORT_LARGE_QUALITY, true)
+
           images = { imageBase64: thumb.dataUrl, imageLargeBase64: large.dataUrl }
         } catch {
           importModal.errors.push({ row: rowNum, msg: 'Fotoğraf okunamadı, ürün fotoğrafsız işlendi.' })
