@@ -79,12 +79,19 @@ const routes = [
   },
   {
     path: '/superadmin/lisanslar',
-    component: () => import('../views/LicensesView.vue'),
+    redirect: '/superadmin/lisans/aktif',
     meta: { superAdminOnly: true }
   },
   {
     path: '/superadmin/lisans-talepleri',
-    component: () => import('../views/LicenseRequestsView.vue'),
+    redirect: '/superadmin/lisans/bekleyen',
+    meta: { superAdminOnly: true }
+  },
+  // Lisansın tamamı tek sayfada: aktif / bekleyen / reddedilen sekmeleri.
+  { path: '/superadmin/lisans', redirect: '/superadmin/lisans/aktif' },
+  {
+    path: '/superadmin/lisans/:tab(aktif|bekleyen|reddedilen)',
+    component: () => import('../views/licenses/LicenseCenter.vue'),
     meta: { superAdminOnly: true }
   },
 ]

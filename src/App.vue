@@ -65,20 +65,35 @@
             active-class="text-white !bg-white/10 !border-accent">
             <span>📦</span><span>Paket Yönetimi</span>
           </RouterLink>
-          <RouterLink to="/superadmin/lisanslar"
-            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
-                   hover:text-white hover:bg-white/8 border-l-4
-                   border-transparent transition-all"
-            active-class="text-white !bg-white/10 !border-accent">
-            <span>🔑</span><span>Lisanslar</span>
-          </RouterLink>
-          <RouterLink to="/superadmin/lisans-talepleri"
-            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
-                   hover:text-white hover:bg-white/8 border-l-4
-                   border-transparent transition-all"
-            active-class="text-white !bg-white/10 !border-accent">
-            <span>📨</span><span>Lisans Talepleri</span>
-          </RouterLink>
+          <!-- Lisans Accordion: başvurudan aktif lisansa kadar tek yerde -->
+          <div>
+            <button @click="lisansOpen = !lisansOpen"
+                    class="w-full flex items-center gap-3 px-6 py-3 text-sm border-l-4
+                           border-transparent transition-all"
+                    :class="isLisansActive
+                      ? 'text-white bg-white/10 border-accent'
+                      : 'text-white/70 hover:text-white hover:bg-white/8'">
+              <span>🔑</span>
+              <span class="flex-1 text-left">Lisans</span>
+              <svg class="w-4 h-4 transition-transform duration-300"
+                   :class="lisansOpen ? 'rotate-180' : ''"
+                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+                 :style="{ maxHeight: lisansOpen ? '200px' : '0px' }">
+              <RouterLink v-for="sub in lisansSubMenu" :key="sub.to" :to="sub.to"
+                          class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
+                                 text-white/50 hover:text-white hover:bg-white/5
+                                 border-l-4 border-transparent transition-all"
+                          active-class="!text-white !bg-white/10 !border-accent/60">
+                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"/>
+                {{ sub.label }}
+              </RouterLink>
+            </div>
+          </div>
         </template>
 
         <!-- Normal Menü -->
@@ -317,17 +332,26 @@ const settingsOpen = ref(false)
 const reportsOpen  = ref(false)
 const cariOpen     = ref(false)
 const kasaYapiOpen = ref(false)
+const lisansOpen   = ref(false)
 
 watch(() => route.path, path => {
   if (path.startsWith('/reports'))  reportsOpen.value  = true
   if (path.startsWith('/cari'))     cariOpen.value     = true
   if (path.startsWith('/settings')) kasaYapiOpen.value = true
+  if (path.startsWith('/superadmin/lisans')) lisansOpen.value = true
 }, { immediate: true })
 
 const isReportsActive  = computed(() => route.path.startsWith('/reports'))
 const isCariActive     = computed(() => route.path.startsWith('/cari'))
 const isMenuRoute      = computed(() => route.path.startsWith('/menu/'))
 const isKasaYapiActive = computed(() => route.path.startsWith('/settings'))
+const isLisansActive   = computed(() => route.path.startsWith('/superadmin/lisans'))
+
+const lisansSubMenu = [
+  { to: '/superadmin/lisans/aktif',      label: 'Aktif Lisanslar'      },
+  { to: '/superadmin/lisans/bekleyen',   label: 'Bekleyen Lisanslar'   },
+  { to: '/superadmin/lisans/reddedilen', label: 'Reddedilen Lisanslar' },
+]
 
 const menuTop = [
   { to: '/',         icon: '📊', label: 'Dashboard'       },
