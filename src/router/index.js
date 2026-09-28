@@ -69,9 +69,9 @@ const routes = [
   { path: '/settings/receipt',         component: () => import('../views/settings/ReceiptSettings.vue') },
   // Yazıcı ayarları fiş sayfasıyla birleştirildi; eski bağlantılar oraya gider.
   { path: '/settings/yazici-ayarlari', redirect: '/settings/receipt' },
-  { path: '/settings/musteri-ekrani',  component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Müşteri Ekranı Ayarı</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
-  { path: '/settings/okc-durum',       component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">ÖKC Durum</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' }, meta: { module: MODULES.OKC } },
-  { path: '/settings/terminal',        component: { template: '<div class="p-8"><h1 class="text-2xl font-bold text-primary">Terminal Ayarları</h1><p class="text-muted mt-2">Sayfa yapım aşamasında...</p></div>' } },
+  { path: '/settings/musteri-ekrani',  component: () => import('../views/settings/MusteriEkrani.vue') },
+  { path: '/settings/okc-durum',       component: () => import('../views/settings/OkcDurum.vue'), meta: { module: MODULES.OKC } },
+  { path: '/settings/terminal',        component: () => import('../views/settings/TerminalAyarlari.vue') },
   {
     path: '/subscription',
     component: () => import('../views/Subscription.vue'),

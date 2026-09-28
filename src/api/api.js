@@ -77,6 +77,14 @@ export default {
   // Yalnızca reçeteyi yazar; ürünün diğer alanlarına dokunmaz.
   saveRecipe: (productId, d) => api.put(`products/${productId}/recipe`, d),
 
+  // ── Cihazlar ve müşteri ekranı ─────────────────────────────────────
+  getDeviceSettings:   ()  => api.get('settings/devices'),
+  saveDeviceSettings:  (d) => api.put('settings/devices', d),
+  // İşletmenin kasaları: cihaz bilgisi, son bağlantı, bekleyen kayıt
+  getTenantTerminals:  ()  => api.get('settings/devices/kasalar'),
+  getCustomerDisplay:  ()  => api.get('settings/customer-display'),
+  saveCustomerDisplay: (d) => api.put('settings/customer-display', d),
+
   getModifierGroups:   (includeInactive) =>
     api.get('modifiers', { params: { includeInactive } }),
   createModifierGroup: (d)     => api.post('modifiers', d),
