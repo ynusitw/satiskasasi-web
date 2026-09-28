@@ -35,6 +35,11 @@ const routes = [
   { path: '/reports/masalar',     component: () => import('../views/reports/Masalar.vue'), meta: { module: MODULES.TABLES } },
   { path: '/reports/stoklar',     component: () => import('../views/reports/Stoklar.vue'), meta: { module: MODULES.STOCK } },
   {
+    path: '/recipes',
+    component: () => import('../views/RecipeCenter.vue'),
+    meta: { module: MODULES.STOCK },
+  },
+  {
     path: '/ingredients',
     component: () => import('../views/Ingredients.vue'),
     meta: { module: MODULES.STOCK },

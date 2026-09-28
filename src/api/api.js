@@ -74,6 +74,8 @@ export default {
   // Depoya giriş / fire / sayım. Stok yalnızca hareketle değişir.
   createIngredientMovement: (id, d) => api.post(`ingredients/${id}/movement`, d),
   getIngredientMovements:   (id)    => api.get(`ingredients/${id}/movements`),
+  // Yalnızca reçeteyi yazar; ürünün diğer alanlarına dokunmaz.
+  saveRecipe: (productId, d) => api.put(`products/${productId}/recipe`, d),
 
   getModifierGroups:   (includeInactive) =>
     api.get('modifiers', { params: { includeInactive } }),

@@ -357,7 +357,8 @@ const menuTopAll = [
   { to: '/',            icon: '📊', label: 'Dashboard'       },
   { to: '/products',    icon: '📦', label: 'Ürün Düzenleme'  },
   { to: '/modifiers',   icon: '🧂', label: 'Çeşni & Ekstra'  },
-  { to: '/ingredients', icon: '🥫', label: 'Hammaddeler', module: MODULES.STOCK },
+  { to: '/recipes',     icon: '🧾', label: 'Reçete Merkezi', module: MODULES.STOCK },
+  { to: '/ingredients', icon: '🥫', label: 'Hammaddeler',    module: MODULES.STOCK },
 ]
 
 const cariSubMenu = [
