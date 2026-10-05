@@ -112,6 +112,14 @@
                class="mt-3 px-3 py-1.5 bg-green-50 text-success text-xs font-semibold rounded-lg text-center">
             Stok durumu iyi
           </div>
+
+          <!-- Reçeteli satışta stok hammaddeden düşer; ürün stoğu bunu görmez. -->
+          <RouterLink v-if="(data?.lowIngredientCount ?? 0) > 0" to="/ingredients"
+                      class="mt-2 px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold
+                             rounded-lg text-center hover:bg-amber-100 transition-colors"
+                      :title="(data?.lowIngredients || []).join(', ')">
+            {{ data.lowIngredientCount }} hammadde kritik seviyede
+          </RouterLink>
         </div>
       </div>
 

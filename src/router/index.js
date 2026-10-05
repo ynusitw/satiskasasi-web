@@ -34,6 +34,7 @@ const routes = [
   { path: '/reports/indirim-ikram', component: () => import('../views/reports/IndirimIkram.vue') },
   { path: '/reports/masalar',     component: () => import('../views/reports/Masalar.vue'), meta: { module: MODULES.TABLES } },
   { path: '/reports/stoklar',     component: () => import('../views/reports/Stoklar.vue'), meta: { module: MODULES.STOCK } },
+  { path: '/reports/karlilik',    component: () => import('../views/reports/Karlilik.vue'), meta: { module: MODULES.STOCK } },
   {
     path: '/recipes',
     component: () => import('../views/RecipeCenter.vue'),

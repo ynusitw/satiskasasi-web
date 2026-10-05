@@ -74,7 +74,7 @@
             <div class="min-w-0">
               <h2 class="text-lg font-bold text-primary truncate">{{ selected.name }}</h2>
               <p class="text-xs text-muted mt-0.5">
-                Satış fiyatı {{ money(selected.price) }}
+                Satış fiyatı {{ money(scopePrice) }}
                 <template v-if="totalCost > 0">
                   · maliyet {{ money(totalCost) }}
                   <span :class="marginClass">({{ marginLabel }})</span>
@@ -115,6 +115,39 @@
                   </span>
                 </button>
               </div>
+            </div>
+          </div>
+
+          <!-- Porsiyon sekmeleri: porsiyona özel reçete. Sekme boşsa satışta
+               ana reçete kullanılır. -->
+          <div v-if="variants.length" class="px-5 pt-4 flex flex-wrap gap-2">
+            <button v-for="s in scopes" :key="s.key" @click="setScope(s.id)"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
+                    :class="scope === s.id
+                      ? 'bg-accent text-white border-accent'
+                      : 'bg-white text-muted border-gray-200 hover:border-accent hover:text-accent'">
+              {{ s.label }}
+              <span class="ml-1 opacity-70">{{ s.count ? `(${s.count})` : '' }}</span>
+            </button>
+          </div>
+
+          <!-- Porsiyonun kendi reçetesi yoksa: ne olacağını söyle ve kopyalat -->
+          <div v-if="scope !== null && !rows.length"
+               class="mx-5 mt-4 p-4 rounded-xl bg-blue-50 text-sm text-accent">
+            <p>
+              <b>{{ scopeLabel }}</b> için ayrı reçete yok — satışta <b>ana reçete</b> kullanılır.
+              Farklı miktar gerekiyorsa ana reçeteyi kopyalayıp düzenleyin.
+            </p>
+            <div class="flex items-center gap-2 mt-3">
+              <span class="text-xs">Ana reçeteden kopyala ×</span>
+              <input v-model.number="copyFactor" type="number" step="0.1" min="0.1"
+                     class="w-20 px-2 py-1 border border-blue-200 rounded-lg text-sm text-primary"/>
+              <button @click="copyFromBase" :disabled="!baseRecipe.length"
+                      class="px-3 py-1 bg-accent text-white rounded-lg text-xs font-bold
+                             hover:bg-blue-600 disabled:opacity-40">
+                Kopyala
+              </button>
+              <span v-if="!baseRecipe.length" class="text-xs opacity-70">(ana reçete boş)</span>
             </div>
           </div>
 
@@ -160,7 +193,9 @@
 
                 <tr v-if="!rows.length">
                   <td colspan="5" class="px-5 py-12 text-center text-sm text-muted">
-                    Bu ürünün reçetesi yok. Yukarıdaki kutudan hammadde arayıp ekleyin.
+                    {{ scope === null
+                        ? 'Bu ürünün reçetesi yok. Yukarıdaki kutudan hammadde arayıp ekleyin.'
+                        : 'Bu porsiyonun kendi reçetesi yok. Hammadde ekleyin ya da ana reçeteden kopyalayın.' }}
                   </td>
                 </tr>
               </tbody>
@@ -263,6 +298,10 @@ const ingredientSearch = ref('')
 const searchOpen       = ref(false)
 
 const selected = ref(null)
+
+// Hangi reçete düzenleniyor: null = ana reçete, sayı = porsiyon (variant) id.
+const scope = ref(null)
+const copyFactor = ref(1)
 // Seçili ürünün reçete satırları: hammadde bilgisi + miktar.
 const rows  = ref([])
 const dirty = ref(false)
@@ -311,14 +350,14 @@ const totalCost = computed(() => rows.value.reduce((sum, r) => sum + lineCost(r)
 
 // Satış fiyatına göre kâr payı: maliyet girilmişse anlamlı.
 const marginLabel = computed(() => {
-  const price = selected.value?.price ?? 0
+  const price = scopePrice.value
   if (!price || !totalCost.value) return ''
   const margin = ((price - totalCost.value) / price) * 100
   return `kâr payı %${margin.toFixed(0)}`
 })
 
 const marginClass = computed(() => {
-  const price = selected.value?.price ?? 0
+  const price = scopePrice.value
   if (!price || !totalCost.value) return ''
   return totalCost.value > price ? 'text-danger font-semibold' : 'text-success font-semibold'
 })
@@ -352,10 +391,60 @@ function selectProduct(p) {
   ingredientSearch.value = ''
   searchOpen.value = false
   dirty.value = false
+  scope.value = null
+  loadScopeRows()
+}
 
-  // Ürün listesindeki reçete (ingredientId + quantity) hammadde bilgisiyle
-  // zenginleştirilir: tabloda ad, birim ve maliyet gösterilebilsin.
-  rows.value = (p.recipe || []).map(r => buildRow(r.ingredientId, r.quantity)).filter(Boolean)
+// Ürün listesindeki reçete (ingredientId + quantity) hammadde bilgisiyle
+// zenginleştirilir; yalnızca seçili kapsamın (ana / porsiyon) satırları.
+function loadScopeRows() {
+  rows.value = (selected.value?.recipe || [])
+    .filter(r => (r.variantId ?? null) === scope.value)
+    .map(r => buildRow(r.ingredientId, r.quantity))
+    .filter(Boolean)
+}
+
+// ── Porsiyon kapsamı ─────────────────────────────────────────────────────
+const variants = computed(() =>
+  (selected.value?.variants || []).filter(v => v.isActive !== false))
+
+const scopes = computed(() => {
+  const recipe = selected.value?.recipe || []
+  const count = (id) => recipe.filter(r => (r.variantId ?? null) === id).length
+  return [
+    { key: 'base', id: null, label: 'Ana reçete', count: count(null) },
+    ...variants.value.map(v => ({ key: `v${v.id}`, id: v.id, label: v.name, count: count(v.id) })),
+  ]
+})
+
+const scopeLabel = computed(() =>
+  scopes.value.find(s => s.id === scope.value)?.label ?? 'Ana reçete')
+
+// Kâr payı seçili porsiyonun fiyatıyla hesaplanır.
+const scopePrice = computed(() => {
+  if (scope.value === null) return selected.value?.price ?? 0
+  return variants.value.find(v => v.id === scope.value)?.price ?? selected.value?.price ?? 0
+})
+
+const baseRecipe = computed(() =>
+  (selected.value?.recipe || []).filter(r => r.variantId == null))
+
+function setScope(id) {
+  if (scope.value === id) return
+  if (dirty.value && !confirm('Kaydedilmemiş değişiklik var. Yine de geçilsin mi?')) return
+  scope.value = id
+  dirty.value = false
+  copyFactor.value = 1
+  loadScopeRows()
+}
+
+// "1.5 Porsiyon" gibi durumlar için: ana reçete × katsayı.
+function copyFromBase() {
+  const factor = Number(copyFactor.value) || 1
+  rows.value = baseRecipe.value
+    .map(r => buildRow(r.ingredientId, Math.round(r.quantity * factor * 1000) / 1000))
+    .filter(Boolean)
+  dirty.value = true
 }
 
 function buildRow(ingredientId, quantity) {
@@ -394,11 +483,12 @@ async function saveRecipe() {
       .filter(r => Number(r.quantity) > 0)
       .map(r => ({ ingredientId: r.ingredientId, quantity: Number(r.quantity) }))
 
-    await api.saveRecipe(selected.value.id, { items })
+    await api.saveRecipe(selected.value.id, { variantId: scope.value, items })
 
-    // Yerel kopyayı da tazele: listeye dönüp gelince eski hâl görünmesin.
-    selected.value.recipe = items
-    recipeCounts.value = { ...recipeCounts.value, [selected.value.id]: items.length }
+    // Yerel kopyayı da tazele: yalnızca bu kapsamın satırları değişir.
+    const others = (selected.value.recipe || []).filter(r => (r.variantId ?? null) !== scope.value)
+    selected.value.recipe = [...others, ...items.map(i => ({ ...i, variantId: scope.value }))]
+    recipeCounts.value = { ...recipeCounts.value, [selected.value.id]: selected.value.recipe.length }
     dirty.value = false
   } catch (e) {
     error.value = e.response?.data?.message || 'Reçete kaydedilemedi.'

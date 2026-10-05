@@ -43,7 +43,7 @@
     </div>
 
     <!-- Özet: türe tıklayınca liste o türe süzülür -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <button v-for="c in cards" :key="c.type" @click="toggleType(c.type)"
               class="text-left bg-white rounded-2xl shadow-sm p-5 border-2 transition-colors"
               :class="type === c.type ? 'border-accent' : 'border-transparent hover:border-gray-200'">
@@ -136,6 +136,10 @@ const cards = computed(() => [
   { type: 'Discount', label: 'İndirim',  total: summary.value.discountTotal, count: summary.value.discountCount, color: 'text-amber-600' },
   { type: 'Comp',     label: 'İkram',    total: summary.value.compTotal,     count: summary.value.compCount,     color: 'text-purple-600' },
   { type: 'Staff',    label: 'Personel', total: summary.value.staffTotal,    count: summary.value.staffCount,    color: 'text-blue-600' },
+  // Liste fiyatının altında satılan satırlar (sunucudaki fiyat doğrulaması).
+  // Fiyat güncellemesinden önce çevrimdışı yapılmış satışlar da buraya düşer.
+  { type: 'PriceMismatch', label: 'Fiyat Farkı', total: summary.value.priceMismatchTotal,
+    count: summary.value.priceMismatchCount, color: 'text-red-600' },
 ])
 
 const filtered = computed(() => type.value ? rows.value.filter(r => r.type === type.value) : rows.value)
@@ -164,12 +168,13 @@ async function load() {
   }
 }
 
-const LABELS = { Discount: 'İndirim', Comp: 'İkram', Staff: 'Personel' }
+const LABELS = { Discount: 'İndirim', Comp: 'İkram', Staff: 'Personel', PriceMismatch: 'Fiyat Farkı' }
 const typeLabel = t => LABELS[t] || t
 const badge = t => ({
   Discount: 'bg-amber-100 text-amber-700',
   Comp:     'bg-purple-100 text-purple-700',
   Staff:    'bg-blue-100 text-blue-700',
+  PriceMismatch: 'bg-red-100 text-red-700',
 }[t] || 'bg-gray-100 text-gray-600')
 
 function detail(r) {

@@ -1150,7 +1150,10 @@ function openEdit(p) {
     modifierGroupIds: (p.modifierGroups || []).map(g => g.modifierGroupId),
     comboComponents: (p.comboComponents || [])
       .map(c => ({ ...c, _key: nextVariantKey++ })),
-    recipe: (p.recipe || []).map(r => ({ ...r, _key: nextVariantKey++ })),
+    // Yalnızca ana reçete: porsiyon reçeteleri Reçete Merkezi'nde yönetilir.
+    // Hepsi alınsaydı kaydederken porsiyon satırları ana reçeteye yazılırdı.
+    recipe: (p.recipe || []).filter(r => r.variantId == null)
+      .map(r => ({ ...r, _key: nextVariantKey++ })),
   })
   modal.editing = true
   modal.show    = true

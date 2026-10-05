@@ -377,6 +377,7 @@ const reportSubMenu = [
   { to: '/reports/indirim-ikram', label: 'İndirim & İkram' },
   { to: '/reports/masalar',   label: 'Masalar',         module: MODULES.TABLES },
   { to: '/reports/stoklar',   label: 'Stoklar',         module: MODULES.STOCK  },
+  { to: '/reports/karlilik',  label: 'Kârlılık',        module: MODULES.STOCK  },
 ]
 
 const kasaYapiSubMenu = [

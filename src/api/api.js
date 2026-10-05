@@ -64,6 +64,8 @@ export default {
   getStaffSettings:   ()        => api.get('settings/staff'),
   saveStaffSettings:  (d)       => api.put('settings/staff', d),
   getAdjustmentsReport: (params) => api.get('reports/adjustments', { params }),
+  // Ürün başına ciro, reçeteden maliyet, kâr ve marj
+  getProfitability: (params) => api.get('reports/profitability', { params }),
 
   // ── Aşama 3: hammadde, reçete ve çeşniler ──────────────────────────
   getIngredients:     (includeInactive) =>
