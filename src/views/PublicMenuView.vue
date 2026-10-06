@@ -40,6 +40,22 @@
         </div>
       </header>
 
+      <!-- Masadan sipariş bilgisi -->
+      <div v-if="menu.ordering" class="order-banner" :class="menu.ordering.enabled ? 'is-ok' : 'is-warn'">
+        <template v-if="menu.ordering.enabled">
+          <strong>{{ menu.ordering.tableName }}</strong> · Menüden sipariş verebilirsiniz
+        </template>
+        <template v-else>{{ menu.ordering.message }}</template>
+      </div>
+
+      <!-- Verilen siparişin durumu -->
+      <button v-if="activeOrder && orderStatus" type="button" class="status-pill"
+              :class="`is-${statusInfo.tone}`" @click="statusOpen = true">
+        <span class="status-dot"></span>
+        {{ statusInfo.short }}
+        <span class="status-more">Ayrıntı</span>
+      </button>
+
       <!-- Arama (sticky) -->
       <div class="sticky top-0 z-20 bg-cream/95 backdrop-blur border-b border-black/5">
         <div class="max-w-2xl mx-auto px-4 py-3">
@@ -62,7 +78,8 @@
           </div>
           <div v-if="searchResults.length" class="space-y-2.5">
             <ProductRow v-for="p in searchResults" :key="p.id" :product="p"
-                        :image-url="thumbUrl(p)" @open="openPreview"/>
+                        :image-url="thumbUrl(p)" :orderable="canOrder"
+                        @open="openPreview" @add="startAdd"/>
           </div>
           <div v-else class="text-center py-16 text-inkmuted">
             "{{ search }}" için sonuç bulunamadı
@@ -84,7 +101,8 @@
 
           <div class="space-y-2.5">
             <ProductRow v-for="p in activeCategory.products" :key="p.id" :product="p"
-                        :image-url="thumbUrl(p)" @open="openPreview"/>
+                        :image-url="thumbUrl(p)" :orderable="canOrder"
+                        @open="openPreview" @add="startAdd"/>
           </div>
         </template>
 
@@ -105,6 +123,7 @@
                 <div class="px-2 py-2 text-center">
                   <div class="text-xs font-bold text-ink truncate">{{ p.name }}</div>
                   <div class="text-xs font-extrabold price-tag mt-0.5">{{ fmt(p.price) }}</div>
+                  <button v-if="canOrder" type="button" class="featured-add" @click.stop="startAdd(p)">Ekle</button>
                 </div>
               </div>
             </div>
@@ -139,7 +158,8 @@
 
       <Transition name="fade">
         <button v-if="showScrollTop" @click="scrollToTop"
-                class="scroll-top-btn" aria-label="Yukarı çık">Yukarı</button>
+                class="scroll-top-btn" :class="{ 'is-raised': cart.length }"
+                aria-label="Yukarı çık">Yukarı</button>
       </Transition>
 
       <!-- ── Ürün fotoğrafı önizleme ──────────────────────────────── -->
@@ -168,21 +188,116 @@
                 <span v-if="preview.isActive === false" class="lightbox-unavailable">
                   Şu anda mevcut değil
                 </span>
+                <button v-if="canOrder && preview.isActive !== false" type="button" class="lightbox-add"
+                        @click="startAdd(preview)">Sepete ekle</button>
               </div>
             </div>
           </div>
         </div>
       </Transition>
+
+      <!-- ── Masadan sipariş ─────────────────────────────────────── -->
+      <MenuOptionSheet v-if="optionProduct" :product="optionProduct"
+                       @add="addToCart" @close="optionProduct = null"/>
+
+      <Transition name="fade">
+        <div v-if="toast" class="toast">{{ toast }}</div>
+      </Transition>
+
+      <!-- Sepet çubuğu -->
+      <button v-if="cart.length && !cartOpen" type="button" class="cart-bar" @click="cartOpen = true">
+        <span class="cart-count">{{ cartCount }}</span>
+        <span class="cart-label">Sepeti gör</span>
+        <span class="cart-total">{{ fmt(cartTotal) }}</span>
+      </button>
+
+      <!-- Sepet -->
+      <div v-if="cartOpen" class="sheet-backdrop" @click="cartOpen = false">
+        <div class="sheet" @click.stop>
+          <div class="sheet-head">
+            <div class="sheet-title">Sepetiniz · {{ menu.ordering?.tableName }}</div>
+            <button type="button" class="sheet-close" @click="cartOpen = false">Kapat</button>
+          </div>
+          <div class="sheet-body">
+            <div v-if="!cart.length" class="empty-cart">Sepetiniz boş.</div>
+            <div v-for="(l, i) in cart" :key="i" class="cart-line">
+              <div class="cart-line-main">
+                <div class="cart-line-name">{{ l.name }}<span v-if="l.variantName"> ({{ l.variantName }})</span></div>
+                <div v-if="l.optionNames?.length || l.note" class="cart-line-detail">
+                  {{ [l.optionNames?.join(', '), l.note].filter(Boolean).join(' · ') }}
+                </div>
+                <div class="cart-line-price">{{ fmt(l.unitPrice * l.quantity) }}</div>
+              </div>
+              <div class="qty">
+                <button type="button" @click="changeQty(i, -1)">−</button>
+                <span>{{ l.quantity }}</span>
+                <button type="button" @click="changeQty(i, 1)" :disabled="l.quantity >= 20">+</button>
+              </div>
+            </div>
+
+            <template v-if="cart.length">
+              <label class="field-lbl">Adınız <span>isteğe bağlı</span></label>
+              <input v-model="customerName" maxlength="40" class="text-field" placeholder="Garson sizi bulabilsin diye"/>
+              <label class="field-lbl">Sipariş notu <span>isteğe bağlı</span></label>
+              <input v-model="orderNote" maxlength="200" class="text-field" placeholder="Ör. çocuk sandalyesi rica ediyoruz"/>
+            </template>
+
+            <div v-if="orderError" class="order-error">{{ orderError }}</div>
+            <p class="cart-hint">Siparişiniz kasaya iletilir; onaylanınca hazırlanmaya başlar. Ödeme masada yapılır.</p>
+          </div>
+          <div class="sheet-foot">
+            <button type="button" class="add-main" :disabled="!cart.length || sending" @click="submitOrder">
+              {{ sending ? 'Gönderiliyor...' : `Siparişi gönder · ${fmt(cartTotal)}` }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sipariş durumu -->
+      <div v-if="statusOpen && orderStatus" class="sheet-backdrop" @click="statusOpen = false">
+        <div class="sheet" @click.stop>
+          <div class="sheet-head">
+            <div class="sheet-title">Siparişiniz · {{ orderStatus.tableName }}</div>
+            <button type="button" class="sheet-close" @click="statusOpen = false">Kapat</button>
+          </div>
+          <div class="sheet-body">
+            <div class="status-box" :class="`is-${statusInfo.tone}`">
+              <div class="status-title">{{ statusInfo.title }}</div>
+              <div class="status-text">{{ statusInfo.text }}</div>
+              <div v-if="orderStatus.status === 'Rejected' && orderStatus.rejectReason" class="status-text">
+                Gerekçe: {{ orderStatus.rejectReason }}
+              </div>
+            </div>
+            <div v-for="(it, i) in orderStatus.items" :key="i" class="cart-line">
+              <div class="cart-line-main">
+                <div class="cart-line-name">{{ it.quantity }} × {{ it.productName }}<span v-if="it.variantName"> ({{ it.variantName }})</span></div>
+                <div v-if="it.modifiersText || it.note" class="cart-line-detail">
+                  {{ [it.modifiersText, it.note].filter(Boolean).join(' · ') }}
+                </div>
+              </div>
+              <div class="cart-line-price">{{ fmt(it.unitPrice * it.quantity) }}</div>
+            </div>
+            <div class="status-total">Toplam <strong>{{ fmt(orderStatus.total) }}</strong></div>
+          </div>
+          <div class="sheet-foot">
+            <button v-if="orderStatus.status !== 'Pending'" type="button" class="add-main" @click="finishOrder">
+              Yeni sipariş ver
+            </button>
+            <button v-else type="button" class="add-main is-muted" @click="statusOpen = false">Menüye dön</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../api/api'
 import ProductRow from '../components/MenuProductRow.vue'
 import MenuImage from '../components/MenuImage.vue'
+import MenuOptionSheet from '../components/MenuOptionSheet.vue'
 import { allergenLabels } from '../constants/allergens'
 
 const route      = useRoute()
@@ -280,11 +395,143 @@ function onScroll() {
   showScrollTop.value = window.scrollY > 480
 }
 
+// ── Masadan sipariş ─────────────────────────────────────────────────
+// Masa QR'ındaki kod (?masa=...). Yoksa menü salt okunur.
+const masa = typeof route.query.masa === 'string' ? route.query.masa : ''
+const canOrder = computed(() => !!menu.value.ordering?.enabled)
+const storeKey = kind => `qr${kind}:${route.params.slug}:${masa}`
+
+function readStore(kind, fallback) {
+  try { return JSON.parse(localStorage.getItem(storeKey(kind))) ?? fallback } catch { return fallback }
+}
+function writeStore(kind, value) {
+  try { value == null ? localStorage.removeItem(storeKey(kind)) : localStorage.setItem(storeKey(kind), JSON.stringify(value)) } catch { /* gizli sekme */ }
+}
+
+const cart = ref(masa ? readStore('cart', []) : [])
+watch(cart, v => writeStore('cart', v), { deep: true })
+const cartOpen = ref(false)
+const optionProduct = ref(null)
+const customerName = ref(readStore('name', '') || '')
+const orderNote = ref('')
+const sending = ref(false)
+const orderError = ref('')
+const toast = ref('')
+let toastTimer = null
+
+const cartCount = computed(() => cart.value.reduce((s, l) => s + l.quantity, 0))
+const cartTotal = computed(() => cart.value.reduce((s, l) => s + l.unitPrice * l.quantity, 0))
+
+function startAdd(p) {
+  if (!canOrder.value || p.isActive === false) return
+  if (p.variants?.length || p.modifierGroups?.length) {
+    optionProduct.value = p
+    return
+  }
+  addToCart({ productId: p.id, name: p.name, variantId: null, variantName: null,
+              optionIds: [], optionNames: [], unitPrice: p.price, quantity: 1, note: null })
+}
+
+function addToCart(line) {
+  const key = l => `${l.productId}|${l.variantId ?? ''}|${[...l.optionIds].sort().join(',')}|${l.note ?? ''}`
+  const same = cart.value.find(l => key(l) === key(line))
+  if (same) same.quantity = Math.min(20, same.quantity + line.quantity)
+  else cart.value.push(line)
+  optionProduct.value = null
+  if (preview.value) closePreview()
+  showToast(`${line.name} sepete eklendi`)
+}
+
+function changeQty(i, d) {
+  const l = cart.value[i]
+  l.quantity += d
+  if (l.quantity <= 0) cart.value.splice(i, 1)
+  if (!cart.value.length) cartOpen.value = false
+}
+
+function showToast(text) {
+  toast.value = text
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => (toast.value = ''), 1800)
+}
+
+// ── Sipariş gönderme ve durum izleme ──
+const activeOrder = ref(masa ? readStore('order', null) : null)
+const orderStatus = ref(null)
+const statusOpen = ref(false)
+let pollTimer = null
+
+async function submitOrder() {
+  if (!cart.value.length || sending.value) return
+  sending.value = true
+  orderError.value = ''
+  try {
+    const { data } = await api.placeQrOrder(route.params.slug, {
+      table: masa,
+      customerName: customerName.value.trim() || null,
+      note: orderNote.value.trim() || null,
+      items: cart.value.map(l => ({
+        productId: l.productId, variantId: l.variantId, optionIds: l.optionIds,
+        quantity: l.quantity, note: l.note,
+      })),
+    })
+    writeStore('name', customerName.value.trim() || null)
+    activeOrder.value = { code: data.code, at: Date.now() }
+    writeStore('order', activeOrder.value)
+    cart.value = []
+    orderNote.value = ''
+    cartOpen.value = false
+    await refreshStatus()
+    statusOpen.value = true
+  } catch (e) {
+    orderError.value = e.response?.data?.message || 'Sipariş gönderilemedi. Bağlantınızı kontrol edip tekrar deneyin.'
+  } finally {
+    sending.value = false
+  }
+}
+
+async function refreshStatus() {
+  if (!activeOrder.value) return
+  try {
+    const { data } = await api.getQrOrderStatus(route.params.slug, activeOrder.value.code)
+    orderStatus.value = data
+    clearTimeout(pollTimer)
+    if (data.status === 'Pending') pollTimer = setTimeout(refreshStatus, 5000)
+  } catch (e) {
+    if (e.response?.status === 404) finishOrder()
+    else pollTimer = setTimeout(refreshStatus, 10000)   // geçici ağ hatası
+  }
+}
+
+function finishOrder() {
+  clearTimeout(pollTimer)
+  activeOrder.value = null
+  orderStatus.value = null
+  statusOpen.value = false
+  writeStore('order', null)
+}
+
+const statusInfo = computed(() => {
+  switch (orderStatus.value?.status) {
+    case 'Accepted': return { tone: 'ok', short: 'Siparişiniz onaylandı', title: 'Siparişiniz onaylandı',
+                              text: 'Hazırlanmaya başladı. Afiyet olsun!' }
+    case 'Rejected': return { tone: 'bad', short: 'Siparişiniz onaylanmadı', title: 'Siparişiniz onaylanmadı',
+                              text: 'Ayrıntı için garsona danışabilirsiniz.' }
+    case 'Expired':  return { tone: 'bad', short: 'Sipariş zaman aşımına uğradı', title: 'Sipariş onaylanmadı',
+                              text: 'Siparişiniz süresinde onaylanmadı. Lütfen garsona haber verin.' }
+    default:         return { tone: 'wait', short: 'Siparişiniz onay bekliyor', title: 'Siparişiniz iletildi',
+                              text: 'Kasaya ulaştı, onay bekleniyor. Bu sayfa kendiliğinden güncellenir.' }
+  }
+})
+
 onMounted(async () => {
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('keydown', onKeydown)
+  // Bir önceki ziyaretten kalan sipariş: 3 saatten eskiyse unutulur.
+  if (activeOrder.value && Date.now() - (activeOrder.value.at ?? 0) > 3 * 3600_000) finishOrder()
+  if (activeOrder.value) refreshStatus()
   try {
-    const res = await api.getPublicMenu(route.params.slug)
+    const res = await api.getPublicMenu(route.params.slug, masa || undefined)
     menu.value = normalize(res.data)
   } catch {
     notFound.value = true
@@ -294,6 +541,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  clearTimeout(pollTimer)
+  clearTimeout(toastTimer)
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('keydown', onKeydown)
   document.body.style.overflow = ''
@@ -490,6 +739,113 @@ onUnmounted(() => {
   font-size: 11px; font-weight: 700; color: #9CA3AF;
   background: #F3F4F6; padding: 3px 9px; border-radius: 999px;
 }
+
+/* ── Masadan sipariş ───────────────────────────────────────────── */
+.order-banner {
+  font-size: 13px; text-align: center; padding: 10px 16px;
+}
+.order-banner.is-ok   { background: #FEF3C7; color: #78350F; }
+.order-banner.is-warn { background: #F3F4F6; color: #4B5563; }
+.status-pill {
+  display: flex; align-items: center; gap: 8px; width: calc(100% - 32px); max-width: 640px;
+  margin: 10px auto 0; padding: 10px 14px; border-radius: 14px; border: none;
+  font-size: 13.5px; font-weight: 700; text-align: left;
+}
+.status-pill.is-wait { background: #EFF6FF; color: #1E40AF; }
+.status-pill.is-ok   { background: #ECFDF5; color: #065F46; }
+.status-pill.is-bad  { background: #FEF2F2; color: #991B1B; }
+.status-dot { width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+.status-pill.is-wait .status-dot { animation: pulse 1.4s ease infinite; }
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
+.status-more { margin-left: auto; font-size: 12px; opacity: .75; }
+
+.featured-add, .lightbox-add {
+  border: none; background: var(--brand); color: white; font-weight: 800; cursor: pointer;
+}
+.featured-add { margin-top: 6px; width: 100%; height: 28px; border-radius: 999px; font-size: 12px; }
+.lightbox-add { margin-left: auto; height: 36px; padding: 0 18px; border-radius: 999px; font-size: 13.5px; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%); z-index: 80;
+  background: rgba(31,41,55,0.92); color: white; font-size: 13px; font-weight: 600;
+  padding: 9px 16px; border-radius: 999px; white-space: nowrap;
+}
+.cart-bar {
+  position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 40;
+  max-width: 560px; margin: 0 auto;
+  display: flex; align-items: center; gap: 12px;
+  height: 56px; padding: 0 18px; border-radius: 18px; border: none;
+  background: var(--brand); color: white; box-shadow: 0 8px 24px rgba(146,64,14,0.35);
+}
+.cart-count {
+  min-width: 26px; height: 26px; padding: 0 6px; border-radius: 999px;
+  background: rgba(255,255,255,0.25); font-size: 13px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.cart-label { flex: 1; text-align: left; font-size: 15px; font-weight: 800; }
+.cart-total { font-size: 15px; font-weight: 800; }
+.scroll-top-btn.is-raised { bottom: 84px; }
+
+.sheet-backdrop {
+  position: fixed; inset: 0; z-index: 70;
+  background: rgba(28, 20, 12, 0.55);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.sheet {
+  width: 100%; max-width: 560px; max-height: 88vh;
+  background: #FFFDFA; border-radius: 20px 20px 0 0;
+  display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.25);
+}
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 10px; }
+.sheet-title { font-size: 18px; font-weight: 800; color: var(--ink); }
+.sheet-close {
+  height: 30px; padding: 0 12px; border-radius: 999px; border: none;
+  background: #F3ECE3; color: var(--ink); font-size: 12px; font-weight: 700;
+}
+.sheet-body { padding: 0 18px 12px; overflow-y: auto; }
+.sheet-foot { padding: 12px 18px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(0,0,0,0.06); }
+.add-main {
+  width: 100%; height: 50px; border-radius: 999px; border: none;
+  background: var(--brand); color: white; font-size: 15px; font-weight: 800;
+}
+.add-main:disabled { background: #D6CFC5; }
+.add-main.is-muted { background: #F3ECE3; color: var(--ink); }
+.empty-cart { padding: 24px 0; text-align: center; color: var(--ink-muted); }
+.cart-line {
+  display: flex; gap: 12px; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.cart-line-main { flex: 1; min-width: 0; }
+.cart-line-name { font-size: 14px; font-weight: 700; color: var(--ink); }
+.cart-line-detail { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+.cart-line-price { font-size: 13px; font-weight: 800; color: var(--brand-dark); margin-top: 3px; }
+.qty { display: flex; align-items: center; gap: 4px; background: #F3ECE3; border-radius: 999px; padding: 3px; }
+.qty button {
+  width: 32px; height: 32px; border-radius: 999px; border: none;
+  background: white; color: var(--ink); font-size: 17px; font-weight: 800;
+}
+.qty button:disabled { opacity: .4; }
+.qty span { min-width: 20px; text-align: center; font-weight: 800; color: var(--ink); }
+.field-lbl { display: block; font-size: 12.5px; font-weight: 800; color: var(--ink); margin: 14px 0 6px; }
+.field-lbl span { font-weight: 600; color: var(--ink-muted); }
+.text-field {
+  width: 100%; height: 44px; padding: 0 12px; border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.12); background: white !important; color: #1F2937 !important;
+  font-size: 14px; outline: none;
+}
+.text-field:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(217,119,6,0.15); }
+.order-error {
+  margin-top: 12px; padding: 10px 12px; border-radius: 12px;
+  background: #FEF2F2; color: #991B1B; font-size: 13px;
+}
+.cart-hint { font-size: 12px; color: var(--ink-muted); margin: 12px 0 0; line-height: 1.45; }
+.status-box { border-radius: 14px; padding: 14px 16px; margin-bottom: 8px; }
+.status-box.is-wait { background: #EFF6FF; color: #1E3A8A; }
+.status-box.is-ok   { background: #ECFDF5; color: #064E3B; }
+.status-box.is-bad  { background: #FEF2F2; color: #7F1D1D; }
+.status-title { font-size: 16px; font-weight: 800; }
+.status-text { font-size: 13px; margin-top: 4px; line-height: 1.45; }
+.status-total { text-align: right; padding: 12px 0 4px; font-size: 14px; color: var(--ink); }
 
 .featured-card.is-clickable { cursor: pointer; transition: transform .12s ease; }
 .featured-card.is-clickable:active { transform: scale(.97); }

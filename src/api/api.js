@@ -125,7 +125,16 @@ export default {
   // Dijital Menü (herkese açık)
   // Menü yanıtı fotoğraflar yüzünden büyük ve ngrok tüneli yavaş (~64 KB/sn);
   // 10 sn'lik genel zaman aşımı isteği kesip menüyü "bulunamadı" gösteriyordu.
-  getPublicMenu: (slug) => api.get(`menu/${slug}`, { timeout: 60000 }),
+  getPublicMenu: (slug, masa) => api.get(`menu/${slug}`, { timeout: 60000, params: masa ? { masa } : undefined }),
+  placeQrOrder: (slug, d) => api.post(`menu/${slug}/order`, d, { timeout: 30000 }),
+  getQrOrderStatus: (slug, code) => api.get(`menu/${slug}/order/${code}`),
+
+  // Masadan sipariş yönetimi (panel)
+  getQrOrderSettings:  ()   => api.get('qrorders/settings'),
+  saveQrOrderSettings: (d)  => api.put('qrorders/settings', d),
+  getQrOrderTables:    ()   => api.get('qrorders/tables'),
+  regenerateQrToken:   (id) => api.post(`qrorders/tables/${id}/token`),
+  getQrOrders:         (take = 50) => api.get('qrorders', { params: { take } }),
 
   // Dijital Menü yapılandırması (öne çıkanlar + kategori görselleri)
   getMenuConfig:  ()  => api.get('menu/config'),

@@ -3,8 +3,8 @@
     <h1 class="page-title">Dijital Menü (QR)</h1>
     <p class="text-muted text-sm mt-1 mb-6">
       Bu QR kodu masalarınıza koyun — müşterileriniz telefonlarıyla okutup
-      menünüzü (ürün ve fiyatları) görüntüleyebilir. Sipariş alınmaz, sadece
-      görüntülemedir.
+      menünüzü (ürün ve fiyatları) görüntüleyebilir. Masadan sipariş almak için
+      aşağıdaki "Masadan Sipariş" bölümünü açıp masaya özel QR kodlarını kullanın.
     </p>
 
     <div v-if="loading" class="text-muted">Yükleniyor...</div>
@@ -201,6 +201,112 @@
           {{ configSaving ? 'Kaydediliyor...' : 'Menü Ayarlarını Kaydet' }}
         </button>
       </div>
+
+      <!-- ── Masadan Sipariş ─────────────────────────────────────────── -->
+      <div v-if="qrAvailable" class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="section-title">Masadan Sipariş</h2>
+            <p class="text-xs text-muted mt-1 max-w-2xl">
+              Açıkken masaya özel QR kodunu okutan müşteri menüden sepet oluşturup sipariş
+              gönderebilir. Sipariş kasaya düşer; kasiyer onaylayınca masaya eklenir ve mutfak
+              fişi basılır. Fiyatlar sunucuda hesaplanır, onaylanmayan siparişler 30 dakikada düşer.
+            </p>
+          </div>
+          <button @click="toggleQrOrdering" :disabled="qrSaving || !auth.isAdmin"
+                  :title="auth.isAdmin ? '' : 'Yalnızca yönetici değiştirebilir'"
+                  class="relative inline-flex h-6 w-11 items-center rounded-full
+                         transition-colors duration-200 flex-shrink-0 mt-1 disabled:opacity-50"
+                  :class="qrEnabled ? 'bg-accent' : 'bg-gray-300'">
+            <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                         transition-transform duration-200"
+                  :class="qrEnabled ? 'translate-x-6' : 'translate-x-1'"/>
+          </button>
+        </div>
+        <div v-if="qrError" class="text-xs text-danger mt-2">{{ qrError }}</div>
+
+        <template v-if="qrEnabled">
+          <!-- Masa QR kodları -->
+          <div class="flex items-center justify-between gap-3 mt-6 mb-3">
+            <div>
+              <div class="text-sm font-semibold text-primary">Masa QR Kodları</div>
+              <div class="text-xs text-muted">
+                Her masanın kendi kodu var; masaya hangi kodun konduğu siparişin hangi masaya
+                düşeceğini belirler.
+              </div>
+            </div>
+            <button @click="printTableQrs" :disabled="!qrTables.length"
+                    class="btn-secondary whitespace-nowrap disabled:opacity-50">
+              Tümünü Yazdır
+            </button>
+          </div>
+
+          <div v-if="!qrTables.length" class="text-sm text-muted text-center py-6">
+            Henüz masa tanımlanmamış.
+          </div>
+          <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
+            <div v-for="t in qrTables" :key="t.id"
+                 class="border border-gray-100 rounded-xl p-3 flex flex-col items-center text-center">
+              <img v-if="t.token" :src="tableQrImage(t, 160)" :alt="t.name"
+                   width="120" height="120" class="rounded-lg"/>
+              <div v-else class="w-[120px] h-[120px] rounded-lg bg-gray-50 flex items-center
+                                  justify-center text-[11px] text-muted">Kod yok</div>
+              <div class="text-sm font-semibold text-primary mt-2 truncate w-full">{{ t.name }}</div>
+              <div class="text-[11px] text-muted truncate w-full">{{ t.section || ' ' }}</div>
+              <div class="flex gap-3 mt-1.5">
+                <a v-if="t.token" :href="tableUrl(t)" target="_blank"
+                   class="text-xs font-bold text-accent hover:underline">Aç</a>
+                <button v-if="auth.isAdmin" @click="regenerateToken(t)"
+                        class="text-xs font-bold text-muted hover:text-danger">
+                  {{ t.token ? 'Kodu Yenile' : 'Kod Oluştur' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Son siparişler -->
+        <div class="flex items-center justify-between mt-6 mb-3">
+          <div class="text-sm font-semibold text-primary">Son QR Siparişleri</div>
+          <button @click="loadQrHistory" class="text-xs font-bold text-accent hover:underline">Yenile</button>
+        </div>
+        <div v-if="!qrHistory.length" class="text-sm text-muted text-center py-6 border border-gray-100 rounded-xl">
+          Henüz QR menüden sipariş gelmedi.
+        </div>
+        <div v-else class="border border-gray-100 rounded-xl overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs text-muted border-b border-gray-100">
+                <th class="px-3 py-2 font-semibold">Zaman</th>
+                <th class="px-3 py-2 font-semibold">Masa</th>
+                <th class="px-3 py-2 font-semibold">Ürünler</th>
+                <th class="px-3 py-2 font-semibold">Durum</th>
+                <th class="px-3 py-2 font-semibold text-right">Tutar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="o in qrHistory" :key="o.id" class="border-b border-gray-50 last:border-0 align-top">
+                <td class="px-3 py-2.5 whitespace-nowrap text-muted">{{ fmtTime(o.createdAt) }}</td>
+                <td class="px-3 py-2.5 whitespace-nowrap font-semibold text-primary">
+                  {{ o.tableName }}
+                  <div v-if="o.customerName" class="text-xs font-normal text-muted">{{ o.customerName }}</div>
+                </td>
+                <td class="px-3 py-2.5 text-muted min-w-[220px]">
+                  {{ o.items.map(i => `${i.quantity} × ${i.productName}${i.variantName ? ` (${i.variantName})` : ''}`).join(', ') }}
+                  <div v-if="o.note" class="text-xs mt-0.5">Not: {{ o.note }}</div>
+                </td>
+                <td class="px-3 py-2.5 whitespace-nowrap">
+                  <span :class="statusChip(o.status)">{{ statusLabel(o.status) }}</span>
+                  <div v-if="o.decidedBy || o.rejectReason" class="text-xs text-muted mt-1">
+                    {{ [o.decidedBy, o.rejectReason].filter(Boolean).join(' · ') }}
+                  </div>
+                </td>
+                <td class="px-3 py-2.5 whitespace-nowrap text-right font-semibold">{{ fmt(o.total) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -208,6 +314,11 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import api from '../../api/api'
+import { useAuthStore } from '../../stores/auth'
+import { useModulesStore } from '../../stores/modules'
+
+const auth = useAuthStore()
+const modules = useModulesStore()
 
 const loading   = ref(true)
 const slug      = ref('')
@@ -466,6 +577,108 @@ async function importCategoryImages(e) {
   }
 }
 
+// ── Masadan sipariş ──────────────────────────────────────────────────────
+// Masaya sipariş hem QR menü hem masa modülü ister; ikisinden biri yoksa
+// bölüm hiç gösterilmez (uç 403 döner).
+const qrAvailable = computed(() => modules.has('qr_menu') && modules.has('tables'))
+const qrEnabled = ref(false)
+const qrSaving  = ref(false)
+const qrError   = ref('')
+const qrTables  = ref([])
+const qrHistory = ref([])
+
+function tableUrl(t) {
+  return `${menuUrl.value}?masa=${encodeURIComponent(t.token)}`
+}
+function tableQrImage(t, size) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=8&data=${encodeURIComponent(tableUrl(t))}`
+}
+
+async function loadQrOrdering() {
+  if (!qrAvailable.value) return
+  try {
+    const [settingsRes, tablesRes] = await Promise.all([
+      api.getQrOrderSettings(), api.getQrOrderTables(),
+    ])
+    qrEnabled.value = !!settingsRes.data.enabled
+    qrTables.value  = tablesRes.data
+  } catch {
+    qrError.value = 'Masadan sipariş ayarları yüklenemedi.'
+  }
+  loadQrHistory()
+}
+
+async function loadQrHistory() {
+  try {
+    qrHistory.value = (await api.getQrOrders(30)).data
+  } catch { /* geçmiş isteğe bağlı */ }
+}
+
+async function toggleQrOrdering() {
+  qrSaving.value = true
+  qrError.value  = ''
+  try {
+    const { data } = await api.saveQrOrderSettings({ enabled: !qrEnabled.value })
+    qrEnabled.value = !!data.enabled
+    // Açılınca kodu olmayan masalara sunucu kod üretir
+    if (qrEnabled.value) qrTables.value = (await api.getQrOrderTables()).data
+  } catch (e) {
+    qrError.value = e.response?.data?.message || 'Kaydedilemedi, tekrar deneyin.'
+  } finally {
+    qrSaving.value = false
+  }
+}
+
+async function regenerateToken(t) {
+  if (t.token && !confirm(`${t.name} için yeni kod üretilsin mi?\n\nMasadaki eski QR kodu artık sipariş almaz; yenisini yazdırıp masaya koymanız gerekir.`)) return
+  try {
+    t.token = (await api.regenerateQrToken(t.id)).data.token
+  } catch (e) {
+    alert(e.response?.data?.message || 'Kod yenilenemedi.')
+  }
+}
+
+function printTableQrs() {
+  const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+  const cards = qrTables.value.filter(t => t.token).map(t => `
+    <div class="card">
+      <img src="${tableQrImage(t, 360)}" alt="">
+      <div class="name">${esc(t.name)}</div>
+      <div class="hint">Menüyü görmek ve sipariş vermek için okutun</div>
+    </div>`).join('')
+  const w = window.open('', '_blank')
+  if (!w) { alert('Açılır pencere engellendi. Tarayıcıda bu site için açılır pencerelere izin verin.'); return }
+  w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8">
+    <title>Masa QR Kodları</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 0; padding: 12mm; color: #0F172A; }
+      .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8mm; }
+      .card { border: 1px solid #CBD5E1; border-radius: 4mm; padding: 6mm; text-align: center; break-inside: avoid; }
+      .card img { width: 45mm; height: 45mm; }
+      .name { font-size: 16pt; font-weight: 700; margin-top: 3mm; }
+      .hint { font-size: 8.5pt; color: #64748B; margin-top: 1.5mm; }
+    </style></head><body><div class="grid">${cards}</div>
+    <script>
+      Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r })))
+        .then(() => { window.focus(); window.print() })
+    <\/script></body></html>`)
+  w.document.close()
+}
+
+const STATUS = {
+  Pending:  ['Bekliyor',     'chip-accent'],
+  Accepted: ['Onaylandı',    'chip-success'],
+  Rejected: ['Reddedildi',   'chip-danger'],
+  Expired:  ['Zaman aşımı',  'chip-neutral'],
+}
+const statusLabel = s => STATUS[s]?.[0] ?? s
+const statusChip  = s => STATUS[s]?.[1] ?? 'chip-neutral'
+
+function fmtTime(v) {
+  const d = new Date(v)
+  return d.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
 // ── Kaydet ───────────────────────────────────────────────────────────────
 async function saveConfig() {
   configSaving.value = true
@@ -508,5 +721,6 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  loadQrOrdering()
 })
 </script>

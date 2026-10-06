@@ -14,8 +14,13 @@
         Alerjen: {{ labels.join(', ') }}
       </div>
       <div class="product-foot">
-        <span class="price-tag">{{ fmt(product.price) }}</span>
+        <span class="price-tag">{{ priceLabel }}</span>
         <span v-if="isInactive" class="unavailable">Şu anda mevcut değil</span>
+        <!-- Masadan sipariş açıksa -->
+        <button v-if="orderable && !isInactive" type="button" class="add-btn"
+                @click.stop="emit('add', product)">
+          Ekle
+        </button>
       </div>
     </div>
   </div>
@@ -28,9 +33,20 @@ import MenuImage from './MenuImage.vue'
 
 const props = defineProps({
   product:  { type: Object, required: true },
-  imageUrl: { type: String, default: '' }   // küçük görselin adresi (üst sayfa üretir)
+  imageUrl: { type: String, default: '' },  // küçük görselin adresi (üst sayfa üretir)
+  orderable: { type: Boolean, default: false } // masadan sipariş açık mı
 })
-const emit  = defineEmits(['open'])
+const emit  = defineEmits(['open', 'add'])
+
+// Porsiyonlu üründe en düşük porsiyon fiyatı "… den başlayan" olarak gösterilir.
+const priceLabel = computed(() => {
+  const v = props.product.variants
+  if (v?.length) {
+    const min = Math.min(...v.map(x => x.price))
+    return fmt(min) + (v.length > 1 ? "'den" : '')
+  }
+  return fmt(props.product.price)
+})
 
 // Görsel artık menü yanıtında gelmiyor; API yalnızca var/yok bilgisi veriyor.
 const hasImage = computed(() => !!props.product.hasImage && !!props.imageUrl)
@@ -110,6 +126,14 @@ function fmt(v) {
   font-weight: 800; font-size: 13.5px;
   color: var(--brand-dark, #92400E);
 }
+.add-btn {
+  margin-left: auto;
+  height: 32px; padding: 0 16px; border-radius: 999px; border: none;
+  background: var(--brand, #D97706); color: white;
+  font-size: 13px; font-weight: 800; cursor: pointer;
+  box-shadow: 0 2px 6px rgba(217,119,6,0.3);
+}
+.add-btn:active { transform: scale(.96); }
 .unavailable {
   font-size: 10.5px; font-weight: 700; color: #9CA3AF;
   background: #F3F4F6; padding: 2px 7px; border-radius: 999px;
