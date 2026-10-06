@@ -55,6 +55,35 @@
       </div>
     </div>
 
+    <!-- ── İptal açıklaması ───────────────────────────────────────────── -->
+    <div v-if="aktif" class="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2 transition-colors"
+         :class="iptalAciklamaZorunlu ? 'border-amber-300/60' : 'border-gray-100'">
+      <div class="flex items-start justify-between gap-6">
+        <div>
+          <div class="font-bold text-primary">İptal Açıklaması Zorunlu</div>
+          <p class="text-sm text-muted mt-0.5 max-w-lg">
+            Kasa, adisyondan kalem silerken ve masayı iptal ederken açıklama sorar.
+            Açıksa açıklama girilmeden işlem yapılamaz; kapalıyken açıklama boş geçilebilir.
+            Açıklamalar İptaller raporunda görünür.
+          </p>
+          <span class="inline-block mt-2 text-xs font-bold px-2.5 py-1 rounded-full transition-colors"
+                :class="iptalAciklamaZorunlu ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'">
+            {{ iptalAciklamaZorunlu ? 'Zorunlu' : 'İsteğe bağlı' }}
+          </span>
+        </div>
+
+        <button @click="toggleIptalAciklama()"
+                class="relative inline-flex h-7 items-center rounded-full flex-shrink-0
+                       transition-colors duration-300"
+                style="width:3.25rem"
+                :class="iptalAciklamaZorunlu ? 'bg-accent' : 'bg-gray-300'">
+          <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow-md
+                       transition-transform duration-300"
+                :class="iptalAciklamaZorunlu ? 'translate-x-7' : 'translate-x-1'"/>
+        </button>
+      </div>
+    </div>
+
     <!-- ── İçerik (sadece aktifken) ───────────────────────────────────── -->
     <Transition name="slide-down">
       <div v-if="aktif">
@@ -449,11 +478,31 @@ async function toggleAktif() {
   }
 }
 
+// ── İptal açıklaması zorunluluğu ─────────────────────────────────────────────
+const iptalAciklamaZorunlu = ref(false)
+
+async function loadIptalAyari() {
+  try {
+    iptalAciklamaZorunlu.value = (await api.getCancellationSettings()).data?.requireCancelReason ?? false
+  } catch { /* uç yoksa kapalı kalır */ }
+}
+
+async function toggleIptalAciklama() {
+  const newVal = !iptalAciklamaZorunlu.value
+  iptalAciklamaZorunlu.value = newVal   // optimistic update
+  try {
+    await api.saveCancellationSettings({ requireCancelReason: newVal })
+  } catch (e) {
+    iptalAciklamaZorunlu.value = !newVal
+    alert(e.response?.status === 403 ? 'Bu ayarı yalnızca yönetici değiştirebilir.' : 'Ayar kaydedilemedi.')
+  }
+}
+
 function toplamMasa() {
   return bolumler.value.reduce((s, b) => s + b.masalar.length, 0)
 }
 
-onMounted(load)
+onMounted(() => { load(); loadIptalAyari() })
 
 // ── Bölüm Modal ──────────────────────────────────────────────────────────────
 const bolumInputRef = ref(null)

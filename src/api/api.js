@@ -61,11 +61,18 @@ export default {
   approveLicense:     (id, d)  => api.post(`licenses/requests/${id}/approve`, d),
 
   // ── Aşama 2: personel satışı ve indirim/ikram raporu ─────────────
+  getCancellationSettings:  ()  => api.get('settings/cancellations'),
+  saveCancellationSettings: (d) => api.put('settings/cancellations', d),
   getStaffSettings:   ()        => api.get('settings/staff'),
   saveStaffSettings:  (d)       => api.put('settings/staff', d),
   getAdjustmentsReport: (params) => api.get('reports/adjustments', { params }),
   // Ürün başına ciro, reçeteden maliyet, kâr ve marj
   getProfitability: (params) => api.get('reports/profitability', { params }),
+  // Satış Raporları / Masalar / Stoklar / İptaller
+  getSalesReport:        (params) => api.get('reports/sales', { params }),
+  getTablesReport:       (params) => api.get('reports/tables', { params }),
+  getStockReport:        ()       => api.get('reports/stock'),
+  getCancellationsReport:(params) => api.get('reports/cancellations', { params }),
 
   // ── Aşama 3: hammadde, reçete ve çeşniler ──────────────────────────
   getIngredients:     (includeInactive) =>
