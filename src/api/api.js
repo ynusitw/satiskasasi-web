@@ -69,6 +69,9 @@ export default {
   getNotificationSettings:   ()   => api.get('notifications/settings'),
   saveNotificationSettings:  (d)  => api.put('notifications/settings', d),
   sendTestNotification:      ()   => api.post('notifications/test'),
+  // İşletmenin kendi e-posta sunucusu (şifre boş gönderilirse kayıtlı olan korunur)
+  saveSmtpSettings:          (d)  => api.put('notifications/smtp', d),
+  deleteSmtpSettings:        ()   => api.delete('notifications/smtp'),
   getCancellationSettings:  ()  => api.get('settings/cancellations'),
   saveCancellationSettings: (d) => api.put('settings/cancellations', d),
   getStaffSettings:   ()        => api.get('settings/staff'),

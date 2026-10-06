@@ -211,10 +211,103 @@
 
                 <div v-if="notif.loading" class="text-sm text-muted mb-6">Yükleniyor...</div>
                 <template v-else>
-                  <div v-if="!notif.smtpConfigured"
-                       class="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-[13px] text-amber-800">
-                    E-posta sunucusu (SMTP) henüz yapılandırılmamış: bildirimler panelde görünür,
-                    e-posta gönderilmez. Sunucu ayarlarına <code>Smtp</code> bilgileri eklenince e-postalar başlar.
+                  <!-- E-posta sunucusu: işletme kendi hesabını girer -->
+                  <div v-if="!smtp.open" class="mb-5 p-3 rounded-lg border text-[13px]"
+                       :class="notif.smtpConfigured ? 'border-gray-200' : 'bg-amber-50 border-amber-200 text-amber-800'">
+                    <template v-if="notif.smtpSource === 'tenant'">
+                      <div class="flex items-center justify-between gap-3">
+                        <div>
+                          E-postalar <strong>{{ notif.smtp?.from }}</strong> adresinden gönderiliyor
+                          <span class="text-muted">({{ notif.smtp?.host }})</span>.
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                          <button class="btn-secondary btn-sm" @click="openSmtp">Düzenle</button>
+                          <button class="btn-danger btn-sm" @click="removeSmtp">Kaldır</button>
+                        </div>
+                      </div>
+                    </template>
+                    <template v-else-if="notif.smtpSource === 'system'">
+                      <div class="flex items-center justify-between gap-3">
+                        <span class="text-muted">E-postalar sistemin ortak sunucusundan gönderiliyor.</span>
+                        <button class="btn-secondary btn-sm flex-shrink-0" @click="openSmtp">Kendi adresimden gönder</button>
+                      </div>
+                    </template>
+                    <template v-else>
+                      <div class="flex items-center justify-between gap-3">
+                        <span>E-posta sunucusu ayarlanmamış: bildirimler yalnızca panelde görünür, e-posta gönderilmez.</span>
+                        <button class="btn-primary btn-sm flex-shrink-0" @click="openSmtp">E-posta sunucusunu ayarla</button>
+                      </div>
+                    </template>
+                  </div>
+
+                  <div v-else class="mb-5 p-4 rounded-xl border border-gray-200">
+                    <div class="text-sm font-semibold text-primary mb-1">E-posta sunucusu</div>
+                    <p class="text-xs text-muted mb-3">
+                      Bildirimler bu hesaptan gönderilir. Şifre şifrelenerek saklanır ve bir daha gösterilmez.
+                    </p>
+
+                    <div class="flex flex-wrap gap-2 mb-3">
+                      <button v-for="p in SMTP_PRESETS" :key="p.label" type="button"
+                              :class="smtp.host === p.host ? 'chip-accent' : 'chip-neutral'"
+                              @click="smtp.host = p.host; smtp.port = p.port; smtp.enableSsl = true">{{ p.label }}</button>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3 mb-3">
+                      <div class="col-span-2">
+                        <label class="field-label">Sunucu</label>
+                        <input v-model="smtp.host" placeholder="smtp.ornek.com" autocomplete="off"
+                               class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white"/>
+                      </div>
+                      <div>
+                        <label class="field-label">Port</label>
+                        <input v-model.number="smtp.port" type="number" min="1" max="65535"
+                               class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white"/>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label class="field-label">Kullanıcı adı (e-posta)</label>
+                        <input v-model="smtp.username" autocomplete="off" placeholder="isletme@gmail.com"
+                               class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white"/>
+                      </div>
+                      <div>
+                        <label class="field-label">Şifre</label>
+                        <input v-model="smtp.password" type="password" autocomplete="new-password"
+                               :placeholder="smtp.hasPassword ? 'Kayıtlı — değiştirmek için yazın' : 'Uygulama şifresi'"
+                               class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white"/>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label class="field-label">Gönderen adresi</label>
+                        <input v-model="smtp.from" autocomplete="off" :placeholder="smtp.username || 'isletme@gmail.com'"
+                               class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white"/>
+                      </div>
+                      <div>
+                        <label class="field-label">Gönderen adı</label>
+                        <input v-model="smtp.fromName" placeholder="İşletmenizin adı"
+                               class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white"/>
+                      </div>
+                    </div>
+                    <label class="flex items-center gap-2 text-[13px] text-muted mb-3 cursor-pointer select-none">
+                      <input v-model="smtp.enableSsl" type="checkbox" class="w-4 h-4"/> Güvenli bağlantı (TLS)
+                    </label>
+
+                    <p v-if="smtp.host.includes('gmail') || smtp.host.includes('office365') || smtp.host.includes('yahoo')"
+                       class="text-xs text-muted mb-3 p-2.5 rounded-lg bg-gray-50">
+                      Bu sağlayıcı hesabın normal şifresini kabul etmez: hesap güvenlik ayarlarında iki adımlı
+                      doğrulamayı açıp <strong>uygulama şifresi</strong> üretin ve onu girin.
+                    </p>
+
+                    <div v-if="smtp.message" class="mb-3 text-[13px]"
+                         :class="smtp.messageOk ? 'text-success' : 'text-danger'">{{ smtp.message }}</div>
+
+                    <div class="flex gap-2">
+                      <button class="btn-primary" :disabled="smtp.saving" @click="saveSmtp">
+                        {{ smtp.saving ? 'Deneniyor...' : 'Kaydet ve test et' }}
+                      </button>
+                      <button class="btn-secondary" :disabled="smtp.saving" @click="smtp.open = false">Vazgeç</button>
+                    </div>
                   </div>
 
                   <label class="field-label">Bildirim e-posta adresi</label>
@@ -441,7 +534,7 @@ async function loadFailedAttempts() {
 // Önceden yalnızca tarayıcıda saklanıyor, hiçbir şey göndermiyordu.
 const notif = reactive({
   loading: false, saving: false, testing: false, message: '', messageOk: true,
-  email: '', defaultEmail: '', smtpConfigured: false,
+  email: '', defaultEmail: '', smtpConfigured: false, smtpSource: null, smtp: null,
   emailZReport: false, emailCashDifference: true, emailLowStock: true, emailFailedLogin: true,
   cashDifferenceThreshold: 50,
 })
@@ -481,6 +574,73 @@ async function saveNotif() {
     notif.messageOk = false
   } finally {
     notif.saving = false
+  }
+}
+
+// ─── İşletmenin kendi e-posta sunucusu ──────────────────────────────────────
+const SMTP_PRESETS = [
+  { label: 'Gmail',             host: 'smtp.gmail.com',      port: 587 },
+  { label: 'Outlook / Hotmail', host: 'smtp.office365.com',  port: 587 },
+  { label: 'Yandex',            host: 'smtp.yandex.com',     port: 587 },
+  { label: 'Yahoo',             host: 'smtp.mail.yahoo.com', port: 587 },
+]
+const smtp = reactive({
+  open: false, saving: false, message: '', messageOk: true,
+  host: '', port: 587, username: '', password: '', from: '', fromName: '', enableSsl: true, hasPassword: false,
+})
+
+function openSmtp() {
+  const s = notif.smtp
+  Object.assign(smtp, {
+    open: true, message: '', password: '',
+    host: s?.host || '', port: s?.port || 587, username: s?.username || '',
+    from: s?.from || '', fromName: s?.fromName || '', enableSsl: s?.enableSsl ?? true,
+    hasPassword: !!s?.hasPassword,
+  })
+}
+
+async function saveSmtp() {
+  smtp.saving = true
+  smtp.message = ''
+  try {
+    await api.saveSmtpSettings({
+      host: smtp.host.trim(), port: Number(smtp.port) || 587,
+      username: smtp.username.trim(), password: smtp.password,
+      from: (smtp.from || smtp.username).trim(), fromName: smtp.fromName.trim(),
+      enableSsl: smtp.enableSsl,
+    })
+  } catch (e) {
+    smtp.message = e.response?.data?.message || 'Kaydedilemedi.'
+    smtp.messageOk = false
+    smtp.saving = false
+    return
+  }
+  // Kaydedildi; gerçekten gidiyor mu, hemen dene.
+  smtp.password = ''
+  smtp.hasPassword = smtp.hasPassword || !!smtp.username
+  try {
+    const { data } = await api.sendTestNotification()
+    await loadNotif()
+    smtp.open = false
+    notif.message = `E-posta sunucusu kaydedildi. ${data?.message || ''}`
+    notif.messageOk = true
+  } catch (e) {
+    smtp.message = `Kaydedildi ama test e-postası gönderilemedi. ${e.response?.data?.message || ''}`
+    smtp.messageOk = false
+    await loadNotif()
+  } finally {
+    smtp.saving = false
+  }
+}
+
+async function removeSmtp() {
+  if (!confirm('Kendi e-posta sunucunuz kaldırılsın mı? Kayıtlı şifre silinir.')) return
+  try {
+    await api.deleteSmtpSettings()
+    await loadNotif()
+  } catch (e) {
+    notif.message = e.response?.data?.message || 'Kaldırılamadı.'
+    notif.messageOk = false
   }
 }
 
