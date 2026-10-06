@@ -2,7 +2,7 @@
   <div class="p-8 max-w-6xl">
 
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-primary">Hızlı Notlar</h1>
+      <h1 class="page-title">Hızlı Notlar</h1>
       <p class="text-muted mt-1 text-sm">
         Kasiyerin sipariş satırına tek tıkla ekleyebileceği hazır notlar.
         Kasada serbest metin yazmak her zaman mümkün — bu liste bir kısıt değil, kısayoldur.

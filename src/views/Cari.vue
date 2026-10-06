@@ -3,7 +3,7 @@
 
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-primary">Cari / Müşteri Yönetimi</h1>
+      <h1 class="page-title">Cari / Müşteri Yönetimi</h1>
       <button @click="openCreate" class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors">
         + Yeni Müşteri
       </button>
@@ -19,10 +19,10 @@
       <table class="w-full">
         <thead class="bg-gray-50">
           <tr>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Müşteri</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Telefon</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Bakiye</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Durum</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Müşteri</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Telefon</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Bakiye</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Durum</th>
             <th class="px-6 py-3"></th>
           </tr>
         </thead>
@@ -73,7 +73,7 @@
 
     <!-- Cari Ekle/Düzenle Modal -->
     <Teleport to="body">
-      <div v-if="cariModal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div v-if="cariModal.show" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
           <h2 class="text-xl font-bold mb-6">{{ cariModal.editing ? 'Müşteriyi Düzenle' : 'Yeni Müşteri' }}</h2>
           <div class="space-y-4">
@@ -107,7 +107,7 @@
 
     <!-- Hareket Detay Modal -->
     <Teleport to="body">
-      <div v-if="detailModal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div v-if="detailModal.show" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
 
           <!-- Başlık -->
@@ -208,7 +208,7 @@ const filtered = computed(() =>
 )
 
 function money(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.abs(v ?? 0)) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(v ?? 0)) + ' ₺'
 }
 
 function fmtDate(d) {

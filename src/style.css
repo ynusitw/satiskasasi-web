@@ -2,61 +2,171 @@
 @tailwind components;
 @tailwind utilities;
 
-* { box-sizing: border-box; }
+/* ── Temel ──────────────────────────────────────────────────────────────── */
+@layer base {
+  * { box-sizing: border-box; }
 
-body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  background: #F0F2F5;
-  color: #2C3E50;
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply font-sans bg-bg text-primary;
+    font-size: 14px;
+    /* Rakamlar eşit genişlikte: tutarlar tablo ve kartlarda alt alta hizalanır. */
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  h1 { letter-spacing: -0.022em; }
+  h2, h3 { letter-spacing: -0.012em; }
+
+  ::selection { background: rgb(37 99 235 / 0.18); }
+
+  /* Form alanları: tek tip odak halkası. :where() özgüllüğü sıfırlar, böylece
+     sayfalardaki Tailwind sınıfları gerektiğinde yine üstün gelir. */
+  :where(input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea) {
+    transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+  }
+  :where(input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea):focus {
+    outline: none;
+    border-color: theme('colors.accent');
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 0.14);
+  }
+  :where(input[type=checkbox], input[type=radio]) { accent-color: theme('colors.accent'); }
+
+  :where(button, a) {
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease,
+                box-shadow .15s ease, opacity .15s ease, transform .15s ease;
+  }
+  :where(button:not(:disabled)):active { transform: translateY(0.5px); }
+  :where(button):focus-visible, :where(a):focus-visible {
+    outline: 2px solid rgb(37 99 235 / 0.55);
+    outline-offset: 2px;
+  }
+
+  /* Tablo başlıkları: daha sakin, harf aralıklı. */
+  :where(thead th) { letter-spacing: 0.04em; }
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+/* ── Ortak bileşen sınıfları ────────────────────────────────────────────── */
+/* Yeni ve elden geçirilen sayfalar bunları kullanır; tek yerden değişir. */
+@layer components {
+  .page-title    { @apply text-[26px] leading-tight font-semibold text-primary; letter-spacing: -0.022em; }
+  .page-subtitle { @apply text-[13px] text-muted mt-1; }
 
-.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-lg
+           text-[13px] font-medium whitespace-nowrap select-none
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary   { @apply btn bg-accent text-white shadow-sm hover:bg-blue-600; }
+  .btn-secondary { @apply btn bg-white text-primary shadow-sm hover:bg-gray-50; }
+  .btn-ghost     { @apply btn text-muted hover:text-primary hover:bg-gray-100; }
+  .btn-danger    { @apply btn bg-white text-danger shadow-sm hover:bg-red-50; }
+
+  /* Açılır menü */
+  .menu-pop  { @apply absolute z-30 mt-2 min-w-[240px] rounded-xl bg-white p-1.5 shadow-lg; }
+  .menu-item {
+    @apply w-full flex flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left
+           text-[13px] font-medium text-primary hover:bg-gray-50
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .menu-hint { @apply text-[12px] font-normal text-muted; }
+}
+
+/* İnce, sakin kaydırma çubuğu */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgb(100 116 139 / 0.28);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background-color: rgb(100 116 139 / 0.45); }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.18s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 /* ── Koyu Tema ──────────────────────────────────────────────────────────── */
+/* Sayfalar açık tema sınıflarıyla yazılı; koyu temada bu sınıflar burada
+   karşılıklarına çevrilir. Palet açık temanın slate tonlarıyla uyumludur. */
+.theme-dark { color-scheme: dark; }
+
 .theme-dark body {
-  background: #111827;
-  color: #e2e8f0;
+  background: #0B1120;
+  color: #E2E8F0;
 }
 .theme-dark .bg-bg,
-.theme-dark main { background: #111827 !important; }
+.theme-dark main { background: #0B1120 !important; }
 
 .theme-dark .bg-white {
-  background: #1f2937 !important;
-  color: #e2e8f0;
+  background: #111A2E !important;
+  color: #E2E8F0;
 }
-.theme-dark .bg-gray-50  { background: #1a2332 !important; }
-.theme-dark .bg-gray-100 { background: #243040 !important; }
+.theme-dark .bg-gray-50  { background: #0F172A !important; }
+.theme-dark .bg-gray-100 { background: #1A2440 !important; }
+.theme-dark .bg-gray-200 { background: #233052 !important; }
+.theme-dark .hover\:bg-gray-50:hover  { background: #16203A !important; }
+.theme-dark .hover\:bg-gray-100:hover { background: #1A2440 !important; }
 
+.theme-dark .border-gray-50,
 .theme-dark .border-gray-100,
-.theme-dark .border-gray-200 { border-color: #374151 !important; }
+.theme-dark .border-gray-200 { border-color: #1E2A44 !important; }
+.theme-dark .border-gray-300 { border-color: #2A3756 !important; }
+.theme-dark .divide-gray-50 > * + *,
+.theme-dark .divide-gray-100 > * + * { border-color: #1E2A44 !important; }
 
-.theme-dark .text-primary { color: #e2e8f0 !important; }
-.theme-dark .text-muted   { color: #9ca3af !important; }
+.theme-dark .text-primary  { color: #E2E8F0 !important; }
+.theme-dark .text-muted    { color: #94A3B8 !important; }
+.theme-dark .text-gray-900,
+.theme-dark .text-gray-800,
+.theme-dark .text-gray-700 { color: #CBD5E1 !important; }
+.theme-dark .text-gray-600 { color: #94A3B8 !important; }
 
-.theme-dark .shadow-sm  { box-shadow: 0 1px 3px rgba(0,0,0,.4) !important; }
-.theme-dark .shadow-2xl { box-shadow: 0 25px 50px rgba(0,0,0,.6) !important; }
+.theme-dark .shadow-sm { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.4) !important; }
+.theme-dark .shadow-md,
+.theme-dark .shadow-lg { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.07), 0 10px 24px -6px rgb(0 0 0 / 0.6) !important; }
+.theme-dark .shadow-2xl { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 32px 64px -12px rgb(0 0 0 / 0.7) !important; }
 
 .theme-dark input,
 .theme-dark select,
 .theme-dark textarea {
-  background: #1f2937 !important;
-  color: #e2e8f0 !important;
-  border-color: #374151 !important;
+  background: #0F172A !important;
+  color: #E2E8F0 !important;
+  border-color: #23304E !important;
 }
+.theme-dark input::placeholder,
+.theme-dark textarea::placeholder { color: #64748B !important; }
+
+/* Ortak bileşenler */
+.theme-dark .page-title,
+.theme-dark .menu-item { color: #E2E8F0 !important; }
+.theme-dark .page-subtitle,
+.theme-dark .menu-hint { color: #94A3B8 !important; }
+.theme-dark .btn-secondary,
+.theme-dark .btn-danger,
+.theme-dark .menu-pop { background: #111A2E !important; }
+.theme-dark .btn-secondary { color: #E2E8F0 !important; }
+.theme-dark .btn-secondary:hover,
+.theme-dark .menu-item:hover { background: #16203A !important; }
+.theme-dark .btn-ghost:hover { background: #1A2440 !important; }
 
 /* Settings modal kendisi her zaman açık temada kalır */
-.theme-dark [data-settings-modal] .bg-white { background: #ffffff !important; color: #2C3E50; }
+.theme-dark [data-settings-modal] .bg-white { background: #ffffff !important; color: #0F172A; }
 
-/* Dashboard icon arka planları */
-.theme-dark .bg-green-50  { background: #14532d33 !important; }
-.theme-dark .bg-blue-50   { background: #1e3a5f33 !important; }
-.theme-dark .bg-purple-50 { background: #3b076433 !important; }
-.theme-dark .bg-red-50    { background: #7f1d1d33 !important; }
-
-/* Trend badge'ler */
-.theme-dark .bg-green-100 { background: #14532d55 !important; }
-.theme-dark .bg-red-100   { background: #7f1d1d55 !important; }
+/* Renkli açık zeminler (rozetler, uyarı kutuları) */
+.theme-dark .bg-green-50   { background: rgb(5 150 105 / 0.12) !important; }
+.theme-dark .bg-blue-50    { background: rgb(37 99 235 / 0.14) !important; }
+.theme-dark .bg-purple-50  { background: rgb(147 51 234 / 0.14) !important; }
+.theme-dark .bg-red-50     { background: rgb(220 38 38 / 0.13) !important; }
+.theme-dark .bg-amber-50,
+.theme-dark .bg-yellow-50  { background: rgb(217 119 6 / 0.13) !important; }
+.theme-dark .bg-green-100  { background: rgb(5 150 105 / 0.22) !important; }
+.theme-dark .bg-red-100    { background: rgb(220 38 38 / 0.22) !important; }
+.theme-dark .bg-amber-100,
+.theme-dark .bg-yellow-100 { background: rgb(217 119 6 / 0.22) !important; }
+.theme-dark .bg-blue-100   { background: rgb(37 99 235 / 0.22) !important; }

@@ -4,8 +4,8 @@
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Fiş &amp; Yazıcı Ayarları</h1>
-        <p class="text-muted text-sm mt-1">
+        <h1 class="page-title">Fiş &amp; Yazıcı Ayarları</h1>
+        <p class="page-subtitle">
           Kasadan çıkan fişi bu sayfa belirler — tasarım, yazıcı ve yönlendirme
         </p>
       </div>
@@ -184,7 +184,7 @@
       <div class="w-full xl:w-auto xl:flex-shrink-0">
         <div class="sticky top-6">
           <div class="flex items-center gap-2 mb-3">
-            <span class="text-xs font-bold text-muted uppercase tracking-wide">Canlı Önizleme</span>
+            <span class="text-[11px] font-semibold text-muted uppercase tracking-wide">Canlı Önizleme</span>
             <span class="text-xs px-2 py-0.5 bg-accent/10 text-accent rounded-full font-bold">
               {{ form.paperWidth }}mm
             </span>

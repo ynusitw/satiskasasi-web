@@ -4,8 +4,8 @@
     <!-- Başlık -->
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Reçete Merkezi</h1>
-        <p class="text-muted text-sm mt-1">
+        <h1 class="page-title">Reçete Merkezi</h1>
+        <p class="page-subtitle">
           Soldan ürün seçin, sağdan hammaddelerini ekleyin. Satışta bu hammaddeler depodan düşer.
         </p>
       </div>
@@ -155,10 +155,10 @@
             <table class="w-full">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Hammadde</th>
-                  <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase w-36">Miktar</th>
-                  <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase w-24">Birim</th>
-                  <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase w-36">Satır Maliyeti</th>
+                  <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Hammadde</th>
+                  <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase w-36">Miktar</th>
+                  <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase w-24">Birim</th>
+                  <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase w-36">Satır Maliyeti</th>
                   <th class="px-5 py-3 w-16"></th>
                 </tr>
               </thead>
@@ -223,7 +223,7 @@
     <!-- ── YENİ HAMMADDE MODALI ─────────────────────────────────── -->
     <Teleport to="body">
       <div v-if="createModal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
           <h2 class="text-xl font-bold mb-1">Yeni Hammadde</h2>
           <p class="text-sm text-muted mb-6">
@@ -308,7 +308,7 @@ const recipeCounts = ref({})
 
 // ── Biçimlendirme ────────────────────────────────────────────────────────
 function money(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 function num(v) {
   return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 3 }).format(v ?? 0)

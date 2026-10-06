@@ -6,245 +6,99 @@
   <div v-else class="flex min-h-screen bg-bg">
 
     <aside v-if="auth.isLoggedIn && route.path !== '/login'"
-           class="fixed left-0 top-0 h-full w-60 bg-primary text-white
-                  flex flex-col z-50 shadow-xl">
+           class="sidebar fixed left-0 top-0 h-full w-64 bg-primary text-white flex flex-col z-50">
 
-      <!-- Logo + Tenant -->
-      <div class="px-6 py-5 border-b border-white/10">
-        <div class="flex items-center justify-between gap-1">
-          <div class="font-bold text-sm">SatışKasası</div>
-          <button @click="settingsOpen = true"
-                  title="Sistem Ayarları"
-                  class="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10
-                         transition-all flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0
-                       002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0
-                       001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0
-                       00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0
-                       00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0
-                       00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0
-                       00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0
-                       001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07
-                       2.572-1.065z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-          </button>
+      <!-- Marka + işletme -->
+      <div class="h-16 px-5 flex items-center gap-3 border-b border-white/[0.06] flex-shrink-0">
+        <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center
+                    text-[13px] font-bold tracking-tight shadow-[0_0_0_1px_rgba(255,255,255,0.12)_inset]">
+          SK
         </div>
-        <div class="text-white/40 text-xs truncate mt-0.5">
-          {{ auth.isSuperAdmin ? 'Süper Admin' : auth.tenantName }}
+        <div class="min-w-0 leading-tight">
+          <div class="text-[14px] font-semibold tracking-tight">SatışKasası</div>
+          <div class="text-[12px] text-white/45 truncate">
+            {{ auth.isSuperAdmin ? 'Süper Admin' : auth.tenantName }}
+          </div>
         </div>
       </div>
 
       <!-- Menü -->
-      <nav class="flex-1 py-3 overflow-y-auto">
-
-        <!-- Süper Admin Menüsü -->
-        <template v-if="auth.isSuperAdmin">
-          <RouterLink to="/superadmin"
-            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
-                   hover:text-white hover:bg-white/8 border-l-4
-                   border-transparent transition-all"
-            active-class="text-white !bg-white/10 !border-accent">
-            <span>Müşteri Yönetimi</span>
-          </RouterLink>
-          <RouterLink to="/superadmin/gelir"
-            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
-                   hover:text-white hover:bg-white/8 border-l-4
-                   border-transparent transition-all"
-            active-class="text-white !bg-white/10 !border-accent">
-            <span>Gelir Analizi</span>
-          </RouterLink>
-          <RouterLink to="/superadmin/paketler"
-            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
-                   hover:text-white hover:bg-white/8 border-l-4
-                   border-transparent transition-all"
-            active-class="text-white !bg-white/10 !border-accent">
-            <span>Paket Yönetimi</span>
-          </RouterLink>
-          <!-- Lisans Accordion: başvurudan aktif lisansa kadar tek yerde -->
-          <div>
-            <button @click="lisansOpen = !lisansOpen"
-                    class="w-full flex items-center gap-3 px-6 py-3 text-sm border-l-4
-                           border-transparent transition-all"
-                    :class="isLisansActive
-                      ? 'text-white bg-white/10 border-accent'
-                      : 'text-white/70 hover:text-white hover:bg-white/8'">
-              <span class="flex-1 text-left">Lisans</span>
-              <svg class="w-4 h-4 transition-transform duration-300"
-                   :class="lisansOpen ? 'rotate-180' : ''"
-                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </button>
-            <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
-                 :style="{ maxHeight: lisansOpen ? '200px' : '0px' }">
-              <RouterLink v-for="sub in lisansSubMenu" :key="sub.to" :to="sub.to"
-                          class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
-                                 text-white/50 hover:text-white hover:bg-white/5
-                                 border-l-4 border-transparent transition-all"
-                          active-class="!text-white !bg-white/10 !border-accent/60">
-                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"/>
-                {{ sub.label }}
-              </RouterLink>
-            </div>
-          </div>
-        </template>
-
-        <!-- Normal Menü -->
-        <template v-else>
-          <RouterLink v-for="item in menuTop" :key="item.to" :to="item.to"
-            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
-                   hover:text-white hover:bg-white/8 border-l-4
-                   border-transparent transition-all"
-            active-class="text-white !bg-white/10 !border-accent">
-            <span>{{ item.label }}</span>
-          </RouterLink>
-
-          <!-- Cari İşlemler Accordion — "cari" modülü yoksa grubun tamamı gizlenir -->
-          <div v-if="showCari">
-            <button @click="cariOpen = !cariOpen"
-                    class="w-full flex items-center gap-3 px-6 py-3 text-sm border-l-4
-                           border-transparent transition-all"
-                    :class="isCariActive
-                      ? 'text-white bg-white/10 border-accent'
-                      : 'text-white/70 hover:text-white hover:bg-white/8'">
-              <span class="flex-1 text-left">Cari İşlemler</span>
-              <svg class="w-4 h-4 transition-transform duration-300"
-                   :class="cariOpen ? 'rotate-180' : ''"
-                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </button>
-            <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
-                 :style="{ maxHeight: cariOpen ? '200px' : '0px' }">
-              <RouterLink v-for="sub in cariSubMenu" :key="sub.to" :to="sub.to"
-                          class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
-                                 text-white/50 hover:text-white hover:bg-white/5
-                                 border-l-4 border-transparent transition-all"
-                          active-class="!text-white !bg-white/10 !border-accent/60">
-                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"/>
-                {{ sub.label }}
-              </RouterLink>
-            </div>
+      <nav class="flex-1 overflow-y-auto px-3 pb-4">
+        <div v-for="section in navSections" :key="section.title">
+          <div class="px-3 pt-5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/35">
+            {{ section.title }}
           </div>
 
-          <!-- Raporlar Accordion -->
-          <div>
-            <button @click="reportsOpen = !reportsOpen"
-                    class="w-full flex items-center gap-3 px-6 py-3 text-sm border-l-4
-                           border-transparent transition-all"
-                    :class="isReportsActive
-                      ? 'text-white bg-white/10 border-accent'
-                      : 'text-white/70 hover:text-white hover:bg-white/8'">
-              <span class="flex-1 text-left">Raporlar</span>
-              <svg class="w-4 h-4 transition-transform duration-300"
-                   :class="reportsOpen ? 'rotate-180' : ''"
-                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </button>
+          <template v-for="item in section.items" :key="item.key ?? item.to">
+            <!-- Tek bağlantı -->
+            <RouterLink v-if="!item.children" :to="item.to"
+                        class="nav-item" :class="isExact(item.to) ? 'nav-item-active' : ''">
+              {{ item.label }}
+            </RouterLink>
 
-            <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
-                 :style="{ maxHeight: reportsOpen ? '320px' : '0px' }">
-              <RouterLink v-for="sub in visibleReportSubMenu" :key="sub.to" :to="sub.to"
-                          class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
-                                 text-white/50 hover:text-white hover:bg-white/5
-                                 border-l-4 border-transparent transition-all"
-                          active-class="!text-white !bg-white/10 !border-accent/60">
-                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"/>
-                {{ sub.label }}
-              </RouterLink>
+            <!-- Açılır grup -->
+            <div v-else>
+              <button @click="open[item.key] = !open[item.key]"
+                      class="nav-item w-full"
+                      :class="route.path.startsWith(item.prefix) ? 'text-white' : ''">
+                <span class="flex-1 text-left">{{ item.label }}</span>
+                <svg class="w-3.5 h-3.5 opacity-50 transition-transform duration-200"
+                     :class="open[item.key] ? 'rotate-180' : ''"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+                   :style="{ maxHeight: open[item.key] ? item.children.length * 40 + 'px' : '0px' }">
+                <div class="ml-3 pl-3 border-l border-white/10 my-0.5">
+                  <RouterLink v-for="sub in item.children" :key="sub.to" :to="sub.to"
+                              class="nav-sub" active-class="nav-sub-active">
+                    {{ sub.label }}
+                  </RouterLink>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <!-- Kasa Yapılandırma Accordion -->
-          <div>
-            <button @click="kasaYapiOpen = !kasaYapiOpen"
-                    class="w-full flex items-center gap-3 px-6 py-3 text-sm border-l-4
-                           border-transparent transition-all"
-                    :class="isKasaYapiActive
-                      ? 'text-white bg-white/10 border-accent'
-                      : 'text-white/70 hover:text-white hover:bg-white/8'">
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0
-                         002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0
-                         001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0
-                         00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0
-                         00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0
-                         00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0
-                         00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0
-                         001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07
-                         2.572-1.065z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              <span class="flex-1 text-left">Kasa Yapılandırma</span>
-              <svg class="w-4 h-4 transition-transform duration-300"
-                   :class="kasaYapiOpen ? 'rotate-180' : ''"
-                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </button>
-
-            <div class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
-                 :style="{ maxHeight: kasaYapiOpen ? '280px' : '0px' }">
-              <RouterLink v-for="sub in visibleKasaYapiSubMenu" :key="sub.to" :to="sub.to"
-                          class="flex items-center gap-2 pl-14 pr-6 py-2 text-sm
-                                 text-white/50 hover:text-white hover:bg-white/5
-                                 border-l-4 border-transparent transition-all"
-                          active-class="!text-white !bg-white/10 !border-accent/60">
-                <span class="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"/>
-                {{ sub.label }}
-              </RouterLink>
-            </div>
-          </div>
-
-          <RouterLink v-for="item in menuBottom" :key="item.to" :to="item.to"
-            class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
-                   hover:text-white hover:bg-white/8 border-l-4
-                   border-transparent transition-all"
-            active-class="text-white !bg-white/10 !border-accent">
-            <span>{{ item.label }}</span>
-          </RouterLink>
-        </template>
+          </template>
+        </div>
       </nav>
 
-      <!-- Abonelik Durumu (Normal müşteri) -->
-      <div v-if="!auth.isSuperAdmin && auth.tenantExpires"
-           class="mx-4 mb-2 p-3 bg-white/5 rounded-lg">
-        <div class="text-xs text-white/40 mb-1">Abonelik Bitiş</div>
-        <div class="text-xs font-bold"
-             :class="isExpiringSoon ? 'text-yellow-400' : 'text-white/70'">
-          {{ formatDate(auth.tenantExpires) }}
-        </div>
-        <div v-if="isExpiringSoon"
-             class="text-xs text-yellow-400 mt-1">
-          Yakında bitiyor!
-        </div>
-      </div>
+      <!-- Abonelik (yakında bitiyorsa öne çıkar) -->
+      <RouterLink v-if="!auth.isSuperAdmin && auth.tenantExpires" to="/subscription"
+                  class="mx-3 mb-2 px-3 py-2.5 rounded-lg flex items-center justify-between gap-2
+                         text-[12px] transition-colors"
+                  :class="isExpiringSoon
+                    ? 'bg-amber-400/10 text-amber-300 hover:bg-amber-400/15'
+                    : 'bg-white/[0.04] text-white/55 hover:bg-white/[0.07] hover:text-white/80'">
+        <span>{{ isExpiringSoon ? 'Abonelik yakında bitiyor' : 'Abonelik bitişi' }}</span>
+        <span class="font-semibold">{{ formatDate(auth.tenantExpires) }}</span>
+      </RouterLink>
 
-      <!-- Kullanıcı + Çıkış -->
-      <div class="p-4 border-t border-white/10">
-        <div class="text-xs text-white/40 mb-1">{{ auth.username }}</div>
-        <RouterLink to="/subscription"
-          v-if="!auth.isSuperAdmin"
-          class="block text-xs text-accent mb-2 hover:underline">
-          Abonelik Bilgileri
-        </RouterLink>
-        <button @click="logout"
-                class="w-full py-2 rounded-lg text-sm font-semibold
-                       bg-red-500/20 text-red-400 hover:bg-red-500
-                       hover:text-white transition-all">
-          Çıkış Yap
-        </button>
+      <!-- Kullanıcı -->
+      <div class="p-3 border-t border-white/[0.06]">
+        <div class="flex items-center gap-3 px-2 py-1.5">
+          <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center
+                      text-[12px] font-semibold uppercase flex-shrink-0">
+            {{ initials }}
+          </div>
+          <div class="min-w-0 flex-1 leading-tight">
+            <div class="text-[13px] font-medium truncate">{{ auth.username }}</div>
+            <div class="text-[11.5px] text-white/40 truncate">
+              {{ auth.isSuperAdmin ? 'Süper Admin' : (auth.isAdmin ? 'Yönetici' : 'Kullanıcı') }}
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-1.5 mt-2">
+          <button @click="settingsOpen = true"
+                  class="py-1.5 rounded-md text-[12px] font-medium text-white/60
+                         bg-white/[0.04] hover:bg-white/[0.08] hover:text-white">
+            Ayarlar
+          </button>
+          <button @click="logout"
+                  class="py-1.5 rounded-md text-[12px] font-medium text-white/60
+                         bg-white/[0.04] hover:bg-red-500/15 hover:text-red-300">
+            Çıkış Yap
+          </button>
+        </div>
       </div>
     </aside>
 
@@ -252,7 +106,7 @@
     <SettingsModal v-model:open="settingsOpen"/>
 
     <!-- İçerik -->
-    <main :class="auth.isLoggedIn && route.path !== '/login' ? 'ml-60' : ''"
+    <main :class="auth.isLoggedIn && route.path !== '/login' ? 'ml-64' : ''"
           class="flex-1">
       <!-- Lisansta olmayan bir modüle gidilmek istendi -->
       <div v-if="deniedModule"
@@ -276,7 +130,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, reactive, watch, onMounted } from 'vue'
 import { useRouter, useRoute }  from 'vue-router'
 import { useAuthStore }         from './stores/auth'
 import { useSettingsStore }     from './stores/settings'
@@ -323,23 +177,17 @@ function dismissDenied() {
 
 const settingsOpen = ref(false)
 
-const reportsOpen  = ref(false)
-const cariOpen     = ref(false)
-const kasaYapiOpen = ref(false)
-const lisansOpen   = ref(false)
+// Açılır menü grupları
+const open = reactive({ reports: false, cari: false, kasa: false, lisans: false })
 
 watch(() => route.path, path => {
-  if (path.startsWith('/reports'))  reportsOpen.value  = true
-  if (path.startsWith('/cari'))     cariOpen.value     = true
-  if (path.startsWith('/settings')) kasaYapiOpen.value = true
-  if (path.startsWith('/superadmin/lisans')) lisansOpen.value = true
+  if (path.startsWith('/reports'))  open.reports = true
+  if (path.startsWith('/cari'))     open.cari    = true
+  if (path.startsWith('/settings')) open.kasa    = true
+  if (path.startsWith('/superadmin/lisans')) open.lisans = true
 }, { immediate: true })
 
-const isReportsActive  = computed(() => route.path.startsWith('/reports'))
-const isCariActive     = computed(() => route.path.startsWith('/cari'))
 const isMenuRoute      = computed(() => route.path.startsWith('/menu/'))
-const isKasaYapiActive = computed(() => route.path.startsWith('/settings'))
-const isLisansActive   = computed(() => route.path.startsWith('/superadmin/lisans'))
 
 const lisansSubMenu = [
   { to: '/superadmin/lisans/aktif',      label: 'Aktif Lisanslar'      },
@@ -348,8 +196,8 @@ const lisansSubMenu = [
 ]
 
 const menuTopAll = [
-  { to: '/',            label: 'Dashboard'       },
-  { to: '/products',    label: 'Ürün Düzenleme'  },
+  { to: '/',            label: 'Genel Bakış'     },
+  { to: '/products',    label: 'Ürünler'         },
   { to: '/modifiers',   label: 'Çeşni & Ekstra'  },
   { to: '/recipes',     label: 'Reçete Merkezi', module: MODULES.STOCK },
   { to: '/ingredients', label: 'Hammaddeler',    module: MODULES.STOCK },
@@ -400,6 +248,44 @@ const menuBottom = [
   { to: '/users', label: 'Kullanıcılar' },
 ]
 
+// Kenar menüsü bölümleri: tek şablon hem müşteri hem süper admin menüsünü çizer.
+const navSections = computed(() => {
+  if (auth.isSuperAdmin) {
+    return [{
+      title: 'Yönetim',
+      items: [
+        { to: '/superadmin',          label: 'Müşteri Yönetimi' },
+        { to: '/superadmin/gelir',    label: 'Gelir Analizi'    },
+        { to: '/superadmin/paketler', label: 'Paket Yönetimi'   },
+        { key: 'lisans', label: 'Lisans', prefix: '/superadmin/lisans', children: lisansSubMenu },
+      ],
+    }]
+  }
+
+  const [home, ...catalog] = menuTop.value
+  const sections = [
+    { title: 'Genel', items: [home] },
+    { title: 'Katalog', items: catalog },
+    { title: 'İşlemler', items: [
+      ...(showCari.value ? [{ key: 'cari', label: 'Cari İşlemler', prefix: '/cari', children: cariSubMenu }] : []),
+      { key: 'reports', label: 'Raporlar', prefix: '/reports', children: visibleReportSubMenu.value },
+    ] },
+    { title: 'Yönetim', items: [
+      { key: 'kasa', label: 'Kasa Yapılandırma', prefix: '/settings', children: visibleKasaYapiSubMenu.value },
+      ...menuBottom,
+    ] },
+  ]
+  return sections.filter(sec => sec.items.length)
+})
+
+// Tek bağlantılarda tam eşleşme: "/superadmin" alt sayfalarda da yanmasın.
+function isExact(to) {
+  return to === '/' || to === '/superadmin' ? route.path === to : route.path.startsWith(to)
+}
+
+const initials = computed(() =>
+  (auth.username || '?').trim().slice(0, 2).toLocaleUpperCase('tr'))
+
 const isExpiringSoon = computed(() => {
   if (!auth.tenantExpires) return false
   const diff = new Date(auth.tenantExpires) - new Date()
@@ -416,3 +302,20 @@ function logout() {
   router.push('/login')
 }
 </script>
+
+<style scoped>
+.nav-item {
+  @apply flex items-center gap-2 px-3 py-[7px] my-px rounded-md text-[13.5px] font-medium
+         text-white/60 hover:text-white hover:bg-white/[0.06];
+}
+.nav-item-active {
+  @apply text-white bg-white/10;
+  box-shadow: inset 2px 0 0 theme('colors.accent');
+}
+.nav-sub {
+  @apply block px-3 py-[6px] my-px rounded-md text-[13px] text-white/50 hover:text-white hover:bg-white/[0.05];
+}
+.nav-sub-active {
+  @apply text-white bg-white/[0.08] font-medium;
+}
+</style>

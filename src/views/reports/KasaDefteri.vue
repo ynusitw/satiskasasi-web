@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Kasa Defteri</h1>
-        <p class="text-muted text-sm mt-1">
+        <h1 class="page-title">Kasa Defteri</h1>
+        <p class="page-subtitle">
           Anlık kasa durumu (X raporu) — son Z raporundan bu yana
           <template v-if="report"> · {{ dateTime(report.periodStart) }}'den beri</template>
         </p>
@@ -55,11 +55,11 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50">
             <tr>
-              <th class="text-left  px-6 py-3 text-xs font-bold text-muted uppercase">Kasiyer</th>
-              <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">İşlem</th>
-              <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">İndirim</th>
-              <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Toplam</th>
-              <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Pay</th>
+              <th class="text-left  px-6 py-3 text-[11px] font-semibold text-muted uppercase">Kasiyer</th>
+              <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">İşlem</th>
+              <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">İndirim</th>
+              <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Toplam</th>
+              <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Pay</th>
             </tr>
           </thead>
           <tbody>
@@ -96,7 +96,7 @@ const loading = ref(true)
 const error   = ref('')
 
 function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 function pct(v) {
   const total = report.value?.grandTotal

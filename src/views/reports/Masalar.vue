@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Masalar</h1>
-        <p class="text-muted text-sm mt-1">Masa ve bölüm bazında adisyon, ciro ve masada kalma süresi</p>
+        <h1 class="page-title">Masalar</h1>
+        <p class="page-subtitle">Masa ve bölüm bazında adisyon, ciro ve masada kalma süresi</p>
       </div>
       <DateRange v-model:from="from" v-model:to="to" :loading="loading" @apply="load"/>
     </div>
@@ -63,12 +63,12 @@
           <table class="w-full text-sm">
             <thead class="bg-gray-50 sticky top-0">
               <tr>
-                <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Masa</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Adisyon</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Ciro</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Ort. Hesap</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Ort. Süre</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">İptal</th>
+                <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Masa</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Adisyon</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Ciro</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Ort. Hesap</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Ort. Süre</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">İptal</th>
               </tr>
             </thead>
             <tbody>
@@ -127,7 +127,7 @@ const now = ref(Date.now())
 let ticker = null
 
 function money(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 function barWidth(v, max) {
   if (!max) return '0%'

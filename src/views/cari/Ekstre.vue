@@ -4,8 +4,8 @@
     <!-- Başlık + Cari Seçici -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Cari Ekstre</h1>
-        <p class="text-muted text-sm mt-1">Hesap özeti ve hareket dökümü</p>
+        <h1 class="page-title">Cari Ekstre</h1>
+        <p class="page-subtitle">Hesap özeti ve hareket dökümü</p>
       </div>
       <select v-model.number="secilenCariId"
               class="px-4 py-2 border border-gray-200 rounded-xl text-sm
@@ -82,13 +82,13 @@
           <table class="w-full">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Tarih</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Belge No</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">İşlem Tipi</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Açıklama</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Borç</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Alacak</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Kalan Bakiye</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Tarih</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Belge No</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden md:table-cell">İşlem Tipi</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden lg:table-cell">Açıklama</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Borç</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Alacak</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Kalan Bakiye</th>
               </tr>
             </thead>
             <tbody>
@@ -176,6 +176,6 @@ const toplamAlacak = computed(() => hareketler.value.reduce((s, h) => s + h.alac
 const netBakiye    = computed(() => toplamBorc.value - toplamAlacak.value)
 
 function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 </script>

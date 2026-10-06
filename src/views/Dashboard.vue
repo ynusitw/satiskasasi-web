@@ -1,248 +1,151 @@
 <template>
   <div class="p-6 lg:p-8 min-h-screen bg-bg">
 
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
+    <!-- Başlık -->
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-7">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Dashboard</h1>
-        <p class="text-muted text-sm mt-1">{{ periodLabel }}</p>
+        <h1 class="page-title">Genel Bakış</h1>
+        <p class="page-subtitle">{{ periodLabel }}</p>
       </div>
-      <button @click="load"
-              class="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-xl
-                     text-sm font-semibold hover:bg-blue-600 transition-colors shadow-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11
-                   11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-        </svg>
-        Yenile
+      <button @click="load" :disabled="loading"
+              class="px-4 h-9 rounded-lg bg-white text-[13px] font-medium text-primary shadow-sm
+                     hover:bg-gray-50 disabled:opacity-50">
+        {{ loading ? 'Yükleniyor...' : 'Yenile' }}
       </button>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="flex flex-col items-center justify-center py-32 gap-3">
-      <div class="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"/>
-      <p class="text-muted text-sm">Yükleniyor...</p>
+    <!-- Yükleniyor -->
+    <div v-if="loading && !data" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div v-for="i in 4" :key="i" class="bg-white rounded-2xl shadow-sm p-5 h-[118px] animate-pulse">
+        <div class="h-3 w-20 bg-gray-100 rounded"/>
+        <div class="h-7 w-32 bg-gray-100 rounded mt-4"/>
+      </div>
     </div>
 
     <template v-else>
 
-      <!-- ── Stat Kartları ─────────────────────────────────────────────── -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-
-        <!-- Bugün Nakit -->
-        <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-bold text-muted uppercase tracking-wide">Nakit</span>
-          </div>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="text-2xl font-bold text-primary">{{ fmt(data?.periodCash) }}</span>
-            <span v-if="trends.cash !== null"
-                  :class="trendBadge(trends.cash)"
-                  class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              {{ trends.cash >= 0 ? '+' : '−' }} {{ Math.abs(trends.cash).toFixed(1) }}%
+      <!-- ── Ana göstergeler ──────────────────────────────────────────── -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <div v-for="k in kpis" :key="k.label" class="bg-white rounded-2xl shadow-sm p-5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[13px] font-medium text-muted">{{ k.label }}</span>
+            <span v-if="k.trend !== null && k.trend !== undefined"
+                  class="text-[11.5px] font-semibold px-1.5 py-0.5 rounded-md"
+                  :class="k.trend >= 0 ? 'bg-green-50 text-success' : 'bg-red-50 text-danger'">
+              {{ k.trend >= 0 ? '+' : '−' }}{{ Math.abs(k.trend).toFixed(1) }}%
             </span>
           </div>
-          <div class="mt-3 -mx-1">
-            <VueApexCharts type="area" height="50"
-                           :options="sparkOpts('#27AE60')" :series="[{ data: sparkCash }]"/>
+          <div class="text-[26px] leading-tight font-semibold text-primary tracking-tight mt-2">
+            {{ k.value }}
           </div>
-          <div class="text-xs text-muted mt-1">Z öncesi dönem</div>
+          <div class="text-[12.5px] text-muted mt-1.5">{{ k.hint }}</div>
+        </div>
+      </div>
+
+      <!-- ── Ciro dışı kalemler + stok uyarısı ─────────────────────────── -->
+      <div class="bg-white rounded-2xl shadow-sm mb-6 grid grid-cols-2 lg:grid-cols-5
+                  divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+        <div v-for="m in secondary" :key="m.label" class="px-5 py-4">
+          <div class="text-[12.5px] font-medium text-muted">{{ m.label }}</div>
+          <div class="text-[17px] font-semibold mt-1" :class="m.tone">{{ m.value }}</div>
+          <div class="text-[12px] text-muted mt-0.5">{{ m.hint }}</div>
         </div>
 
-        <!-- Bugün Kart -->
-        <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-bold text-muted uppercase tracking-wide">Kart</span>
-          </div>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="text-2xl font-bold text-primary">{{ fmt(data?.periodCard) }}</span>
-            <span v-if="trends.card !== null"
-                  :class="trendBadge(trends.card)"
-                  class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              {{ trends.card >= 0 ? '+' : '−' }} {{ Math.abs(trends.card).toFixed(1) }}%
-            </span>
-          </div>
-          <div class="mt-3 -mx-1">
-            <VueApexCharts type="area" height="50"
-                           :options="sparkOpts('#3498DB')" :series="[{ data: sparkCard }]"/>
-          </div>
-          <div class="text-xs text-muted mt-1">Z öncesi dönem</div>
-        </div>
-
-        <!-- Bugün Toplam -->
-        <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-bold text-muted uppercase tracking-wide">Toplam Ciro</span>
-          </div>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="text-2xl font-bold text-primary">{{ fmt(data?.periodTotal) }}</span>
-            <span v-if="trends.total !== null"
-                  :class="trendBadge(trends.total)"
-                  class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              {{ trends.total >= 0 ? '+' : '−' }} {{ Math.abs(trends.total).toFixed(1) }}%
-            </span>
-          </div>
-          <div class="mt-3 -mx-1">
-            <VueApexCharts type="area" height="50"
-                           :options="sparkOpts('#8B5CF6')" :series="[{ data: sparkTotal }]"/>
-          </div>
-          <div class="text-xs text-muted mt-1">{{ data?.periodSaleCount ?? 0 }} işlem</div>
-        </div>
-
-        <!-- Kritik Stok -->
-        <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-bold text-muted uppercase tracking-wide">Kritik Stok</span>
-          </div>
-          <div class="text-5xl font-black mt-2"
+        <!-- Stok uyarısı -->
+        <div class="px-5 py-4">
+          <div class="text-[12.5px] font-medium text-muted">Kritik Stok</div>
+          <div class="text-[17px] font-semibold mt-1"
                :class="(data?.lowStockCount ?? 0) > 0 ? 'text-danger' : 'text-success'">
-            {{ data?.lowStockCount ?? 0 }}
+            {{ (data?.lowStockCount ?? 0) > 0 ? `${data.lowStockCount} ürün` : 'Sorun yok' }}
           </div>
-          <div class="text-xs text-muted mt-3">ürün kritik seviyede</div>
-          <div v-if="(data?.lowStockCount ?? 0) > 0"
-               class="mt-3 px-3 py-1.5 bg-red-50 text-danger text-xs font-semibold rounded-lg text-center">
-            Stok kontrolü yapın
-          </div>
-          <div v-else
-               class="mt-3 px-3 py-1.5 bg-green-50 text-success text-xs font-semibold rounded-lg text-center">
-            Stok durumu iyi
-          </div>
-
           <!-- Reçeteli satışta stok hammaddeden düşer; ürün stoğu bunu görmez. -->
           <RouterLink v-if="(data?.lowIngredientCount ?? 0) > 0" to="/ingredients"
-                      class="mt-2 px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold
-                             rounded-lg text-center hover:bg-amber-100 transition-colors"
+                      class="text-[12px] font-medium text-warning hover:underline"
                       :title="(data?.lowIngredients || []).join(', ')">
             {{ data.lowIngredientCount }} hammadde kritik seviyede
           </RouterLink>
+          <div v-else class="text-[12px] text-muted mt-0.5">Hammaddeler yeterli</div>
         </div>
       </div>
 
-      <!-- ── Ciroya girmeyen kalemler (Z raporundaki ayrı satırlar) ────── -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-2xl shadow-sm p-5">
-          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-2">İndirim</div>
-          <div class="text-xl font-bold text-danger">{{ fmt(data?.periodDiscount) }}</div>
-          <div class="text-xs text-muted mt-1">Ciroya yansımış indirimler</div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
-          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-2">İkram</div>
-          <div class="text-xl font-bold text-purple-600">{{ fmt(data?.periodCompTotal) }}</div>
-          <div class="text-xs text-muted mt-1">Satır ve hesap ikramları</div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
-          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-2">Personel Tüketimi</div>
-          <div class="text-xl font-bold text-primary">{{ fmt(data?.periodStaffConsumption) }}</div>
-          <div class="text-xs text-muted mt-1">
-            {{ data?.periodStaffSaleCount ?? 0 }} işlem · ciroya dahil değil
-          </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
-          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-2">Personelden Tahsil</div>
-          <div class="text-xl font-bold text-success">{{ fmt(data?.periodStaffCollected) }}</div>
-          <div class="text-xs text-muted mt-1">Kasaya giren, ciro dışı tutar</div>
-        </div>
-      </div>
-
-      <!-- ── Orta bölüm: Alan Grafiği + En Çok Satılanlar ─────────────── -->
+      <!-- ── Grafik + En çok satılanlar ───────────────────────────────── -->
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-        <!-- Bu Ay Satış Trendi (2/3) -->
         <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-          <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
             <div>
-              <h2 class="font-bold text-primary text-base">Satış Trendi</h2>
-              <p class="text-xs text-muted mt-0.5">{{ trendSubtitle }}</p>
+              <h2 class="font-semibold text-primary text-[15px]">Satış Trendi</h2>
+              <div class="flex items-center gap-4 text-[12.5px] text-muted mt-1">
+                <span>{{ trendSubtitle }}</span>
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full inline-block" :style="{ background: CASH_COLOR }"/>Nakit
+                </span>
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full inline-block" :style="{ background: CARD_COLOR }"/>Kart
+                </span>
+              </div>
             </div>
-            <div class="flex items-center gap-3">
-              <!-- Legend -->
-              <div class="hidden sm:flex items-center gap-4 text-xs font-semibold mr-1">
-                <span class="flex items-center gap-1.5">
-                  <span class="w-2.5 h-2.5 rounded-full bg-success inline-block"/>Nakit
-                </span>
-                <span class="flex items-center gap-1.5">
-                  <span class="w-2.5 h-2.5 rounded-full bg-accent inline-block"/>Kart
-                </span>
-              </div>
-              <!-- Zaman filtresi -->
-              <div class="flex rounded-xl overflow-hidden border border-gray-200">
-                <button v-for="f in periodFilters" :key="f.key"
-                        @click="activeFilter = f.key"
-                        class="px-3 py-1.5 text-xs font-semibold transition-all"
-                        :class="activeFilter === f.key
-                          ? 'bg-accent text-white'
-                          : 'bg-white text-muted hover:text-primary hover:bg-gray-50'">
-                  {{ f.label }}
-                </button>
-              </div>
+            <!-- Zaman süzgeci -->
+            <div class="flex p-0.5 rounded-lg bg-gray-100">
+              <button v-for="f in periodFilters" :key="f.key"
+                      @click="activeFilter = f.key"
+                      class="px-3 h-7 rounded-md text-[12.5px] font-medium"
+                      :class="activeFilter === f.key
+                        ? 'bg-white text-primary shadow-sm'
+                        : 'text-muted hover:text-primary'">
+                {{ f.label }}
+              </button>
             </div>
           </div>
-          <!-- Grafik veya boş durum -->
+
           <VueApexCharts v-if="chartHasData"
                          type="area" height="300"
                          :options="areaOpts" :series="areaSeries"/>
-
-          <div v-else class="flex flex-col items-center justify-center h-[300px] gap-3 select-none">
-            <svg class="w-14 h-14 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0
-                       0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0
-                       0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-            </svg>
-            <p class="text-sm font-semibold text-gray-400">Henüz yeterli satış verisi oluşmadı.</p>
-            <p class="text-xs text-gray-300">İlk satışınızın ardından grafik burada görünecek.</p>
+          <div v-else class="flex flex-col items-center justify-center h-[300px] gap-1.5 select-none">
+            <p class="text-[13.5px] font-medium text-primary">Henüz yeterli satış verisi yok</p>
+            <p class="text-[12.5px] text-muted">İlk satışların ardından grafik burada görünecek.</p>
           </div>
         </div>
 
-        <!-- Bu Ay En Çok Satılanlar (1/3) -->
         <div class="bg-white rounded-2xl shadow-sm p-6 flex flex-col">
-          <h2 class="font-bold text-primary text-base mb-1">Bu Ay En Çok Satılanlar</h2>
-          <p class="text-xs text-muted mb-5">Satış adedine göre</p>
+          <h2 class="font-semibold text-primary text-[15px]">Bu Ay En Çok Satılanlar</h2>
+          <p class="text-[12.5px] text-muted mt-1 mb-5">Satış adedine göre</p>
 
           <div v-if="!topProducts.length"
-               class="flex-1 flex flex-col items-center justify-center gap-2 py-8 select-none">
-            <p class="text-sm font-semibold text-gray-400">Bu ay henüz satış yapılmadı.</p>
-            <p class="text-xs text-gray-300">Satışlar gerçekleştikçe liste burada oluşacak.</p>
+               class="flex-1 flex flex-col items-center justify-center gap-1.5 py-8 select-none">
+            <p class="text-[13.5px] font-medium text-primary">Bu ay henüz satış yok</p>
+            <p class="text-[12.5px] text-muted">Satışlar gerçekleştikçe liste oluşacak.</p>
           </div>
 
-          <div v-else class="space-y-4 flex-1">
-            <div v-for="(p, i) in topProducts" :key="p.name" class="group">
-              <div class="flex items-center justify-between mb-1.5">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="flex-shrink-0 w-5 h-5 rounded-full text-white text-[10px] font-bold
-                               flex items-center justify-center"
-                        :style="{ background: rankColor(i) }">
-                    {{ i + 1 }}
-                  </span>
-                  <span class="text-sm font-semibold text-primary truncate">{{ p.name }}</span>
+          <ol v-else class="space-y-4 flex-1">
+            <li v-for="(p, i) in topProducts" :key="p.name">
+              <div class="flex items-baseline justify-between gap-3">
+                <div class="flex items-baseline gap-2.5 min-w-0">
+                  <span class="text-[12px] font-semibold text-muted w-3">{{ i + 1 }}</span>
+                  <span class="text-[13.5px] font-medium text-primary truncate">{{ p.name }}</span>
                 </div>
-                <span class="text-xs text-muted ml-2 flex-shrink-0">{{ p.totalQty ?? p.qty }} adet</span>
+                <span class="text-[13px] font-semibold text-primary flex-shrink-0">
+                  {{ fmt(p.totalRevenue ?? p.revenue) }}
+                </span>
               </div>
-              <!-- Progress bar -->
-              <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-700 ease-out"
-                     :style="{
-                       width: barWidth(p.totalQty ?? p.qty) + '%',
-                       background: rankColor(i),
-                     }"/>
+              <div class="flex items-center gap-3 mt-1.5 pl-[22px]">
+                <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full bg-accent transition-all duration-700 ease-out"
+                       :style="{ width: barWidth(p.totalQty ?? p.qty) + '%', opacity: 1 - i * 0.14 }"/>
+                </div>
+                <span class="text-[12px] text-muted w-16 text-right">{{ p.totalQty ?? p.qty }} adet</span>
               </div>
-              <div class="text-xs text-right mt-1 font-semibold"
-                   :style="{ color: rankColor(i) }">
-                {{ fmt(p.totalRevenue ?? p.revenue) }}
-              </div>
-            </div>
-          </div>
+            </li>
+          </ol>
 
-          <!-- Ay özeti -->
-          <div class="mt-6 pt-4 border-t border-gray-100 space-y-2">
-            <div class="flex justify-between text-sm">
-              <span class="text-muted">Aylık Toplam Satış</span>
-              <span class="font-bold text-primary">{{ fmt(data?.monthTotal) }}</span>
+          <div class="mt-6 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
+            <div>
+              <div class="text-[12px] text-muted">Aylık toplam</div>
+              <div class="text-[15px] font-semibold text-primary mt-0.5">{{ fmt(data?.monthTotal) }}</div>
             </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-muted">Aylık İşlem Sayısı</span>
-              <span class="font-bold text-primary">{{ data?.monthSaleCount ?? 0 }}</span>
+            <div>
+              <div class="text-[12px] text-muted">Aylık işlem</div>
+              <div class="text-[15px] font-semibold text-primary mt-0.5">{{ data?.monthSaleCount ?? 0 }}</div>
             </div>
           </div>
         </div>
@@ -258,8 +161,9 @@ import VueApexCharts from 'vue3-apexcharts'
 import api from '../api/api'
 
 // ── Sabitler ─────────────────────────────────────────────────────────────
-// Düz sıfır çizgisi — satış yokken sparkline için
-const FLAT8 = [0, 0, 0, 0, 0, 0, 0, 0]
+// Grafik renkleri — açıklama noktaları ve seriler aynı rengi kullanır.
+const CASH_COLOR = '#10B981'
+const CARD_COLOR = '#2563EB'
 // Zaman ekseni etiketleri
 const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara']
 
@@ -291,7 +195,7 @@ const periodLabel = computed(() => {
 })
 
 function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 
 // ── Top products — sadece API verisi, mock yok ───────────────────────────
@@ -305,8 +209,6 @@ function barWidth(qty) {
   return Math.round(((qty ?? 0) / maxQty.value) * 100)
 }
 
-const rankColors = ['#3498DB', '#27AE60', '#8B5CF6', '#F59E0B', '#E74C3C']
-function rankColor(i) { return rankColors[i % rankColors.length] }
 
 // ── Trend rozetleri — API'dan gelirse göster, yoksa gizle ────────────────
 // API şu alanları dönerse: periodCashChange, periodCardChange, periodTotalChange (number | null)
@@ -315,14 +217,38 @@ const trends = computed(() => ({
   card:  data.value?.periodCardChange  ?? null,
   total: data.value?.periodTotalChange ?? null,
 }))
-function trendBadge(pct) {
-  return pct >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+
+const kpis = computed(() => {
+  const d = data.value ?? {}
+  const count = d.periodSaleCount ?? 0
+  return [
+    { label: 'Toplam Ciro', value: fmt(d.periodTotal), trend: trends.value.total, hint: `${count} işlem` },
+    { label: 'Nakit',       value: fmt(d.periodCash),  trend: trends.value.cash,  hint: share(d.periodCash, d.periodTotal) },
+    { label: 'Kredi Kartı', value: fmt(d.periodCard),  trend: trends.value.card,  hint: share(d.periodCard, d.periodTotal) },
+    { label: 'Ortalama Fiş', value: count ? fmt((d.periodTotal ?? 0) / count) : '—', trend: null,
+      hint: 'İşlem başına ciro' },
+  ]
+})
+
+// Ciroya girmeyen kalemler (Z raporundaki ayrı satırlar)
+const secondary = computed(() => {
+  const d = data.value ?? {}
+  return [
+    { label: 'İndirim', value: fmt(d.periodDiscount), tone: 'text-danger', hint: 'Ciroya yansımış' },
+    { label: 'İkram', value: fmt(d.periodCompTotal), tone: 'text-primary', hint: 'Satır ve hesap ikramları' },
+    { label: 'Personel Tüketimi', value: fmt(d.periodStaffConsumption), tone: 'text-primary',
+      hint: `${d.periodStaffSaleCount ?? 0} işlem · ciroya dahil değil` },
+    { label: 'Personelden Tahsil', value: fmt(d.periodStaffCollected), tone: 'text-primary',
+      hint: 'Kasaya giren, ciro dışı' },
+  ]
+})
+
+function share(part, total) {
+  if (!total) return 'Ciro payı —'
+  return 'Ciro payı %' + new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
+    .format((part ?? 0) / total * 100)
 }
 
-// ── Sparkline serileri — satış yoksa düz çizgi ────────────────────────────
-const sparkCash  = computed(() => (data.value?.periodCash  ?? 0) > 0 ? FLAT8 : FLAT8)
-const sparkCard  = computed(() => (data.value?.periodCard  ?? 0) > 0 ? FLAT8 : FLAT8)
-const sparkTotal = computed(() => (data.value?.periodTotal ?? 0) > 0 ? FLAT8 : FLAT8)
 
 // ── Alan grafiği ─────────────────────────────────────────────────────────
 const trendData = computed(() => trendCache.value[activeFilter.value] ?? null)
@@ -350,35 +276,6 @@ async function loadTrend(range) {
 }
 
 watch(activeFilter, (r) => loadTrend(r))
-
-// ── Sparkline seçenekleri ─────────────────────────────────────────────────
-function sparkOpts(color) {
-  return {
-    chart: {
-      type: 'area',
-      sparkline: { enabled: true },
-      background: 'transparent',
-      animations: { enabled: true, easing: 'easeinout', speed: 900 },
-    },
-    stroke: { curve: 'smooth', width: 2.5, colors: [color] },
-    colors: [color],
-    tooltip: { enabled: false },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        type: 'vertical',
-        shadeIntensity: 0,
-        opacityFrom: 0.45,
-        opacityTo:   0.02,
-        stops: [0, 100],
-        colorStops: [
-          { offset: 0,   color, opacity: 0.45 },
-          { offset: 100, color, opacity: 0.02 },
-        ],
-      },
-    },
-  }
-}
 
 // ── Alan grafiği — filtre bazlı reaktif veri (API'dan gelene kadar sıfır) ─
 const chartPeriod = computed(() => {
@@ -437,14 +334,14 @@ const areaOpts = computed(() => ({
     animations: { enabled: true, easing: 'easeinout', speed: 700 },
     fontFamily: 'inherit',
   },
-  colors: ['#27AE60', '#3498DB'],
-  stroke: { curve: 'smooth', width: 2.5 },
+  colors: [CASH_COLOR, CARD_COLOR],
+  stroke: { curve: 'smooth', width: 2 },
   fill: {
     type: 'gradient',
-    gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.03, stops: [0, 95, 100] },
+    gradient: { shadeIntensity: 1, opacityFrom: 0.18, opacityTo: 0.0, stops: [0, 95, 100] },
   },
   dataLabels: { enabled: false },
-  grid: { borderColor: '#f1f5f9', strokeDashArray: 5, padding: { left: 4, right: 4 } },
+  grid: { borderColor: 'rgba(100,116,139,0.14)', strokeDashArray: 4, padding: { left: 4, right: 4 } },
   xaxis: {
     categories: chartPeriod.value.categories,
     axisBorder: { show: false },

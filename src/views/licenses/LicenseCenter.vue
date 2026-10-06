@@ -4,8 +4,8 @@
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Lisans</h1>
-        <p class="text-muted text-sm mt-1">
+        <h1 class="page-title">Lisans</h1>
+        <p class="page-subtitle">
           Kasadan gelen lisans başvuruları, verilen lisanslar ve modül yönetimi
         </p>
       </div>
@@ -55,12 +55,12 @@
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Müşteri</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Cihaz</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Tip</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Bitiş</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Son Bağlantı</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Durum</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Müşteri</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Cihaz</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Tip</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Bitiş</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Son Bağlantı</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Durum</th>
               <th class="px-6 py-3"></th>
             </tr>
           </thead>
@@ -119,11 +119,11 @@
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Cihaz</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">İstenen Firma</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Başvuru</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Cihaz</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">İstenen Firma</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Başvuru</th>
               <th v-if="tab === 'reddedilen'"
-                  class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Ret Sebebi</th>
+                  class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Ret Sebebi</th>
               <th class="px-6 py-3"></th>
             </tr>
           </thead>
@@ -172,7 +172,7 @@
     <!-- ── ONAY MODALI ─────────────────────────────────────────────── -->
     <Teleport to="body">
       <div v-if="approveModal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
           <h2 class="text-xl font-bold mb-1">Lisansı Tanımla</h2>
           <p class="text-xs font-mono text-muted mb-6">{{ approveModal.request?.deviceId }}</p>
@@ -266,7 +266,7 @@
     <!-- ── MODÜL MODALI (aktif lisans) ─────────────────────────────── -->
     <Teleport to="body">
       <div v-if="moduleModal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
           <h2 class="text-xl font-bold mb-1">Modüller</h2>
           <p class="text-sm text-muted mb-6">{{ moduleModal.license?.tenantName }}</p>

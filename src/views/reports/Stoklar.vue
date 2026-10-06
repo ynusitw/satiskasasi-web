@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Stoklar</h1>
-        <p class="text-muted text-sm mt-1">Ürün ve hammadde stok durumu, son hareketler</p>
+        <h1 class="page-title">Stoklar</h1>
+        <p class="page-subtitle">Ürün ve hammadde stok durumu, son hareketler</p>
       </div>
       <button @click="load" :disabled="loading"
               class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 disabled:opacity-50">
@@ -47,11 +47,11 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50 sticky top-0">
             <tr>
-              <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Ürün</th>
-              <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Kategori</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Stok</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Kritik</th>
-              <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Durum</th>
+              <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Ürün</th>
+              <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Kategori</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Stok</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Kritik</th>
+              <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Durum</th>
             </tr>
           </thead>
           <tbody>
@@ -80,12 +80,12 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50 sticky top-0">
             <tr>
-              <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Hammadde</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Stok</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Kritik</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Birim Maliyet</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Stok Değeri</th>
-              <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Durum</th>
+              <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Hammadde</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Stok</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Kritik</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Birim Maliyet</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Stok Değeri</th>
+              <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Durum</th>
             </tr>
           </thead>
           <tbody>
@@ -113,12 +113,12 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50 sticky top-0">
             <tr>
-              <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Tarih</th>
-              <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Kalem</th>
-              <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Hareket</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Miktar</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Kalan</th>
-              <th class="text-left  px-5 py-3 text-xs font-bold text-muted uppercase">Açıklama</th>
+              <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Tarih</th>
+              <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Kalem</th>
+              <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Hareket</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Miktar</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Kalan</th>
+              <th class="text-left  px-5 py-3 text-[11px] font-semibold text-muted uppercase">Açıklama</th>
             </tr>
           </thead>
           <tbody>
@@ -173,7 +173,7 @@ const tabs = [
 ]
 
 function money(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 function num(v) {
   return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 3 }).format(v ?? 0)

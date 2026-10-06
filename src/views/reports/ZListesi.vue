@@ -3,8 +3,8 @@
 
     <!-- Başlık -->
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-primary">Z-Listesi</h1>
-      <p class="text-muted text-sm mt-1">Z-Raporu geçmişi ve günlük satış özetleri</p>
+      <h1 class="page-title">Z-Listesi</h1>
+      <p class="page-subtitle">Z-Raporu geçmişi ve günlük satış özetleri</p>
     </div>
 
     <div v-if="loading" class="text-center py-20 text-muted text-sm">Yükleniyor...</div>
@@ -20,20 +20,20 @@
       <!-- Özet kartlar -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow-sm p-5">
-          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-1">Toplam Nakit</div>
+          <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam Nakit</div>
           <div class="text-2xl font-bold text-success">{{ fmt(totals.cash) }}</div>
           <div class="text-xs text-muted mt-1">{{ reports.length }} rapor</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
-          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-1">Toplam Kart</div>
+          <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam Kart</div>
           <div class="text-2xl font-bold text-accent">{{ fmt(totals.card) }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
-          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-1">Toplam İndirim</div>
+          <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam İndirim</div>
           <div class="text-2xl font-bold text-danger">{{ fmt(totals.discount) }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
-          <div class="text-xs font-bold text-muted uppercase tracking-wide mb-1">Genel Toplam</div>
+          <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Genel Toplam</div>
           <div class="text-2xl font-bold text-primary">{{ fmt(totals.grand) }}</div>
           <div class="text-xs text-muted mt-1">{{ totals.sales }} işlem</div>
         </div>
@@ -50,15 +50,15 @@
           <table class="w-full">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left  px-6 py-3 text-xs font-bold text-muted uppercase">Tarih</th>
-                <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">İşlem</th>
-                <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Nakit</th>
-                <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Kart</th>
-                <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">İndirim</th>
-                <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Toplam</th>
-                <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase"
+                <th class="text-left  px-6 py-3 text-[11px] font-semibold text-muted uppercase">Tarih</th>
+                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">İşlem</th>
+                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Nakit</th>
+                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Kart</th>
+                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">İndirim</th>
+                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Toplam</th>
+                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase"
                     title="Personel satışları ciroya dahil değildir">Personel</th>
-                <th class="text-center px-6 py-3 text-xs font-bold text-muted uppercase">Detay</th>
+                <th class="text-center px-6 py-3 text-[11px] font-semibold text-muted uppercase">Detay</th>
               </tr>
             </thead>
             <tbody>
@@ -121,7 +121,7 @@
     <!-- ── Detay Modal ────────────────────────────────────────────────── -->
     <Transition name="fade">
       <div v-if="modal.open"
-           class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-4"
            @click.self="modal.open = false">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
 
@@ -171,10 +171,10 @@
                 <table class="w-full text-sm">
                   <thead class="bg-gray-50">
                     <tr>
-                      <th class="text-left px-4 py-2.5 text-xs font-bold text-muted uppercase">Ürün</th>
-                      <th class="text-right px-4 py-2.5 text-xs font-bold text-muted uppercase">Adet</th>
-                      <th class="text-right px-4 py-2.5 text-xs font-bold text-muted uppercase">Birim</th>
-                      <th class="text-right px-4 py-2.5 text-xs font-bold text-muted uppercase">Toplam</th>
+                      <th class="text-left px-4 py-2.5 text-[11px] font-semibold text-muted uppercase">Ürün</th>
+                      <th class="text-right px-4 py-2.5 text-[11px] font-semibold text-muted uppercase">Adet</th>
+                      <th class="text-right px-4 py-2.5 text-[11px] font-semibold text-muted uppercase">Birim</th>
+                      <th class="text-right px-4 py-2.5 text-[11px] font-semibold text-muted uppercase">Toplam</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -226,7 +226,7 @@ const totals = computed(() => ({
 }))
 
 function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 function fmtDate(d) {
   return new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })

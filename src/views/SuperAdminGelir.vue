@@ -4,8 +4,8 @@
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Gelir Analizi</h1>
-        <p class="text-muted text-sm mt-1">Plan bazlı abone gelir özeti</p>
+        <h1 class="page-title">Gelir Analizi</h1>
+        <p class="page-subtitle">Plan bazlı abone gelir özeti</p>
       </div>
       <div class="flex items-center gap-3">
         <!-- Plan fiyat göstergesi -->
@@ -130,12 +130,12 @@
           <table class="w-full">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">İşletme</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Plan</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Aylık Katkı</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">Abonelik Bitiş</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Kalan Süre</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Durum</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">İşletme</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Plan</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Aylık Katkı</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden md:table-cell">Abonelik Bitiş</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden lg:table-cell">Kalan Süre</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Durum</th>
               </tr>
             </thead>
             <tbody>

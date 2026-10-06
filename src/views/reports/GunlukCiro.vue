@@ -4,8 +4,8 @@
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Günlük Ciro</h1>
-        <p class="text-muted text-sm mt-1">{{ selectedDate }} tarihine ait satış özeti</p>
+        <h1 class="page-title">Günlük Ciro</h1>
+        <p class="page-subtitle">{{ selectedDate }} tarihine ait satış özeti</p>
       </div>
       <input v-model="selectedDate" type="date"
              class="px-4 py-2 border border-gray-200 rounded-xl text-sm
@@ -49,11 +49,11 @@
           <table class="w-full">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase w-16">#</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Saat</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Kasiyer</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">Ödeme</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Tutar</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase w-16">#</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Saat</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Kasiyer</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden md:table-cell">Ödeme</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Tutar</th>
                 <th class="w-10 px-3 py-3"></th>
               </tr>
             </thead>
@@ -157,10 +157,10 @@
                           <table class="w-full text-sm">
                             <thead class="bg-gray-50 border-b border-gray-100">
                               <tr>
-                                <th class="text-left px-4 py-2.5 text-xs font-bold text-muted uppercase">Ürün</th>
-                                <th class="text-right px-4 py-2.5 text-xs font-bold text-muted uppercase w-20">Miktar</th>
-                                <th class="text-right px-4 py-2.5 text-xs font-bold text-muted uppercase w-28 hidden sm:table-cell">Birim Fiyat</th>
-                                <th class="text-right px-4 py-2.5 text-xs font-bold text-muted uppercase w-28">Toplam</th>
+                                <th class="text-left px-4 py-2.5 text-[11px] font-semibold text-muted uppercase">Ürün</th>
+                                <th class="text-right px-4 py-2.5 text-[11px] font-semibold text-muted uppercase w-20">Miktar</th>
+                                <th class="text-right px-4 py-2.5 text-[11px] font-semibold text-muted uppercase w-28 hidden sm:table-cell">Birim Fiyat</th>
+                                <th class="text-right px-4 py-2.5 text-[11px] font-semibold text-muted uppercase w-28">Toplam</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -238,7 +238,7 @@ const expandedId   = ref(null)
 
 // ─── Format yardımcıları ─────────────────────────────────────────────────────
 function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 function time(d) {
   return new Date(d).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })

@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Satış Raporları</h1>
-        <p class="text-muted text-sm mt-1">Gün, saat, ödeme, kasiyer, kategori ve ürün kırılımı</p>
+        <h1 class="page-title">Satış Raporları</h1>
+        <p class="page-subtitle">Gün, saat, ödeme, kasiyer, kategori ve ürün kırılımı</p>
       </div>
       <DateRange v-model:from="from" v-model:to="to" :loading="loading" @apply="load"/>
     </div>
@@ -88,7 +88,7 @@
               <span class="text-muted">{{ money(c.revenue) }} · {{ num(c.quantity) }} adet</span>
             </div>
             <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-full rounded-full bg-purple-500"
+              <div class="h-full rounded-full bg-accent"
                    :style="{ width: barWidth(c.revenue, byCategory[0].revenue) }"/>
             </div>
           </div>
@@ -107,11 +107,11 @@
           <table class="w-full text-sm">
             <thead class="bg-gray-50 sticky top-0">
               <tr>
-                <th class="text-left  px-5 py-2.5 text-xs font-bold text-muted uppercase">Ürün</th>
-                <th class="text-left  px-5 py-2.5 text-xs font-bold text-muted uppercase">Kategori</th>
-                <th class="text-right px-5 py-2.5 text-xs font-bold text-muted uppercase">Adet</th>
-                <th class="text-right px-5 py-2.5 text-xs font-bold text-muted uppercase">Ciro</th>
-                <th class="text-right px-5 py-2.5 text-xs font-bold text-muted uppercase">Pay</th>
+                <th class="text-left  px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Ürün</th>
+                <th class="text-left  px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Kategori</th>
+                <th class="text-right px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Adet</th>
+                <th class="text-right px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Ciro</th>
+                <th class="text-right px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Pay</th>
               </tr>
             </thead>
             <tbody>
@@ -163,7 +163,7 @@ const error   = ref('')
 const productSearch = ref('')
 
 function money(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 function num(v) {
   return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 3 }).format(v ?? 0)
@@ -187,7 +187,7 @@ const kpis = computed(() => [
 ])
 
 const payments = computed(() => [
-  { label: 'Nakit',           value: s.value.cash, color: 'bg-green-500' },
+  { label: 'Nakit',           value: s.value.cash, color: 'bg-emerald-500' },
   { label: 'Kredi Kartı',     value: s.value.card, color: 'bg-blue-500' },
   { label: 'Veresiye (cari)', value: s.value.cari, color: 'bg-amber-500' },
 ])
@@ -203,13 +203,13 @@ const baseChart = {
   chart: { toolbar: { show: false }, fontFamily: 'inherit' },
   dataLabels: { enabled: false },
   plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
-  grid: { borderColor: '#f1f5f9', strokeDashArray: 4 },
+  grid: { borderColor: 'rgba(100,116,139,0.14)', strokeDashArray: 4 },
   yaxis: { labels: { style: { colors: '#94a3b8' } } },
 }
 
 const dayChart = computed(() => ({
   ...baseChart,
-  colors: ['#3498DB'],
+  colors: ['#2563EB'],
   xaxis: {
     categories: days.value.map(d =>
       new Date(d.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })),
@@ -221,7 +221,7 @@ const dayChart = computed(() => ({
 
 const hourChart = computed(() => ({
   ...baseChart,
-  colors: ['#8B5CF6'],
+  colors: ['#60A5FA'],
   xaxis: {
     categories: hours.value.map(h => `${h.hour}:00`),
     labels: { style: { colors: '#94a3b8' } },

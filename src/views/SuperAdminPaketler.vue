@@ -4,8 +4,8 @@
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Paket Yönetimi</h1>
-        <p class="text-muted text-sm mt-1">Plan fiyatlarını ve özelliklerini yönetin</p>
+        <h1 class="page-title">Paket Yönetimi</h1>
+        <p class="page-subtitle">Plan fiyatlarını ve özelliklerini yönetin</p>
       </div>
       <button @click="openAdd"
               class="flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-xl
@@ -112,7 +112,7 @@
     <!-- ── Modal ─────────────────────────────────────────────────────────── -->
     <Teleport to="body">
       <div v-if="modal.show"
-           class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] backdrop-blur-sm flex items-center
                   justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
 

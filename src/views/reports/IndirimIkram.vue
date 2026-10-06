@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">İndirim &amp; İkram</h1>
-        <p class="text-muted text-sm mt-1">
+        <h1 class="page-title">İndirim &amp; İkram</h1>
+        <p class="page-subtitle">
           Kasada yönetici onayıyla yapılan indirim, ikram ve personel satışları
         </p>
         <p class="text-muted text-xs mt-1">
@@ -70,14 +70,14 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50">
             <tr>
-              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Tarih</th>
-              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Tür</th>
-              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Ürün</th>
-              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Adet</th>
-              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Ciro Etkisi</th>
-              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Kasiyer</th>
-              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Onaylayan</th>
-              <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase">Açıklama</th>
+              <th class="text-left px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tarih</th>
+              <th class="text-left px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tür</th>
+              <th class="text-left px-4 py-3 text-[11px] font-semibold text-muted uppercase">Ürün</th>
+              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Adet</th>
+              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Ciro Etkisi</th>
+              <th class="text-left px-4 py-3 text-[11px] font-semibold text-muted uppercase">Kasiyer</th>
+              <th class="text-left px-4 py-3 text-[11px] font-semibold text-muted uppercase">Onaylayan</th>
+              <th class="text-left px-4 py-3 text-[11px] font-semibold text-muted uppercase">Açıklama</th>
             </tr>
           </thead>
           <tbody>

@@ -4,8 +4,8 @@
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Cari Kartlar</h1>
-        <p class="text-muted text-sm mt-1">Müşteri ve tedarikçi hesap yönetimi</p>
+        <h1 class="page-title">Cari Kartlar</h1>
+        <p class="page-subtitle">Müşteri ve tedarikçi hesap yönetimi</p>
       </div>
       <button @click="openCreate"
               class="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-bold
@@ -56,13 +56,13 @@
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Tip</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Unvan / Ad Soyad</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">Telefon</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Vergi / TC No</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Güncel Bakiye</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Risk Limiti</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden xl:table-cell">Son İşlem</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Tip</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Unvan / Ad Soyad</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden md:table-cell">Telefon</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden lg:table-cell">Vergi / TC No</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Güncel Bakiye</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden lg:table-cell">Risk Limiti</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden xl:table-cell">Son İşlem</th>
               <th class="px-5 py-3"></th>
             </tr>
           </thead>
@@ -148,7 +148,7 @@
     <!-- Modal -->
     <Teleport to="body">
       <div v-if="modal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
           <h2 class="text-xl font-bold mb-6">
             {{ modal.editing ? 'Cari Düzenle' : 'Yeni Cari Ekle' }}
@@ -263,7 +263,7 @@ const alacakliSayisi = computed(() => store.carilerWithBakiye.filter(c => c.baki
 const netBakiye      = computed(() => store.carilerWithBakiye.reduce((s, c) => s + c.bakiye, 0))
 
 function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 
 function openCreate() {

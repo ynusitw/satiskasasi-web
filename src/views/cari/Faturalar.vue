@@ -3,8 +3,8 @@
 
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Faturalar</h1>
-        <p class="text-muted text-sm mt-1">Alış ve satış faturası yönetimi</p>
+        <h1 class="page-title">Faturalar</h1>
+        <p class="page-subtitle">Alış ve satış faturası yönetimi</p>
       </div>
       <button @click="openCreate"
               class="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-bold
@@ -49,14 +49,14 @@
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Tip</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Fatura No</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Cari</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">Tarih</th>
-              <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Açıklama</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">Ara Toplam</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase hidden lg:table-cell">KDV</th>
-              <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Genel Toplam</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Tip</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Fatura No</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Cari</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden md:table-cell">Tarih</th>
+              <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden lg:table-cell">Açıklama</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden lg:table-cell">Ara Toplam</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden lg:table-cell">KDV</th>
+              <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Genel Toplam</th>
             </tr>
           </thead>
           <tbody>
@@ -92,7 +92,7 @@
     <!-- Yeni Fatura Modalı (geniş, ERP stili) -->
     <Teleport to="body">
       <div v-if="modal.show"
-           class="fixed inset-0 bg-black/60 z-50 overflow-y-auto">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 overflow-y-auto">
         <div class="min-h-screen flex items-start justify-center p-4 py-8">
           <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl">
 
@@ -115,7 +115,7 @@
 
               <!-- Fatura Başlık Bilgileri -->
               <div>
-                <div class="text-xs font-bold text-muted uppercase tracking-wider mb-3">Fatura Bilgileri</div>
+                <div class="text-[11px] font-semibold text-muted uppercase tracking-wider mb-3">Fatura Bilgileri</div>
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
                   <div class="col-span-2 lg:col-span-1">
@@ -172,7 +172,7 @@
               <!-- Fatura Kalemleri -->
               <div>
                 <div class="flex items-center justify-between mb-3">
-                  <div class="text-xs font-bold text-muted uppercase tracking-wider">
+                  <div class="text-[11px] font-semibold text-muted uppercase tracking-wider">
                     Fatura Kalemleri
                     <span class="ml-2 font-normal normal-case text-muted/70">{{ kalemler.length }} kalem</span>
                   </div>
@@ -311,7 +311,7 @@
     <!-- Risk Limiti Uyarı Modalı -->
     <Teleport to="body">
       <div v-if="riskModal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-[60] p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
           <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg class="w-8 h-8 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -415,8 +415,8 @@ const filtered = computed(() => {
 })
 
 // ─── Format ─────────────────────────────────────────────────────────────────
-function fmt(v)  { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺' }
-function fmtN(v) { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) }
+function fmt(v)  { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺' }
+function fmtN(v) { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) }
 
 // ─── Kalem işlemleri ────────────────────────────────────────────────────────
 function yeniKalem() {

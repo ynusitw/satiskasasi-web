@@ -1,6 +1,6 @@
 <template>
   <div class="p-8 max-w-5xl">
-    <h1 class="text-2xl font-bold text-primary">Müşteri Ekranı</h1>
+    <h1 class="page-title">Müşteri Ekranı</h1>
     <p class="text-muted text-sm mt-1 mb-6">
       Kasaya bağlı ikinci ekranda müşterinin gördüğü sayfa. Kasa açılırken bu ayarları
       indirir; ikinci ekran bağlı değilse hiçbir şey değişmez.
@@ -190,7 +190,7 @@ const demoLines = [
 const demoTotal = computed(() => demoLines.reduce((s, d) => s + d.total, 0))
 
 function money(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 
 // ── Görseller ────────────────────────────────────────────────────────────

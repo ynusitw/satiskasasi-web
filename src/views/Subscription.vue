@@ -1,6 +1,6 @@
 <template>
   <div class="p-8">
-    <h1 class="text-2xl font-bold text-primary mb-8">Abonelik Bilgileri</h1>
+    <h1 class="page-title mb-8">Abonelik Bilgileri</h1>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 

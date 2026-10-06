@@ -3,8 +3,8 @@
 
     <!-- Başlık -->
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-primary">Masa Ayarları</h1>
-      <p class="text-muted text-sm mt-1">Salon bölümleri ve masa düzenini yapılandırın</p>
+      <h1 class="page-title">Masa Ayarları</h1>
+      <p class="page-subtitle">Salon bölümleri ve masa düzenini yapılandırın</p>
     </div>
 
     <!-- ── Aktif/Pasif Kartı ───────────────────────────────────────────── -->
@@ -267,7 +267,7 @@
 
       <!-- Bölüm ekle/düzenle -->
       <div v-if="bolumModal.show"
-           class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] backdrop-blur-sm flex items-center
                   justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
           <div class="px-6 pt-6 pb-1">
@@ -303,7 +303,7 @@
 
       <!-- Tek masa ekle/düzenle -->
       <div v-if="masaModal.show"
-           class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] backdrop-blur-sm flex items-center
                   justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
           <div class="px-6 pt-6 pb-1">
@@ -339,7 +339,7 @@
 
       <!-- Toplu masa ekle -->
       <div v-if="topluModal.show"
-           class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] backdrop-blur-sm flex items-center
                   justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
           <div class="px-6 pt-6 pb-1">

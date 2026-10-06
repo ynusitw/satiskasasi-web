@@ -1,6 +1,6 @@
 <template>
   <div class="p-8 max-w-6xl">
-    <h1 class="text-2xl font-bold text-primary">Dijital Menü (QR)</h1>
+    <h1 class="page-title">Dijital Menü (QR)</h1>
     <p class="text-muted text-sm mt-1 mb-6">
       Bu QR kodu masalarınıza koyun — müşterileriniz telefonlarıyla okutup
       menünüzü (ürün ve fiyatları) görüntüleyebilir. Sipariş alınmaz, sadece
@@ -247,7 +247,7 @@ const filteredProducts = computed(() => {
 })
 
 function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 
 async function copyLink() {

@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">İptaller</h1>
-        <p class="text-muted text-sm mt-1">Adisyondan silinen kalemler ve tümüyle iptal edilen masalar</p>
+        <h1 class="page-title">İptaller</h1>
+        <p class="page-subtitle">Adisyondan silinen kalemler ve tümüyle iptal edilen masalar</p>
       </div>
       <DateRange v-model:from="from" v-model:to="to" :loading="loading" @apply="load"/>
     </div>
@@ -62,14 +62,14 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50 sticky top-0">
             <tr>
-              <th class="text-left  px-4 py-3 text-xs font-bold text-muted uppercase">Tarih</th>
-              <th class="text-left  px-4 py-3 text-xs font-bold text-muted uppercase">Tür</th>
-              <th class="text-left  px-4 py-3 text-xs font-bold text-muted uppercase">Masa</th>
-              <th class="text-left  px-4 py-3 text-xs font-bold text-muted uppercase">Ürün</th>
-              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Adet</th>
-              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Tutar</th>
-              <th class="text-left  px-4 py-3 text-xs font-bold text-muted uppercase">Kasiyer</th>
-              <th class="text-left  px-4 py-3 text-xs font-bold text-muted uppercase">Sebep</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tarih</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tür</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Masa</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Ürün</th>
+              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Adet</th>
+              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tutar</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Kasiyer</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Sebep</th>
             </tr>
           </thead>
           <tbody>
@@ -129,7 +129,7 @@ const loading = ref(false)
 const error   = ref('')
 
 function money(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 function num(v) {
   return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 3 }).format(v ?? 0)

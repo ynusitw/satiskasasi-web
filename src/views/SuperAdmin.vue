@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Müşteri Yönetimi</h1>
-        <p class="text-muted text-sm mt-1">
+        <h1 class="page-title">Müşteri Yönetimi</h1>
+        <p class="page-subtitle">
           Toplam {{ tenants.length }} müşteri
         </p>
       </div>
@@ -44,12 +44,12 @@
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">İşletme</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">İletişim</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Plan</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Bitiş</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Satış</th>
-              <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Durum</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">İşletme</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">İletişim</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Plan</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Bitiş</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Satış</th>
+              <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Durum</th>
               <th class="px-6 py-3"></th>
             </tr>
           </thead>
@@ -119,7 +119,7 @@
     <!-- Yeni Müşteri Modal — lisans verilmeden önce de müşteri açılabilsin -->
     <Teleport to="body">
       <div v-if="createModal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
           <h2 class="text-xl font-bold mb-1">Yeni Müşteri</h2>
           <p class="text-sm text-muted mb-6">
@@ -171,7 +171,7 @@
     <!-- Düzenleme Modal -->
     <Teleport to="body">
       <div v-if="modal.show"
-           class="fixed inset-0 bg-black/50 flex items-center
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center
                   justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
           <h2 class="text-xl font-bold mb-2">{{ modal.tenant?.businessName }}</h2>

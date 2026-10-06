@@ -1,7 +1,7 @@
 <template>
   <div class="p-8">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-primary">Kullanıcılar</h1>
+      <h1 class="page-title">Kullanıcılar</h1>
       <button @click="openCreate" class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors">+ Yeni Kullanıcı</button>
     </div>
 
@@ -33,10 +33,10 @@
       <table class="w-full">
         <thead class="bg-gray-50">
           <tr>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Kullanıcı</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Rol</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Durum</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Yetkiler</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Kullanıcı</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Rol</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Durum</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Yetkiler</th>
             <th class="px-6 py-3"></th>
           </tr>
         </thead>
@@ -68,7 +68,7 @@
       </table>
     </div>
     <Teleport to="body">
-      <div v-if="modal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div v-if="modal.show" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
           <h2 class="text-xl font-bold mb-6">{{ modal.editing ? 'Kullanıcıyı Düzenle' : 'Yeni Kullanıcı' }}</h2>
           <div class="space-y-4">

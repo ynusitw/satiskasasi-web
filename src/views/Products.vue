@@ -1,21 +1,65 @@
 <template>
   <div class="p-6 lg:p-8">
 
-    <!-- Başlık -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-primary">Ürün Düzenleme</h1>
-      <p class="text-muted text-sm mt-1">Kategori ve ürün yönetimi</p>
+    <!-- Başlık + eylemler -->
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+      <div>
+        <h1 class="page-title">Ürünler</h1>
+        <p class="page-subtitle">Kategori ve ürün yönetimi</p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Excel işlemleri tek menüde -->
+        <div class="relative">
+          <button @click="excelMenuOpen = !excelMenuOpen" class="btn-secondary">
+            {{ exporting ? `Aktarılıyor... ${exportProgress}` : 'Excel' }}
+            <svg class="w-3.5 h-3.5 opacity-60 transition-transform" :class="excelMenuOpen ? 'rotate-180' : ''"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div v-if="excelMenuOpen" class="fixed inset-0 z-20" @click="excelMenuOpen = false"/>
+          <div v-if="excelMenuOpen" class="menu-pop right-0 w-72">
+            <button class="menu-item" @click="excelMenuOpen = false; downloadTemplate()">
+              Boş şablon indir
+              <span class="menu-hint">Ürünleri toplu girmek için Excel şablonu</span>
+            </button>
+            <button class="menu-item" @click="excelMenuOpen = false; triggerImport()">
+              İçe aktar
+              <span class="menu-hint">Excel (.xlsx) ya da fotoğraflı paket (.zip)</span>
+            </button>
+            <button class="menu-item" :disabled="exporting" @click="excelMenuOpen = false; exportExcel()">
+              Dışa aktar
+              <span class="menu-hint">Listelenen ürünler, fotoğraflarıyla</span>
+            </button>
+            <div class="h-px bg-gray-100 my-1.5 mx-2"/>
+            <label class="flex items-start gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer select-none">
+              <input type="checkbox" v-model="overwritePhotos" class="w-4 h-4 mt-0.5"/>
+              <span class="text-[13px] font-medium text-primary leading-snug">
+                İçe aktarırken fotoğrafların üzerine yaz
+                <span class="block menu-hint mt-0.5">İşaretliyse dosyadaki fotoğraf mevcut fotoğrafın yerine geçer</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <button @click="openPhotoModal" class="btn-secondary">Hızlı Fotoğraf</button>
+        <button @click="openExistingProductModal()" class="btn-primary">Yeni Ürün</button>
+      </div>
+
+      <input ref="importFileInput" type="file" accept=".xlsx,.xls,.zip"
+             class="hidden" @change="onImportFile"/>
     </div>
 
     <!-- ── İki Sütun Layout ──────────────────────────────────────────── -->
     <div class="flex gap-5 items-start">
 
       <!-- ── Sol Kart: Kategoriler ──────────────────────────────────── -->
-      <div class="w-60 flex-shrink-0 bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="w-60 flex-shrink-0 bg-white rounded-2xl shadow-sm overflow-hidden">
 
         <!-- Başlık + Yeni Grup -->
         <div class="px-4 py-3.5 border-b border-gray-100 flex items-center justify-between">
-          <span class="text-sm font-bold text-primary">Kategoriler</span>
+          <span class="text-[14px] font-semibold text-primary">Kategoriler</span>
           <button @click="openExistingCategoryModal()"
                   class="flex items-center gap-1 text-xs font-semibold text-accent
                          hover:bg-accent/10 px-2 py-1 rounded-lg transition-colors">
@@ -97,19 +141,19 @@
       </div>
 
       <!-- ── Sağ Kart: Ürünler ───────────────────────────────────────── -->
-      <div class="flex-1 min-w-0 bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="flex-1 min-w-0 bg-white rounded-2xl shadow-sm overflow-hidden">
 
         <!-- Toolbar -->
-        <div class="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 flex-wrap">
+        <div class="flex items-center gap-3 px-5 py-3 border-b border-gray-100">
           <!-- Seçili kategori başlığı -->
           <div class="flex items-center gap-2 flex-1 min-w-0">
             <span v-if="selectedCategory"
                   class="w-2.5 h-2.5 rounded-full flex-shrink-0"
                   :style="{ background: selectedCategory.colorHex || '#94a3b8' }"/>
-            <span class="font-semibold text-sm text-primary truncate">
+            <span class="font-semibold text-[14px] text-primary truncate">
               {{ selectedCategory ? selectedCategory.name : 'Tüm Ürünler' }}
             </span>
-            <span class="text-xs text-muted">({{ filtered.length }} ürün)</span>
+            <span class="text-[12px] text-muted whitespace-nowrap">{{ filtered.length }} ürün</span>
           </div>
 
           <!-- Arama -->
@@ -120,80 +164,9 @@
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
             </svg>
             <input v-model="search" placeholder="Ürün ara..."
-                   class="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm
-                          focus:border-accent focus:outline-none w-52"/>
+                   class="pl-9 pr-3 h-9 border border-gray-200 rounded-lg text-[13px] w-64"/>
           </div>
 
-          <!-- Hızlı Fotoğraf -->
-          <button @click="openPhotoModal"
-                  class="flex items-center gap-2 px-4 py-2 border border-purple-200 text-purple-600
-                         rounded-lg text-sm font-bold hover:bg-purple-50 transition-colors flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            Hızlı Fotoğraf
-          </button>
-
-          <!-- Yeni Ürün Ekle -->
-          <button @click="openExistingProductModal()"
-                  class="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg
-                         text-sm font-bold hover:bg-blue-600 transition-colors flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-            </svg>
-            Yeni Ürün Ekle
-          </button>
-
-          <!-- Excel Şablon İndir -->
-          <button @click="downloadTemplate"
-                  title="Boş Excel şablonu indir"
-                  class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-muted
-                         rounded-lg text-xs font-semibold hover:border-accent hover:text-accent
-                         transition-colors flex-shrink-0">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-            </svg>
-            Şablon
-          </button>
-
-          <!-- Excel İçe Aktar -->
-          <button @click="triggerImport"
-                  title="Excel (.xlsx) ya da fotoğraflı paket (.zip) içe aktar"
-                  class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-muted
-                         rounded-lg text-xs font-semibold hover:border-success hover:text-success
-                         transition-colors flex-shrink-0">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-            </svg>
-            Excel İçe Aktar
-          </button>
-          <!-- Excel Dışa Aktar -->
-          <button @click="exportExcel" :disabled="exporting"
-                  title="Listelenen ürünleri fotoğraflarıyla Excel'e aktar"
-                  class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-muted
-                         rounded-lg text-xs font-semibold hover:border-accent hover:text-accent
-                         transition-colors flex-shrink-0 disabled:opacity-50">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-            </svg>
-            {{ exporting ? `Aktarılıyor... ${exportProgress}` : 'Excel Dışa Aktar' }}
-          </button>
-
-          <input ref="importFileInput" type="file" accept=".xlsx,.xls,.zip"
-                 class="hidden" @change="onImportFile"/>
-
-          <!-- İçe aktarmada mevcut fotoğrafın üzerine yazılsın mı -->
-          <label class="flex items-center gap-1.5 px-2 text-xs text-muted cursor-pointer
-                        flex-shrink-0 select-none"
-                 title="İşaretliyse dosyadaki fotoğraf, ürünün mevcut fotoğrafının yerine yazılır">
-            <input type="checkbox" v-model="overwritePhotos" class="w-4 h-4"/>
-            Fotoğrafları üzerine yaz
-          </label>
         </div>
 
         <!-- Tablo -->
@@ -201,11 +174,11 @@
           <table class="w-full">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left px-4 py-3 text-xs font-bold text-muted uppercase w-14">Görsel</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase">Ürün Adı</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-muted uppercase hidden md:table-cell">Barkod</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase">Fiyat</th>
-                <th class="text-right px-5 py-3 text-xs font-bold text-muted uppercase hidden sm:table-cell">Stok</th>
+                <th class="text-left px-4 py-3 text-[11px] font-semibold text-muted uppercase w-14">Görsel</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase">Ürün Adı</th>
+                <th class="text-left px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden md:table-cell">Barkod</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase">Fiyat</th>
+                <th class="text-right px-5 py-3 text-[11px] font-semibold text-muted uppercase hidden sm:table-cell">Stok</th>
                 <th class="px-5 py-3 w-24"/>
               </tr>
             </thead>
@@ -219,7 +192,7 @@
 
                 <!-- Görsel -->
                 <td class="px-4 py-3">
-                  <div class="w-11 h-11 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                  <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                     <img v-if="p.imageBase64" :src="p.imageBase64" :alt="p.name"
                          class="w-full h-full object-cover"/>
                     <div v-else
@@ -231,7 +204,7 @@
                 <!-- Ürün Adı -->
                 <td class="px-5 py-3">
                   <div class="flex items-center gap-2">
-                    <span class="font-semibold text-sm text-primary">{{ p.name }}</span>
+                    <span class="font-medium text-[13.5px] text-primary">{{ p.name }}</span>
                     <span v-if="!p.isActive"
                           class="text-[10px] font-bold px-2 py-0.5 rounded-full
                                  bg-gray-200 text-gray-500 flex-shrink-0">
@@ -251,17 +224,17 @@
                 </td>
 
                 <!-- Fiyat -->
-                <td class="px-5 py-3 text-sm font-bold text-success text-right whitespace-nowrap">
+                <td class="px-5 py-3 text-[13.5px] font-semibold text-primary text-right whitespace-nowrap">
                   {{ fmt(p.price) }}
                 </td>
 
                 <!-- Stok -->
                 <td class="px-5 py-3 text-sm text-right hidden sm:table-cell">
-                  <span :class="p.currentStock <= (p.minimumStock ?? 0)
-                    ? 'text-danger font-bold'
-                    : 'text-primary'">
+                  <span v-if="p.currentStock <= (p.minimumStock ?? 0)"
+                        class="inline-block px-2 py-0.5 rounded-md bg-red-50 text-danger text-[12px] font-semibold">
                     {{ p.currentStock }}
                   </span>
+                  <span v-else class="text-primary">{{ p.currentStock }}</span>
                 </td>
 
                 <!-- Aksiyon -->
@@ -305,7 +278,7 @@
     <!-- ── Hızlı Fotoğraf Modal ─────────────────────────────────────── -->
     <Teleport to="body">
       <div v-if="photoModal.show"
-           class="fixed inset-0 bg-black/60 z-50 flex flex-col">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex flex-col">
 
         <!-- Üst bar -->
         <div class="bg-white flex items-center gap-4 px-6 py-3.5 shadow-sm flex-shrink-0">
@@ -421,7 +394,7 @@
     <!-- ── Kategori Modal ────────────────────────────────────────────── -->
     <Teleport to="body">
       <div v-if="catModal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
            @click.self="catModal.show = false">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8">
 
@@ -480,7 +453,7 @@
     <!-- ── Excel İçe Aktarma Modal ─────────────────────────────────── -->
     <Teleport to="body">
       <div v-if="importModal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
            @click.self="importModal.show = false">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
 
@@ -542,7 +515,7 @@
     <!-- ── Ürün Modal (mevcut, değiştirilmedi) ───────────────────────── -->
     <Teleport to="body">
       <div v-if="modal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
 
           <div class="px-8 pt-8 pb-6 border-b border-gray-100">
@@ -887,7 +860,7 @@ const filtered = computed(() =>
 )
 
 function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 
 // ── Modal state (mevcut, değiştirilmedi) ─────────────────────────────────
@@ -1207,7 +1180,7 @@ const recipeCost = computed(() => {
     const ing = ingredients.value.find(i => i.id === r.ingredientId)
     return sum + (ing ? (Number(r.quantity) || 0) * (ing.costPerUnit || 0) : 0)
   }, 0)
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(total) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total) + ' ₺'
 })
 
 async function save() {
@@ -1351,6 +1324,7 @@ const exporting = ref(false)
 // İçe aktarmada mevcut fotoğraflar korunur; bu seçenek işaretliyse dosyadaki
 // fotoğraf onların yerine yazılır (bozuk/eski fotoğrafları toplu düzeltmek için).
 const overwritePhotos = ref(false)
+const excelMenuOpen = ref(false)
 const exportProgress = ref('')
 
 // Excel'e gömülecek fotoğraf. Kaynak, ürünün BÜYÜK görselidir: dosya başka

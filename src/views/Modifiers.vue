@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Çeşni & Ekstra Seçimler</h1>
-        <p class="text-muted text-sm mt-1">
+        <h1 class="page-title">Çeşni & Ekstra Seçimler</h1>
+        <p class="page-subtitle">
           Kasada satış anında sorulan seçimler. Ürün düzenleme ekranından ürünlere bağlanır.
         </p>
       </div>
@@ -66,7 +66,7 @@
     <!-- Grup formu -->
     <Teleport to="body">
       <div v-if="modal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-8 max-h-[90vh] overflow-y-auto">
           <h2 class="text-xl font-bold mb-1">{{ modal.editing ? 'Grubu Düzenle' : 'Yeni Çeşni Grubu' }}</h2>
           <p class="text-sm text-muted mb-6">Kasada bu grup satış anında sorulur</p>
@@ -195,7 +195,7 @@ const form  = reactive({ name: '', minSelect: 0, maxSelect: 1, isActive: true, o
 let nextKey = 1
 
 function money(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 
 // Kasadaki davranışı tek cümlede anlatır: sayılar soyut kalmasın.

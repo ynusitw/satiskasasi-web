@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Hammaddeler</h1>
-        <p class="text-muted text-sm mt-1">
+        <h1 class="page-title">Hammaddeler</h1>
+        <p class="page-subtitle">
           Depodaki malzemeler. Ürün reçetesine eklendiklerinde satış anında buradan düşerler.
         </p>
       </div>
@@ -28,12 +28,12 @@
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
-              <th class="text-left  px-6 py-3 text-xs font-bold text-muted uppercase">Hammadde</th>
-              <th class="text-left  px-6 py-3 text-xs font-bold text-muted uppercase">Birim</th>
-              <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Stok</th>
-              <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Kritik</th>
-              <th class="text-right px-6 py-3 text-xs font-bold text-muted uppercase">Birim Maliyet</th>
-              <th class="text-left  px-6 py-3 text-xs font-bold text-muted uppercase">Kullanım</th>
+              <th class="text-left  px-6 py-3 text-[11px] font-semibold text-muted uppercase">Hammadde</th>
+              <th class="text-left  px-6 py-3 text-[11px] font-semibold text-muted uppercase">Birim</th>
+              <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Stok</th>
+              <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Kritik</th>
+              <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Birim Maliyet</th>
+              <th class="text-left  px-6 py-3 text-[11px] font-semibold text-muted uppercase">Kullanım</th>
               <th class="px-6 py-3"></th>
             </tr>
           </thead>
@@ -89,7 +89,7 @@
     <!-- Hammadde formu -->
     <Teleport to="body">
       <div v-if="modal.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
           <h2 class="text-xl font-bold mb-1">{{ modal.editing ? 'Hammadde Düzenle' : 'Yeni Hammadde' }}</h2>
           <p class="text-sm text-muted mb-6">Depoda takip edilen malzeme</p>
@@ -163,7 +163,7 @@
     <!-- Stok hareketi -->
     <Teleport to="body">
       <div v-if="movement.show"
-           class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
           <h2 class="text-xl font-bold mb-1">{{ movement.ingredient?.name }}</h2>
           <p class="text-sm text-muted mb-6">
@@ -274,7 +274,7 @@ const movementHint = computed(() => {
 })
 
 function num(v)   { return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 3 }).format(v ?? 0) }
-function money(v) { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺' }
+function money(v) { return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺' }
 function dateTime(d) {
   return new Date(d).toLocaleString('tr-TR', {
     day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',

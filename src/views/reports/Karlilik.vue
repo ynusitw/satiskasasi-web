@@ -2,8 +2,8 @@
   <div class="p-8">
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-primary">Kârlılık</h1>
-        <p class="text-muted text-sm mt-1">
+        <h1 class="page-title">Kârlılık</h1>
+        <p class="page-subtitle">
           Ürün başına ciro, reçeteden hesaplanan maliyet, kâr ve kâr marjı
         </p>
       </div>
@@ -68,13 +68,13 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50">
             <tr>
-              <th class="text-left  px-4 py-3 text-xs font-bold text-muted uppercase">Ürün</th>
-              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Adet</th>
-              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Ciro</th>
-              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Birim Maliyet</th>
-              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Maliyet</th>
-              <th class="text-right px-4 py-3 text-xs font-bold text-muted uppercase">Kâr</th>
-              <th class="text-left  px-4 py-3 text-xs font-bold text-muted uppercase w-40">Marj</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Ürün</th>
+              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Adet</th>
+              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Ciro</th>
+              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Birim Maliyet</th>
+              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Maliyet</th>
+              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Kâr</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase w-40">Marj</th>
             </tr>
           </thead>
           <tbody>
@@ -143,7 +143,7 @@ const loading = ref(false)
 const error   = ref('')
 
 function money(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 // Türkçe yüzde: "%59,7"
 function pct(v) {

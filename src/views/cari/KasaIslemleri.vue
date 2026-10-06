@@ -1,8 +1,8 @@
 <template>
   <div class="p-6 lg:p-8">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-primary">Kasa İşlemleri</h1>
-      <p class="text-muted text-sm mt-1">Tahsilat ve tediye makbuz yönetimi</p>
+      <h1 class="page-title">Kasa İşlemleri</h1>
+      <p class="page-subtitle">Tahsilat ve tediye makbuz yönetimi</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -164,7 +164,7 @@ const secilenCari = computed(() =>
 )
 
 function fmt(v) {
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
 }
 
 function bakiyeLabel(b) {

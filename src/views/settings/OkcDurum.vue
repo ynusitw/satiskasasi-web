@@ -1,6 +1,6 @@
 <template>
   <div class="p-8 max-w-4xl">
-    <h1 class="text-2xl font-bold text-primary">ÖKC Durum</h1>
+    <h1 class="page-title">ÖKC Durum</h1>
     <p class="text-muted text-sm mt-1 mb-6">
       Ödeme kaydedici cihaz bilgileri ve işletmedeki kasaların bağlantı durumu.
     </p>
@@ -72,10 +72,10 @@
       <table class="w-full">
         <thead class="bg-gray-50">
           <tr>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Cihaz</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Lisans</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Son Bağlantı</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase">Durum</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Cihaz</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Lisans</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Son Bağlantı</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold text-muted uppercase">Durum</th>
           </tr>
         </thead>
         <tbody>
