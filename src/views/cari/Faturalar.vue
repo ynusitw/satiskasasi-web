@@ -7,8 +7,7 @@
         <p class="page-subtitle">Alış ve satış faturası yönetimi</p>
       </div>
       <button @click="openCreate"
-              class="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-bold
-                     hover:bg-blue-600 transition-colors flex items-center gap-2">
+              class="btn-primary btn-lg flex items-center gap-2">
         <span>+</span> Yeni Fatura
       </button>
     </div>
@@ -17,26 +16,24 @@
     <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Toplam Fatura</div>
-        <div class="text-2xl font-bold text-primary">{{ store.faturalar.length }}</div>
+        <div class="text-2xl font-semibold tracking-tight text-primary">{{ store.faturalar.length }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Toplam Alış</div>
-        <div class="text-2xl font-bold text-danger">{{ fmt(toplamAlis) }}</div>
+        <div class="text-2xl font-semibold tracking-tight text-danger">{{ fmt(toplamAlis) }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5 col-span-2 lg:col-span-1">
         <div class="text-xs text-muted mb-1">Toplam Satış</div>
-        <div class="text-2xl font-bold text-success">{{ fmt(toplamSatis) }}</div>
+        <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(toplamSatis) }}</div>
       </div>
     </div>
 
     <!-- Filtre -->
     <div class="flex flex-wrap gap-3 mb-4">
       <input v-model="search" placeholder="Fatura no veya cari ara..."
-             class="flex-1 min-w-48 px-4 py-2 border border-gray-200 rounded-xl
-                    text-sm focus:border-accent focus:outline-none"/>
+             class="flex-1 min-w-48 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
       <select v-model="filterTip"
-              class="px-4 py-2 border border-gray-200 rounded-xl text-sm
-                     focus:border-accent focus:outline-none bg-white">
+              class="px-3 border border-gray-200 rounded-lg text-[13.5px] bg-white h-10">
         <option value="">Tümü</option>
         <option value="Alış">Alış</option>
         <option value="Satış">Satış</option>
@@ -79,7 +76,7 @@
               <td class="px-5 py-4 text-sm text-muted hidden lg:table-cell">{{ f.aciklama }}</td>
               <td class="px-5 py-4 text-sm text-right text-muted hidden lg:table-cell">{{ fmt(f.araToplam) }}</td>
               <td class="px-5 py-4 text-sm text-right text-muted hidden lg:table-cell">{{ fmt(f.kdvToplam) }}</td>
-              <td class="px-5 py-4 text-sm font-bold text-right"
+              <td class="px-5 py-4 text-sm font-semibold text-right"
                   :class="f.tip === 'Alış' ? 'text-danger' : 'text-success'">
                 {{ fmt(f.genelToplam) }}
               </td>
@@ -99,7 +96,7 @@
             <!-- Modal Başlık -->
             <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h2 class="text-xl font-bold text-primary">Yeni Fatura Oluştur</h2>
+                <h2 class="text-xl font-semibold tracking-tight text-primary">Yeni Fatura Oluştur</h2>
                 <p class="text-xs text-muted mt-0.5">Kalemleri girdikten sonra kaydedin</p>
               </div>
               <button @click="modal.show = false"
@@ -119,7 +116,7 @@
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
                   <div class="col-span-2 lg:col-span-1">
-                    <label class="block text-sm font-semibold mb-2">Fatura Tipi *</label>
+                    <label class="field-label">Fatura Tipi *</label>
                     <div class="flex gap-2">
                       <label v-for="t in ['Alış','Satış']" :key="t"
                              class="flex items-center gap-1.5 cursor-pointer flex-1 border-2 rounded-xl px-3 py-2 transition-all"
@@ -135,24 +132,21 @@
                   </div>
 
                   <div>
-                    <label class="block text-sm font-semibold mb-1">Fatura No *</label>
+                    <label class="field-label">Fatura No *</label>
                     <input v-model="form.no" placeholder="FTR-001"
-                           class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm
-                                  focus:border-accent focus:outline-none"/>
+                           class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                   </div>
 
                   <div>
-                    <label class="block text-sm font-semibold mb-1">Tarih *</label>
+                    <label class="field-label">Tarih *</label>
                     <input v-model="form.tarih" type="date"
-                           class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm
-                                  focus:border-accent focus:outline-none"/>
+                           class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                   </div>
 
                   <div>
-                    <label class="block text-sm font-semibold mb-1">Cari *</label>
+                    <label class="field-label">Cari *</label>
                     <select v-model.number="form.cariId"
-                            class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm
-                                   focus:border-accent focus:outline-none bg-white">
+                            class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] bg-white h-10">
                       <option value="">Cari seçin...</option>
                       <option v-for="c in store.carilerWithBakiye" :key="c.id" :value="c.id">
                         {{ c.unvan }} ({{ c.tip }})
@@ -161,10 +155,9 @@
                   </div>
 
                   <div class="col-span-2 lg:col-span-4">
-                    <label class="block text-sm font-semibold mb-1">Açıklama</label>
+                    <label class="field-label">Açıklama</label>
                     <input v-model="form.aciklama" placeholder="Fatura açıklaması (isteğe bağlı)"
-                           class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm
-                                  focus:border-accent focus:outline-none"/>
+                           class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                   </div>
                 </div>
               </div>
@@ -177,8 +170,7 @@
                     <span class="ml-2 font-normal normal-case text-muted/70">{{ kalemler.length }} kalem</span>
                   </div>
                   <button @click="yeniKalem"
-                          class="flex items-center gap-1.5 px-4 py-2 bg-accent/10 text-accent
-                                 rounded-xl text-sm font-bold hover:bg-accent hover:text-white transition-all">
+                          class="chip-accent flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -213,26 +205,22 @@
                           <td class="px-3 py-2 text-xs text-muted text-center">{{ i + 1 }}</td>
                           <td class="px-3 py-2">
                             <select v-model="k.urunId" @change="urunSecildi(k)"
-                                    class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm
-                                           focus:border-accent focus:outline-none bg-white">
+                                    class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-[13.5px] bg-white">
                               <option :value="null">Ürün seçin...</option>
                               <option v-for="u in urunler" :key="u.id" :value="u.id">{{ u.name }}</option>
                             </select>
                           </td>
                           <td class="px-3 py-2">
                             <input v-model.number="k.miktar" type="number" min="0.001" step="1"
-                                   class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm
-                                          focus:border-accent focus:outline-none text-right"/>
+                                   class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-[13.5px] text-right bg-white"/>
                           </td>
                           <td class="px-3 py-2">
                             <input v-model.number="k.birimFiyat" type="number" min="0" step="0.01"
-                                   class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm
-                                          focus:border-accent focus:outline-none text-right"/>
+                                   class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-[13.5px] text-right bg-white"/>
                           </td>
                           <td class="px-3 py-2">
                             <select v-model.number="k.kdv"
-                                    class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm
-                                           focus:border-accent focus:outline-none bg-white text-center">
+                                    class="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-[13.5px] bg-white text-center">
                               <option :value="0">%0</option>
                               <option :value="1">%1</option>
                               <option :value="10">%10</option>
@@ -293,12 +281,11 @@
               </div>
               <div class="flex gap-3 flex-shrink-0">
                 <button @click="modal.show = false"
-                        class="px-5 py-2.5 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                        class="btn-secondary btn-lg">
                   İptal
                 </button>
                 <button @click="save"
-                        class="px-6 py-2.5 bg-accent text-white rounded-xl text-sm font-bold
-                               hover:bg-blue-600 transition-colors">
+                        class="btn-primary btn-lg">
                   Kaydet
                 </button>
               </div>
@@ -319,7 +306,7 @@
                     d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-primary mb-2">Risk Limiti Aşılıyor</h3>
+          <h3 class="modal-title mb-2">Risk Limiti Aşılıyor</h3>
           <p class="text-sm text-muted mb-4">
             <span class="font-semibold text-primary">{{ riskModal.cariUnvan }}</span> carisi için
             belirlenen risk limiti aşılmaktadır.
@@ -341,12 +328,11 @@
           <p class="text-sm font-semibold text-primary mb-6">İşlemi onaylıyor musunuz?</p>
           <div class="flex gap-3">
             <button @click="riskModal.show = false"
-                    class="flex-1 py-2.5 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary btn-lg flex-1">
               Vazgeç
             </button>
             <button @click="onaylaVeKaydet"
-                    class="flex-1 py-2.5 bg-danger text-white rounded-xl text-sm font-bold
-                           hover:bg-red-600 transition-colors">
+                    class="btn-solid-danger btn-lg flex-1">
               Onayla, Kaydet
             </button>
           </div>

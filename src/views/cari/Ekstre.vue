@@ -8,8 +8,7 @@
         <p class="page-subtitle">Hesap özeti ve hareket dökümü</p>
       </div>
       <select v-model.number="secilenCariId"
-              class="px-4 py-2 border border-gray-200 rounded-xl text-sm
-                     focus:border-accent focus:outline-none bg-white min-w-56">
+              class="px-3 border border-gray-200 rounded-lg text-[13.5px] bg-white min-w-56 h-10">
         <option value="">Cari seçin...</option>
         <option v-for="c in store.carilerWithBakiye" :key="c.id" :value="c.id">
           {{ c.unvan }} ({{ c.tip }})
@@ -34,14 +33,14 @@
                       : 'bg-purple-100 text-purple-700'">
                 {{ secilenCari.tip }}
               </span>
-              <h2 class="text-lg font-bold text-primary">{{ secilenCari.unvan }}</h2>
+              <h2 class="modal-title">{{ secilenCari.unvan }}</h2>
             </div>
             <div class="text-sm text-muted">{{ secilenCari.telefon }}</div>
             <div class="text-sm text-muted">Vergi No: {{ secilenCari.vergiNo }}</div>
           </div>
           <div class="text-right">
             <div class="text-xs text-muted mb-1">Güncel Bakiye</div>
-            <div class="text-3xl font-bold"
+            <div class="text-3xl font-semibold tracking-tight"
                  :class="secilenCari.bakiye > 0 ? 'text-danger' : secilenCari.bakiye < 0 ? 'text-success' : 'text-muted'">
               {{ fmt(Math.abs(secilenCari.bakiye)) }}
             </div>
@@ -57,15 +56,15 @@
       <div class="grid grid-cols-3 gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow-sm p-5 text-center">
           <div class="text-xs text-muted mb-1">Toplam Borç</div>
-          <div class="text-xl font-bold text-danger">{{ fmt(toplamBorc) }}</div>
+          <div class="text-xl font-semibold tracking-tight text-danger">{{ fmt(toplamBorc) }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5 text-center">
           <div class="text-xs text-muted mb-1">Toplam Alacak</div>
-          <div class="text-xl font-bold text-success">{{ fmt(toplamAlacak) }}</div>
+          <div class="text-xl font-semibold tracking-tight text-primary">{{ fmt(toplamAlacak) }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5 text-center">
           <div class="text-xs text-muted mb-1">Net Bakiye</div>
-          <div class="text-xl font-bold"
+          <div class="text-xl font-semibold tracking-tight"
                :class="netBakiye > 0 ? 'text-danger' : netBakiye < 0 ? 'text-success' : 'text-muted'">
             {{ fmt(Math.abs(netBakiye)) }}
           </div>
@@ -116,7 +115,7 @@
                     :class="h.alacak > 0 ? 'text-success' : 'text-muted'">
                   {{ h.alacak > 0 ? fmt(h.alacak) : '—' }}
                 </td>
-                <td class="px-5 py-3 text-sm text-right font-bold"
+                <td class="px-5 py-3 text-sm text-right font-semibold"
                     :class="h.kalanBakiye > 0 ? 'text-danger' : h.kalanBakiye < 0 ? 'text-success' : 'text-muted'">
                   {{ fmt(Math.abs(h.kalanBakiye)) }}
                   <span class="text-xs font-normal ml-1">
@@ -129,9 +128,9 @@
               <tr>
                 <td colspan="4" class="px-5 py-3 text-sm font-bold hidden lg:table-cell">TOPLAM</td>
                 <td colspan="2" class="px-5 py-3 text-sm font-bold md:hidden">TOPLAM</td>
-                <td class="px-5 py-3 text-sm font-bold text-right text-danger">{{ fmt(toplamBorc) }}</td>
-                <td class="px-5 py-3 text-sm font-bold text-right text-success">{{ fmt(toplamAlacak) }}</td>
-                <td class="px-5 py-3 text-sm font-bold text-right"
+                <td class="px-5 py-3 text-sm font-semibold text-right text-danger">{{ fmt(toplamBorc) }}</td>
+                <td class="px-5 py-3 text-sm font-semibold text-right text-primary">{{ fmt(toplamAlacak) }}</td>
+                <td class="px-5 py-3 text-sm font-semibold text-right"
                     :class="netBakiye > 0 ? 'text-danger' : netBakiye < 0 ? 'text-success' : 'text-muted'">
                   {{ fmt(Math.abs(netBakiye)) }}
                   {{ netBakiye > 0 ? 'B' : netBakiye < 0 ? 'A' : '' }}

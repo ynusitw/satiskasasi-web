@@ -8,8 +8,7 @@
         <p class="page-subtitle">Müşteri ve tedarikçi hesap yönetimi</p>
       </div>
       <button @click="openCreate"
-              class="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-bold
-                     hover:bg-blue-600 transition-colors flex items-center gap-2">
+              class="btn-primary btn-lg flex items-center gap-2">
         <span>+</span> Yeni Cari Ekle
       </button>
     </div>
@@ -18,19 +17,19 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Toplam Cari</div>
-        <div class="text-2xl font-bold text-primary">{{ store.carilerWithBakiye.length }}</div>
+        <div class="text-2xl font-semibold tracking-tight text-primary">{{ store.carilerWithBakiye.length }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Borçlu</div>
-        <div class="text-2xl font-bold text-danger">{{ borcluSayisi }}</div>
+        <div class="text-2xl font-semibold tracking-tight text-danger">{{ borcluSayisi }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Alacaklı</div>
-        <div class="text-2xl font-bold text-success">{{ alacakliSayisi }}</div>
+        <div class="text-2xl font-semibold tracking-tight text-primary">{{ alacakliSayisi }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Net Pozisyon</div>
-        <div class="text-2xl font-bold" :class="netBakiye > 0 ? 'text-danger' : netBakiye < 0 ? 'text-success' : 'text-muted'">
+        <div class="text-2xl font-semibold tracking-tight" :class="netBakiye > 0 ? 'text-danger' : netBakiye < 0 ? 'text-success' : 'text-muted'">
           {{ fmt(Math.abs(netBakiye)) }}
         </div>
       </div>
@@ -39,11 +38,9 @@
     <!-- Arama & Filtre -->
     <div class="flex flex-wrap gap-3 mb-4">
       <input v-model="search" placeholder="Ad, telefon veya vergi no ara..."
-             class="flex-1 min-w-48 px-4 py-2 border border-gray-200 rounded-xl
-                    text-sm focus:border-accent focus:outline-none"/>
+             class="flex-1 min-w-48 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
       <select v-model="filterTip"
-              class="px-4 py-2 border border-gray-200 rounded-xl text-sm
-                     focus:border-accent focus:outline-none bg-white">
+              class="px-3 border border-gray-200 rounded-lg text-[13.5px] bg-white h-10">
         <option value="">Tümü</option>
         <option value="Müşteri">Müşteri</option>
         <option value="Tedarikçi">Tedarikçi</option>
@@ -123,18 +120,15 @@
               <td class="px-5 py-4">
                 <div class="flex gap-2 justify-end">
                   <button @click="goEkstre(c)"
-                          class="px-3 py-1 text-xs font-bold bg-gray-100 text-muted
-                                 rounded-lg hover:bg-gray-200 transition-colors">
+                          class="btn-secondary">
                     Ekstre
                   </button>
                   <button @click="openEdit(c)"
-                          class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent
-                                 rounded-lg hover:bg-accent hover:text-white transition-colors">
+                          class="chip-accent">
                     Düzenle
                   </button>
                   <button @click="deleteCari(c)"
-                          class="px-3 py-1 text-xs font-bold bg-red-50 text-danger
-                                 rounded-lg hover:bg-danger hover:text-white transition-colors">
+                          class="chip-danger">
                     Sil
                   </button>
                 </div>
@@ -150,13 +144,13 @@
       <div v-if="modal.show"
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
-          <h2 class="text-xl font-bold mb-6">
+          <h2 class="modal-title mb-6">
             {{ modal.editing ? 'Cari Düzenle' : 'Yeni Cari Ekle' }}
           </h2>
 
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-semibold mb-2">Cari Tipi *</label>
+              <label class="field-label">Cari Tipi *</label>
               <div class="flex gap-3">
                 <label v-for="t in ['Müşteri','Tedarikçi']" :key="t"
                        class="flex items-center gap-2 cursor-pointer flex-1 border-2 rounded-xl p-3 transition-all"
@@ -168,47 +162,41 @@
             </div>
 
             <div>
-              <label class="block text-sm font-semibold mb-1">Unvan / Ad Soyad *</label>
+              <label class="field-label">Unvan / Ad Soyad *</label>
               <input v-model="form.unvan" placeholder="Firma adı veya ad soyad"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-semibold mb-1">Telefon</label>
+                <label class="field-label">Telefon</label>
                 <input v-model="form.telefon" placeholder="0500 000 0000"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                              focus:border-accent focus:outline-none"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
               <div>
-                <label class="block text-sm font-semibold mb-1">E-posta</label>
+                <label class="field-label">E-posta</label>
                 <input v-model="form.email" type="email" placeholder="ornek@mail.com"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                              focus:border-accent focus:outline-none"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-semibold mb-1">Vergi No / TC No</label>
+                <label class="field-label">Vergi No / TC No</label>
                 <input v-model="form.vergiNo" placeholder="0000000000"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                              focus:border-accent focus:outline-none"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
               <div>
-                <label class="block text-sm font-semibold mb-1">Risk Limiti (₺)</label>
+                <label class="field-label">Risk Limiti (₺)</label>
                 <input v-model.number="form.riskLimiti" type="number" min="0"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                              focus:border-accent focus:outline-none"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-semibold mb-1">Adres</label>
+              <label class="field-label">Adres</label>
               <textarea v-model="form.adres" rows="2" placeholder="Açık adres"
-                        class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                               focus:border-accent focus:outline-none resize-none"/>
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13.5px] resize-none bg-white"/>
             </div>
           </div>
 
@@ -216,12 +204,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="modal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               İptal
             </button>
             <button @click="save"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                           hover:bg-blue-600 transition-colors">
+                    class="btn-primary">
               Kaydet
             </button>
           </div>

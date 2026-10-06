@@ -6,7 +6,7 @@
         <p class="page-subtitle">Ürün ve hammadde stok durumu, son hareketler</p>
       </div>
       <button @click="load" :disabled="loading"
-              class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 disabled:opacity-50">
+              class="btn-primary disabled:opacity-50">
         {{ loading ? 'Yükleniyor...' : 'Yenile' }}
       </button>
     </div>
@@ -18,8 +18,8 @@
       <button v-for="k in kpis" :key="k.key" @click="setFilter(k)"
               class="text-left bg-white rounded-2xl shadow-sm p-5 border-2 transition-colors"
               :class="filter === k.key ? 'border-accent' : 'border-transparent hover:border-gray-200'">
-        <div class="text-xs font-bold uppercase tracking-wide text-muted">{{ k.label }}</div>
-        <div class="text-2xl font-bold mt-1" :class="k.tone">{{ k.value }}</div>
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">{{ k.label }}</div>
+        <div class="text-2xl font-semibold tracking-tight mt-1" :class="k.tone">{{ k.value }}</div>
       </button>
     </div>
 
@@ -35,7 +35,7 @@
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
       <div v-if="tab !== 'moves'" class="px-6 py-3 border-b border-gray-100 flex items-center gap-3">
         <input v-model="search" placeholder="Ara..."
-               class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm w-56"/>
+               class="px-3 py-1.5 rounded-lg border border-gray-200 text-[13.5px] w-56 bg-white"/>
         <span v-if="filter !== 'all'" class="text-xs text-accent font-semibold">
           {{ filterLabel }} gösteriliyor ·
           <button @click="filter = 'all'" class="underline">tümü</button>

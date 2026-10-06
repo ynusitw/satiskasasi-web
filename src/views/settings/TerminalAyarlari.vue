@@ -22,42 +22,42 @@
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm p-6">
-      <h2 class="font-bold text-primary mb-1">Cihaz Bilgisi</h2>
+      <h2 class="section-title mb-1">Cihaz Bilgisi</h2>
       <p class="text-xs text-muted mb-4">Kayıt amaçlıdır; kasanın çalışmasını etkilemez.</p>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="block text-xs font-semibold text-muted mb-1">Banka</label>
+          <label class="field-label-muted">Banka</label>
           <input v-model="form.terminalBank" placeholder="Ziraat, Garanti, Yapı Kredi..."
-                 class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-muted mb-1">Çalışma şekli</label>
+          <label class="field-label-muted">Çalışma şekli</label>
           <select v-model="form.terminalMode"
-                  class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
+                  class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white">
             <option value="Bağımsız">Bağımsız (tutar elle giriliyor)</option>
             <option value="Entegre">Entegre (kasadan tutar gidiyor)</option>
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-muted mb-1">Marka</label>
+          <label class="field-label-muted">Marka</label>
           <input v-model="form.terminalBrand" placeholder="Ingenico, Verifone, PAX..."
-                 class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-muted mb-1">Model</label>
+          <label class="field-label-muted">Model</label>
           <input v-model="form.terminalModel"
-                 class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-muted mb-1">Seri No / Terminal No</label>
+          <label class="field-label-muted">Seri No / Terminal No</label>
           <input v-model="form.terminalSerialNo"
-                 class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-muted mb-1">Not</label>
+          <label class="field-label-muted">Not</label>
           <input v-model="form.terminalNote" placeholder="Üye işyeri no, servis..."
-                 class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         </div>
       </div>
 
@@ -70,8 +70,7 @@
 
       <div class="flex items-center gap-3 mt-5">
         <button @click="save" :disabled="saving"
-                class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                       hover:bg-blue-600 disabled:opacity-50">
+                class="btn-primary disabled:opacity-50">
           {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
         </button>
         <span v-if="saved" class="text-sm text-success font-semibold">Kaydedildi</span>

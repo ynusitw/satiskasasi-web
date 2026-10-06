@@ -24,19 +24,19 @@
 
         <div class="bg-white rounded-2xl shadow-sm p-6 space-y-4"
              :class="form.isEnabled ? '' : 'opacity-50 pointer-events-none'">
-          <h2 class="font-bold text-primary">Metinler</h2>
+          <h2 class="section-title">Metinler</h2>
 
           <div>
-            <label class="block text-xs font-semibold text-muted mb-1">Karşılama yazısı</label>
+            <label class="field-label-muted">Karşılama yazısı</label>
             <input v-model="form.welcomeText" maxlength="60"
-                   class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <p class="text-xs text-muted mt-1">Sepet boşken ekranın üstünde görünür.</p>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-muted mb-1">Teşekkür yazısı</label>
+            <label class="field-label-muted">Teşekkür yazısı</label>
             <input v-model="form.thankYouText" maxlength="60"
-                   class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <p class="text-xs text-muted mt-1">Ödeme tamamlandığında birkaç saniye görünür.</p>
           </div>
 
@@ -53,7 +53,7 @@
 
         <div class="bg-white rounded-2xl shadow-sm p-6 space-y-4"
              :class="form.isEnabled ? '' : 'opacity-50 pointer-events-none'">
-          <h2 class="font-bold text-primary">Logo ve Görseller</h2>
+          <h2 class="section-title">Logo ve Görseller</h2>
 
           <label class="flex items-center gap-2 cursor-pointer">
             <input v-model="form.showLogo" type="checkbox" class="w-4 h-4"/>
@@ -97,7 +97,7 @@
             </div>
 
             <div v-if="slides.length" class="mt-3">
-              <label class="block text-xs font-semibold text-muted mb-1">
+              <label class="field-label-muted">
                 Görsel başına süre: {{ form.slideSeconds }} saniye
               </label>
               <input v-model.number="form.slideSeconds" type="range" min="3" max="30" class="w-full"/>
@@ -107,8 +107,7 @@
 
         <div class="flex items-center gap-3">
           <button @click="save" :disabled="saving"
-                  class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                         hover:bg-blue-600 disabled:opacity-50">
+                  class="btn-primary disabled:opacity-50">
             {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
           </button>
           <span v-if="saved" class="text-sm text-success font-semibold">Kaydedildi</span>
@@ -140,7 +139,7 @@
           <div class="px-6 py-4 bg-white/5 border-t border-white/10">
             <div class="flex items-center justify-between">
               <span class="text-sm opacity-70">TOPLAM</span>
-              <span class="text-2xl font-bold">{{ money(demoTotal) }}</span>
+              <span class="text-2xl font-semibold tracking-tight">{{ money(demoTotal) }}</span>
             </div>
             <div v-if="form.showChange" class="flex items-center justify-between mt-1 text-xs opacity-70">
               <span>Alınan 500,00 ₺</span>

@@ -42,31 +42,25 @@
 
           <ul v-else class="space-y-2">
             <li v-for="(n, i) in notes" :key="n.id"
-                class="flex items-center gap-2 border rounded-lg px-3 py-2">
+                class="flex items-center gap-2 border border-gray-200 rounded-lg pl-2 pr-1.5 py-1.5">
 
-              <!-- Sıra: kasada bu sırayla görünür -->
-              <div class="flex flex-col">
-                <button @click="move(i, -1)" :disabled="i === 0"
-                        class="text-xs leading-none text-muted disabled:opacity-25"
-                        title="Yukarı">Yukarı</button>
-                <button @click="move(i, 1)" :disabled="i === notes.length - 1"
-                        class="text-xs leading-none text-muted disabled:opacity-25"
-                        title="Aşağı">Aşağı</button>
-              </div>
+              <span class="w-5 text-center text-[12px] font-semibold text-muted">{{ i + 1 }}</span>
 
               <input v-model="n.text" maxlength="40"
                      @blur="save(n)" @keyup.enter="$event.target.blur()"
-                     class="flex-1 min-w-0 bg-transparent text-sm px-1 py-1 outline-none
-                            focus:bg-gray-50 rounded"/>
+                     class="flex-1 min-w-0 bg-transparent text-[13.5px] px-2 h-8 rounded-md"/>
 
-              <label class="flex items-center gap-1.5 text-xs text-muted whitespace-nowrap">
+              <label class="flex items-center gap-1.5 text-[12px] text-muted whitespace-nowrap mr-1">
                 <input type="checkbox" v-model="n.isActive" @change="save(n)"/>
                 Aktif
               </label>
 
-              <button @click="remove(n)"
-                      class="text-red-600 text-xs font-semibold px-2 hover:bg-red-50 rounded"
-                      title="Sil">Sil</button>
+              <!-- Sıra: kasada bu sırayla görünür -->
+              <button @click="move(i, -1)" :disabled="i === 0"
+                      class="chip-neutral" title="Yukarı taşı">Yukarı</button>
+              <button @click="move(i, 1)" :disabled="i === notes.length - 1"
+                      class="chip-neutral" title="Aşağı taşı">Aşağı</button>
+              <button @click="remove(n)" class="chip-danger" title="Sil">Sil</button>
             </li>
           </ul>
         </div>

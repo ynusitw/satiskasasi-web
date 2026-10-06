@@ -17,8 +17,7 @@
           </template>
         </div>
         <button @click="load"
-                class="px-4 py-2 bg-accent text-white rounded-xl text-sm
-                       font-semibold hover:bg-blue-600 transition-colors">
+                class="btn-primary">
           Yenile
         </button>
       </div>
@@ -35,19 +34,19 @@
 
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Aylık Gelir (MRR)</div>
-          <div class="text-2xl font-bold text-success">{{ fmt(mrr) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(mrr) }}</div>
           <div class="text-xs text-muted mt-1">{{ activeCount }} aktif abone</div>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Yıllık Gelir (ARR)</div>
-          <div class="text-2xl font-bold text-primary">{{ fmt(arr) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(arr) }}</div>
           <div class="text-xs text-muted mt-1">MRR × 12</div>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Bu Ay Sona Erecek</div>
-          <div class="text-2xl font-bold"
+          <div class="text-2xl font-semibold tracking-tight"
                :class="expiringSoon.length > 0 ? 'text-warning' : 'text-muted'">
             {{ expiringSoon.length }}
           </div>
@@ -56,7 +55,7 @@
 
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Kayıp Potansiyel</div>
-          <div class="text-2xl font-bold text-danger">{{ fmt(churnRisk) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-danger">{{ fmt(churnRisk) }}</div>
           <div class="text-xs text-muted mt-1">sona erecek MRR</div>
         </div>
 
@@ -80,14 +79,14 @@
           </div>
           <div class="flex items-end gap-3 flex-wrap">
             <div>
-              <div class="text-3xl font-bold" :class="textMap[plan.color] ?? 'text-gray-600'">
+              <div class="text-3xl font-semibold tracking-tight" :class="textMap[plan.color] ?? 'text-gray-600'">
                 {{ planActiveCount(plan.id) }}
               </div>
               <div class="text-xs text-muted">aktif abone</div>
             </div>
             <div class="text-muted text-sm mb-1">× {{ fmt(plan.price) }} =</div>
             <div>
-              <div class="text-3xl font-bold text-success">
+              <div class="text-3xl font-semibold tracking-tight text-primary">
                 {{ fmt(planActiveCount(plan.id) * plan.price) }}
               </div>
               <div class="text-xs text-muted">aylık</div>
@@ -111,8 +110,7 @@
           <h3 class="font-bold text-sm flex-1">Abone Detayları</h3>
           <input v-model="search"
                  placeholder="İşletme veya e-posta ara..."
-                 class="px-4 py-2 border border-gray-200 rounded-xl text-sm
-                        focus:border-accent focus:outline-none w-60"/>
+                 class="px-3 border border-gray-200 rounded-lg text-[13.5px] w-60 h-10 bg-white"/>
           <!-- Plan filtresi -->
           <div class="flex gap-1 bg-gray-100 rounded-xl p-1">
             <button v-for="f in filters" :key="f.value"
@@ -206,7 +204,7 @@
                 <td colspan="2" class="px-5 py-3 text-sm font-bold">
                   {{ filtered.length }} abone
                 </td>
-                <td class="px-5 py-3 text-right font-bold text-success text-sm">
+                <td class="px-5 py-3 text-right font-semibold text-primary text-sm">
                   {{ fmt(filteredMrr) }}/ay
                 </td>
                 <td colspan="3" class="px-5 py-3 text-xs text-muted hidden md:table-cell">

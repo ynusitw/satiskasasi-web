@@ -8,8 +8,7 @@
         </p>
       </div>
       <button @click="openCreate"
-              class="px-4 py-2 bg-accent text-white rounded-lg text-sm
-                     font-semibold hover:bg-blue-600 transition-colors">
+              class="btn-primary">
         + Yeni Müşteri
       </button>
     </div>
@@ -31,11 +30,9 @@
       <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-4">
         <input v-model="search"
                placeholder="İşletme veya email ara..."
-               class="px-4 py-2 rounded-xl border border-gray-200
-                      focus:border-accent focus:outline-none text-sm w-72"/>
+               class="px-3 rounded-lg border border-gray-200 text-[13.5px] w-72 h-10 bg-white"/>
         <button @click="load"
-                class="px-4 py-2 bg-accent text-white rounded-lg
-                       text-sm font-semibold hover:bg-blue-600 transition-colors">
+                class="btn-primary">
           Yenile
         </button>
       </div>
@@ -94,13 +91,11 @@
               <td class="px-6 py-4">
                 <div class="flex gap-2 justify-end">
                   <button @click="openEdit(t)"
-                          class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent
-                                 rounded-lg hover:bg-accent hover:text-white transition-colors">
+                          class="chip-accent">
                     Yönet
                   </button>
                   <button @click="deleteTenant(t)"
-                          class="px-3 py-1 text-xs font-bold bg-red-50 text-danger
-                                 rounded-lg hover:bg-danger hover:text-white transition-colors">
+                          class="chip-danger">
                     Sil
                   </button>
                 </div>
@@ -121,30 +116,30 @@
       <div v-if="createModal.show"
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
-          <h2 class="text-xl font-bold mb-1">Yeni Müşteri</h2>
+          <h2 class="modal-title mb-1">Yeni Müşteri</h2>
           <p class="text-sm text-muted mb-6">
             Kasa lisansı, cihazdan başvuru geldiğinde Lisans sayfasından verilir.
           </p>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input v-model="createForm.businessName" placeholder="İşletme adı *"
-                   class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.contactPerson" placeholder="Yetkili kişi"
-                   class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.username" placeholder="Kullanıcı adı *"
-                   class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.password" type="text" placeholder="Şifre *"
-                   class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.email" placeholder="E-posta"
-                   class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.phone" placeholder="Telefon"
-                   class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.city" placeholder="Şehir"
-                   class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.taxNumber" placeholder="Vergi no"
-                   class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.address" placeholder="Adres"
-                   class="px-4 py-2 border border-gray-200 rounded-xl text-sm sm:col-span-2"/>
+                   class="px-3 border border-gray-200 rounded-lg text-[13.5px] sm:col-span-2 h-10 bg-white"/>
           </div>
 
           <div class="pt-4 mt-4 border-t border-gray-100">
@@ -155,12 +150,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="createModal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               Vazgeç
             </button>
             <button @click="createTenant" :disabled="saving"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm
-                           font-bold hover:bg-blue-600 disabled:opacity-50">
+                    class="btn-primary disabled:opacity-50">
               {{ saving ? 'Kaydediliyor...' : 'Oluştur' }}
             </button>
           </div>
@@ -174,33 +168,30 @@
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center
                   justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-          <h2 class="text-xl font-bold mb-2">{{ modal.tenant?.businessName }}</h2>
+          <h2 class="modal-title mb-2">{{ modal.tenant?.businessName }}</h2>
           <p class="text-sm text-muted mb-6">Abonelik ve durum yönetimi</p>
 
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-semibold mb-1">Plan</label>
+              <label class="field-label">Plan</label>
               <select v-model="form.plan"
-                      class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                             focus:border-accent focus:outline-none text-sm">
+                      class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white">
                 <option value="basic">Basic</option>
                 <option value="pro">Pro</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-sm font-semibold mb-1">Bitiş Tarihi</label>
+              <label class="field-label">Bitiş Tarihi</label>
               <input v-model="form.expiresAt" type="date"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                            focus:border-accent focus:outline-none text-sm"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
 
             <!-- Kaç kasa lisanslanabilir. Lisans onayında kontrol edilir. -->
             <div>
-              <label class="block text-sm font-semibold mb-1">Kasa (Cihaz) Sınırı</label>
+              <label class="field-label">Kasa (Cihaz) Sınırı</label>
               <input v-model.number="form.maxDevices" type="number" min="0"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                            focus:border-accent focus:outline-none text-sm"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               <p class="text-xs text-muted mt-1">0 = sınırsız. Sınır dolduğunda yeni cihaz
                 lisansı onaylanamaz; önce eski cihazın lisansı iptal edilmelidir.</p>
             </div>
@@ -218,13 +209,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="modal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm
-                           font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               İptal
             </button>
             <button @click="save" :disabled="saving"
-                    class="px-5 py-2 bg-accent text-white rounded-xl
-                           text-sm font-bold hover:bg-blue-600 disabled:opacity-50">
+                    class="btn-primary disabled:opacity-50">
               {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
             </button>
           </div>

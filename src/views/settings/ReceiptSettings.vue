@@ -11,13 +11,11 @@
       </div>
       <div class="flex gap-3">
         <button @click="load" :disabled="loading || saving"
-                class="px-4 py-2 bg-gray-100 text-primary rounded-xl text-sm
-                       font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50">
+                class="btn-secondary disabled:opacity-50">
           Yenile
         </button>
         <button @click="save" :disabled="loading || saving"
-                class="px-5 py-2 bg-accent text-white rounded-xl text-sm
-                       font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50">
+                class="btn-primary disabled:opacity-50">
           {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
         </button>
       </div>
@@ -47,46 +45,43 @@
 
         <!-- Fiş Metinleri: üstte işletme bilgileri, altta alt not -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
-          <h2 class="font-bold text-primary text-sm mb-1">Fiş Metinleri</h2>
+          <h2 class="section-title mb-1">Fiş Metinleri</h2>
           <p class="text-xs text-muted mb-4">Fişin üstünde ve altında görünecek bilgiler</p>
 
           <div class="space-y-3">
             <div v-for="f in businessFields" :key="f.key">
-              <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
+              <label class="field-label-muted">
                 {{ f.label }}
               </label>
               <input v-model="form[f.key]"
                      :placeholder="f.placeholder"
-                     class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none transition-colors"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] transition-colors h-10 bg-white"/>
             </div>
           </div>
 
           <div class="border-t border-gray-100 mt-5 pt-5 space-y-3">
             <div>
-              <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
+              <label class="field-label-muted">
                 Alt Not 1
               </label>
               <input v-model="form.footerText"
                      placeholder="Bizi tekrar ziyaret edin!"
-                     class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
+              <label class="field-label-muted">
                 Alt Not 2
               </label>
               <input v-model="form.footerText2"
                      placeholder="www.ornekmarket.com"
-                     class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
           </div>
         </div>
 
         <!-- Yazdırma: kağıt, yazıcı, nüsha ve otomatik yazdırma bir arada -->
         <div class="bg-white rounded-2xl shadow-sm p-6">
-          <h2 class="font-bold text-primary text-sm mb-1">Yazdırma</h2>
+          <h2 class="section-title mb-1">Yazdırma</h2>
           <p class="text-xs text-muted mb-4">Fişin hangi yazıcıdan, nasıl basılacağı</p>
 
           <div class="space-y-4">
@@ -110,14 +105,13 @@
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
+              <label class="field-label-muted">
                 Varsayılan Fiş Yazıcısı
               </label>
 
               <select v-if="availablePrinters.length"
                       v-model="form.printerName"
-                      class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                             focus:border-accent focus:outline-none bg-white">
+                      class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] bg-white h-10">
                 <option value="">— Yazıcı seçin —</option>
                 <option v-for="p in availablePrinters" :key="p" :value="p">{{ p }}</option>
               </select>
@@ -125,8 +119,7 @@
               <template v-else>
                 <input v-model="form.printerName"
                        placeholder="POS58 Thermal Printer"
-                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                              focus:border-accent focus:outline-none"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <p class="flex items-center gap-1.5 text-xs text-warning mt-1.5 font-medium">
                   <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -338,7 +331,7 @@
     <div class="space-y-5 mt-5">
         <!-- Fişte göster/gizle — tam genişlik -->
         <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-          <h2 class="font-bold text-primary text-sm mb-1">Fişte Göster / Gizle</h2>
+          <h2 class="section-title mb-1">Fişte Göster / Gizle</h2>
           <p class="text-xs text-muted mb-4">
             Kapattığınız bölüm kasadan çıkan fişte de görünmez
           </p>

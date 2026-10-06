@@ -9,7 +9,7 @@
 
       <!-- Makbuz Formu -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="text-lg font-bold mb-5">Makbuz Kes</h2>
+        <h2 class="modal-title mb-5">Makbuz Kes</h2>
 
         <div class="flex gap-3 mb-5">
           <button v-for="t in islemTipleri" :key="t.value"
@@ -24,10 +24,9 @@
 
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-semibold mb-1">Cari *</label>
+            <label class="field-label">Cari *</label>
             <select v-model.number="form.cariId"
-                    class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                           focus:border-accent focus:outline-none bg-white">
+                    class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] bg-white h-10">
               <option value="">Cari seçin...</option>
               <option v-for="c in store.carilerWithBakiye" :key="c.id" :value="c.id">
                 {{ c.unvan }} — {{ bakiyeLabel(c.bakiye) }}
@@ -48,29 +47,26 @@
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm font-semibold mb-1">Makbuz No</label>
+              <label class="field-label">Makbuz No</label>
               <input v-model="form.makbuzNo" placeholder="MKB-001"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1">Tarih</label>
+              <label class="field-label">Tarih</label>
               <input v-model="form.tarih" type="date"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-semibold mb-1">Tutar (₺) *</label>
+            <label class="field-label">Tutar (₺) *</label>
             <input v-model.number="form.tutar" type="number" min="0.01" step="0.01"
                    placeholder="0,00"
-                   class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                          focus:border-accent focus:outline-none text-lg font-bold"/>
+                   class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] text-lg font-bold h-10 bg-white"/>
           </div>
 
           <div>
-            <label class="block text-sm font-semibold mb-1">Ödeme Yöntemi</label>
+            <label class="field-label">Ödeme Yöntemi</label>
             <div class="grid grid-cols-3 gap-2">
               <button v-for="m in ['Nakit','Kart','Havale']" :key="m"
                       @click="form.odeme = m"
@@ -84,10 +80,9 @@
           </div>
 
           <div>
-            <label class="block text-sm font-semibold mb-1">Açıklama</label>
+            <label class="field-label">Açıklama</label>
             <input v-model="form.aciklama" placeholder="Makbuz açıklaması..."
-                   class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                          focus:border-accent focus:outline-none"/>
+                   class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
           </div>
 
           <div v-if="error" class="p-3 bg-red-50 text-danger rounded-xl text-sm">{{ error }}</div>
@@ -103,7 +98,7 @@
       <!-- Son İşlemler (store'dan canlı) -->
       <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
-          <h2 class="text-lg font-bold">Son İşlemler</h2>
+          <h2 class="modal-title">Son İşlemler</h2>
           <span class="text-xs text-muted">{{ store.kasaIslemleri.length }} kayıt</span>
         </div>
         <div class="divide-y divide-gray-50 overflow-y-auto max-h-[560px]">

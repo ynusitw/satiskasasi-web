@@ -4,14 +4,14 @@
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6">
       <h1 class="page-title">Cari / Müşteri Yönetimi</h1>
-      <button @click="openCreate" class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors">
+      <button @click="openCreate" class="btn-primary">
         + Yeni Müşteri
       </button>
     </div>
 
     <!-- Arama -->
     <div class="mb-4">
-      <input v-model="search" placeholder="Müşteri ara..." class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:border-accent focus:outline-none w-72"/>
+      <input v-model="search" placeholder="Müşteri ara..." class="px-3 border border-gray-200 rounded-lg text-[13.5px] w-72 h-10 bg-white"/>
     </div>
 
     <!-- Tablo -->
@@ -50,15 +50,15 @@
             <td class="px-6 py-4">
               <div class="flex gap-2 justify-end">
                 <button @click="openDetail(c)"
-                  class="px-3 py-1 text-xs font-bold bg-green-50 text-green-600 rounded-lg hover:bg-green-600 hover:text-white transition-colors">
+                  class="chip-success">
                   Hareketler
                 </button>
                 <button @click="openEdit(c)"
-                  class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent rounded-lg hover:bg-accent hover:text-white transition-colors">
+                  class="chip-accent">
                   Düzenle
                 </button>
                 <button @click="deleteCari(c)"
-                  class="px-3 py-1 text-xs font-bold bg-red-50 text-danger rounded-lg hover:bg-danger hover:text-white transition-colors">
+                  class="chip-danger">
                   Sil
                 </button>
               </div>
@@ -75,19 +75,19 @@
     <Teleport to="body">
       <div v-if="cariModal.show" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-          <h2 class="text-xl font-bold mb-6">{{ cariModal.editing ? 'Müşteriyi Düzenle' : 'Yeni Müşteri' }}</h2>
+          <h2 class="modal-title mb-6">{{ cariModal.editing ? 'Müşteriyi Düzenle' : 'Yeni Müşteri' }}</h2>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-semibold mb-1">Ad Soyad / Firma *</label>
-              <input v-model="form.name" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
+              <label class="field-label">Ad Soyad / Firma *</label>
+              <input v-model="form.name" class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1">Telefon</label>
-              <input v-model="form.phone" type="tel" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
+              <label class="field-label">Telefon</label>
+              <input v-model="form.phone" type="tel" class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1">Notlar</label>
-              <textarea v-model="form.notes" rows="2" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm resize-none"/>
+              <label class="field-label">Notlar</label>
+              <textarea v-model="form.notes" rows="2" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13.5px] resize-none bg-white"/>
             </div>
             <label class="flex items-center gap-2 cursor-pointer">
               <input v-model="form.isActive" type="checkbox" class="w-4 h-4"/>
@@ -96,8 +96,8 @@
           </div>
           <div v-if="formError" class="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{{ formError }}</div>
           <div class="flex gap-3 mt-6 justify-end">
-            <button @click="cariModal.show = false" class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">İptal</button>
-            <button @click="saveCari" :disabled="saving" class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 disabled:opacity-50">
+            <button @click="cariModal.show = false" class="btn-secondary">İptal</button>
+            <button @click="saveCari" :disabled="saving" class="btn-primary disabled:opacity-50">
               {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
             </button>
           </div>
@@ -114,12 +114,12 @@
           <div class="px-8 pt-8 pb-4 border-b border-gray-100">
             <div class="flex items-start justify-between">
               <div>
-                <h2 class="text-xl font-bold">{{ detailModal.cari?.name }}</h2>
+                <h2 class="modal-title">{{ detailModal.cari?.name }}</h2>
                 <div class="text-sm text-muted mt-1">{{ detailModal.cari?.phone || '' }}</div>
               </div>
               <div class="text-right">
                 <div class="text-xs text-muted mb-1">Güncel Bakiye</div>
-                <div :class="balanceClass(detailModal.cari?.balance)" class="text-xl font-bold">
+                <div :class="balanceClass(detailModal.cari?.balance)" class="text-xl font-semibold tracking-tight">
                   {{ balanceLabel(detailModal.cari?.balance) }}
                 </div>
               </div>
@@ -142,11 +142,11 @@
               </div>
               <div class="flex gap-2">
                 <input v-model="txForm.amount" type="number" min="0" step="0.01" placeholder="Tutar"
-                  class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"/>
+                  class="flex-1 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <input v-model="txForm.description" placeholder="Açıklama"
-                  class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-accent focus:outline-none"/>
+                  class="flex-1 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <button @click="addTransaction" :disabled="txSaving"
-                  class="px-4 py-2 bg-accent text-white rounded-lg text-sm font-bold hover:bg-blue-600 disabled:opacity-50 whitespace-nowrap">
+                  class="btn-primary disabled:opacity-50 whitespace-nowrap">
                   {{ txSaving ? '...' : 'Ekle' }}
                 </button>
               </div>
@@ -172,7 +172,7 @@
           </div>
 
           <div class="px-8 pb-6 pt-4 border-t border-gray-100">
-            <button @click="detailModal.show = false" class="w-full py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">Kapat</button>
+            <button @click="detailModal.show = false" class="btn-secondary w-full">Kapat</button>
           </div>
         </div>
       </div>

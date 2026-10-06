@@ -94,9 +94,7 @@
             Önce bölüm oluşturun, sonra bölüm içine masa ekleyin.
           </p>
           <button @click="openBolumModal()"
-                  class="flex items-center gap-2 px-4 py-2 bg-primary text-white
-                         rounded-xl text-sm font-semibold hover:bg-primary/80
-                         transition-colors shadow-sm">
+                  class="btn-dark flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -129,9 +127,7 @@
                 <!-- Tek masa ekle -->
                 <button @click="openMasaModal(bolum.id)"
                         title="Masa Ekle"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold
-                               text-accent bg-accent/10 hover:bg-accent hover:text-white
-                               rounded-lg transition-all">
+                        class="chip-accent flex items-center gap-1.5">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                   </svg>
@@ -251,8 +247,7 @@
           <div class="font-semibold">Henüz bölüm tanımlanmadı</div>
           <div class="text-sm">Önce bir bölüm oluşturun (ör. İç Mekan, Bahçe, VIP)</div>
           <button @click="openBolumModal()"
-                  class="mt-2 px-5 py-2 bg-primary text-white rounded-xl
-                         text-sm font-semibold hover:bg-primary/80 transition-colors">
+                  class="btn-dark mt-2">
             İlk Bölümü Ekle
           </button>
         </div>
@@ -271,7 +266,7 @@
                   justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
           <div class="px-6 pt-6 pb-1">
-            <h2 class="font-bold text-primary mb-1">
+            <h2 class="section-title mb-1">
               {{ bolumModal.isEdit ? 'Bölüm Adını Düzenle' : 'Yeni Bölüm Ekle' }}
             </h2>
             <p class="text-xs text-muted mb-4">
@@ -281,20 +276,18 @@
                    v-model="bolumModal.ad"
                    type="text" placeholder="Bölüm adı..."
                    maxlength="40"
-                   class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm
-                          focus:border-accent focus:outline-none font-semibold"
+                   class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] font-semibold h-10 bg-white"
                    @keyup.enter="saveBolum"
                    @keyup.esc="bolumModal.show = false"/>
             <p v-if="bolumModal.error" class="mt-1.5 text-xs text-danger">{{ bolumModal.error }}</p>
           </div>
           <div class="px-6 py-5 flex gap-3 justify-end">
             <button @click="bolumModal.show = false"
-                    class="px-5 py-2.5 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary btn-lg">
               İptal
             </button>
             <button @click="saveBolum"
-                    class="px-5 py-2.5 bg-primary text-white rounded-xl text-sm
-                           font-bold hover:bg-primary/80 transition-colors">
+                    class="btn-dark btn-lg">
               {{ bolumModal.isEdit ? 'Kaydet' : 'Oluştur' }}
             </button>
           </div>
@@ -307,7 +300,7 @@
                   justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
           <div class="px-6 pt-6 pb-1">
-            <h2 class="font-bold text-primary mb-1">
+            <h2 class="section-title mb-1">
               {{ masaModal.isEdit ? 'Masa Adını Düzenle' : 'Masa Ekle' }}
             </h2>
             <p class="text-xs text-muted mb-4">
@@ -317,20 +310,18 @@
                    v-model="masaModal.ad"
                    type="text" placeholder="ör. Masa 1, B3, VIP-1..."
                    maxlength="30"
-                   class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm
-                          focus:border-accent focus:outline-none font-semibold"
+                   class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] font-semibold h-10 bg-white"
                    @keyup.enter="saveMasa"
                    @keyup.esc="masaModal.show = false"/>
             <p v-if="masaModal.error" class="mt-1.5 text-xs text-danger">{{ masaModal.error }}</p>
           </div>
           <div class="px-6 py-5 flex gap-3 justify-end">
             <button @click="masaModal.show = false"
-                    class="px-5 py-2.5 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary btn-lg">
               İptal
             </button>
             <button @click="saveMasa"
-                    class="px-5 py-2.5 bg-accent text-white rounded-xl text-sm
-                           font-bold hover:bg-blue-600 transition-colors">
+                    class="btn-primary btn-lg">
               {{ masaModal.isEdit ? 'Kaydet' : 'Ekle' }}
             </button>
           </div>
@@ -343,7 +334,7 @@
                   justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
           <div class="px-6 pt-6 pb-1">
-            <h2 class="font-bold text-primary mb-1">Toplu Masa Ekle</h2>
+            <h2 class="section-title mb-1">Toplu Masa Ekle</h2>
             <p class="text-xs text-muted mb-5">
               Bölüm: <strong>{{ bolumAdi(topluModal.bolumId) }}</strong>
             </p>
@@ -351,37 +342,34 @@
             <div class="space-y-4">
               <!-- Ön ek -->
               <div>
-                <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
+                <label class="field-label-muted">
                   Masa Adı Ön Eki
                 </label>
                 <input v-model="topluModal.onek"
                        type="text" placeholder="ör. Masa, M, Bahçe"
                        maxlength="20"
-                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                              focus:border-accent focus:outline-none"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
 
               <div class="grid grid-cols-2 gap-3">
                 <!-- Başlangıç numarası -->
                 <div>
-                  <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
+                  <label class="field-label-muted">
                     Başlangıç No
                   </label>
                   <input v-model.number="topluModal.baslangic"
                          type="number" min="1" max="999"
-                         class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                                focus:border-accent focus:outline-none text-center font-bold"/>
+                         class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] text-center font-bold h-10 bg-white"/>
                 </div>
 
                 <!-- Adet -->
                 <div>
-                  <label class="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">
+                  <label class="field-label-muted">
                     Eklenecek Adet
                   </label>
                   <input v-model.number="topluModal.adet"
                          type="number" min="1" max="50"
-                         class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                                focus:border-accent focus:outline-none text-center font-bold"/>
+                         class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] text-center font-bold h-10 bg-white"/>
                 </div>
               </div>
 
@@ -406,7 +394,7 @@
 
           <div class="px-6 py-5 flex gap-3 justify-end">
             <button @click="topluModal.show = false"
-                    class="px-5 py-2.5 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary btn-lg">
               İptal
             </button>
             <button @click="saveToplu"

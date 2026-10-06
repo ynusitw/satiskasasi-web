@@ -8,8 +8,7 @@
         <p class="page-subtitle">Plan fiyatlarını ve özelliklerini yönetin</p>
       </div>
       <button @click="openAdd"
-              class="flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-xl
-                     text-sm font-semibold hover:bg-blue-600 transition-colors shadow-sm">
+              class="btn-primary btn-lg flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
@@ -41,7 +40,7 @@
 
           <!-- Fiyat -->
           <div class="flex items-end gap-1 mb-2">
-            <span class="text-3xl font-bold" :class="colorText(plan.color)">
+            <span class="text-3xl font-semibold tracking-tight" :class="colorText(plan.color)">
               {{ fmt(plan.price) }}
             </span>
             <span class="text-muted text-sm mb-1">/ay</span>
@@ -118,7 +117,7 @@
 
           <!-- Modal başlık -->
           <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
-            <h2 class="font-bold text-primary">
+            <h2 class="section-title">
               {{ modal.isEdit ? 'Paketi Düzenle' : 'Yeni Paket Ekle' }}
             </h2>
             <button @click="modal.show = false"
@@ -134,35 +133,32 @@
 
             <!-- Ad -->
             <div>
-              <label class="block text-sm font-semibold mb-1.5">Paket Adı</label>
+              <label class="field-label">Paket Adı</label>
               <input v-model="form.name" type="text" placeholder="ör. Starter, Pro, Enterprise..."
-                     class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
 
             <!-- Fiyat -->
             <div>
-              <label class="block text-sm font-semibold mb-1.5">Aylık Fiyat (₺)</label>
+              <label class="field-label">Aylık Fiyat (₺)</label>
               <div class="relative">
                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted font-bold">₺</span>
                 <input v-model.number="form.price" type="number" min="0" step="1"
-                       class="w-full pl-8 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                              focus:border-accent focus:outline-none font-bold"/>
+                       class="w-full pl-8 pr-4 border border-gray-200 rounded-lg text-[13.5px] font-bold h-10 bg-white"/>
               </div>
             </div>
 
             <!-- Açıklama -->
             <div>
-              <label class="block text-sm font-semibold mb-1.5">Açıklama</label>
+              <label class="field-label">Açıklama</label>
               <input v-model="form.description" type="text"
                      placeholder="Paketin kısa tanımı..."
-                     class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
 
             <!-- Renk -->
             <div>
-              <label class="block text-sm font-semibold mb-2">Kart Rengi</label>
+              <label class="field-label">Kart Rengi</label>
               <div class="flex gap-2 flex-wrap">
                 <button v-for="c in colorOptions" :key="c.value"
                         @click="form.color = c.value"
@@ -179,14 +175,13 @@
 
             <!-- Özellikler -->
             <div>
-              <label class="block text-sm font-semibold mb-2">Özellikler</label>
+              <label class="field-label">Özellikler</label>
               <div class="space-y-2">
                 <div v-for="(feat, i) in form.features" :key="i"
                      class="flex gap-2">
                   <input v-model="form.features[i]" type="text"
                          :placeholder="`Özellik ${i + 1}`"
-                         class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm
-                                focus:border-accent focus:outline-none"/>
+                         class="flex-1 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                   <button @click="removeFeat(i)"
                           class="px-3 py-2 text-danger hover:bg-red-50 rounded-xl transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,12 +226,11 @@
           <!-- Butonlar -->
           <div class="px-6 pb-6 flex gap-3 justify-end">
             <button @click="modal.show = false"
-                    class="px-5 py-2.5 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary btn-lg">
               İptal
             </button>
             <button @click="save"
-                    class="px-5 py-2.5 bg-accent text-white rounded-xl text-sm
-                           font-bold hover:bg-blue-600 transition-colors">
+                    class="btn-primary btn-lg">
               {{ modal.isEdit ? 'Güncelle' : 'Ekle' }}
             </button>
           </div>

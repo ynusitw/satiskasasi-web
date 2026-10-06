@@ -12,8 +12,7 @@
       <div class="flex items-center gap-3">
         <span v-if="dirty" class="text-xs font-semibold text-amber-600">Kaydedilmemiş değişiklik var</span>
         <button @click="saveRecipe" :disabled="!selected || !dirty || saving"
-                class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                       hover:bg-blue-600 disabled:opacity-40 transition-colors">
+                class="btn-primary disabled:opacity-40">
           {{ saving ? 'Kaydediliyor...' : 'Reçeteyi Kaydet' }}
         </button>
       </div>
@@ -27,8 +26,7 @@
       <aside class="lg:col-span-3 bg-white rounded-2xl shadow-sm overflow-hidden">
         <div class="p-4 border-b border-gray-100">
           <input v-model="productSearch" placeholder="Ürün ara..."
-                 class="w-full px-4 py-2 rounded-xl border border-gray-200
-                        focus:border-accent focus:outline-none text-sm"/>
+                 class="w-full px-3 rounded-lg border border-gray-200 text-[13.5px] h-10 bg-white"/>
         </div>
 
         <div class="max-h-[70vh] overflow-y-auto">
@@ -63,8 +61,8 @@
         <!-- Ürün seçilmediyse -->
         <div v-if="!selected"
              class="bg-white rounded-2xl shadow-sm py-24 text-center select-none">
-          <p class="text-sm font-semibold text-gray-400">Soldan bir ürün seçin</p>
-          <p class="text-xs text-gray-300 mt-1">Seçtiğiniz ürünün reçetesi burada açılır.</p>
+          <p class="text-sm font-medium text-primary">Soldan bir ürün seçin</p>
+          <p class="text-xs text-muted mt-1">Seçtiğiniz ürünün reçetesi burada açılır.</p>
         </div>
 
         <div v-else class="bg-white rounded-2xl shadow-sm">
@@ -85,8 +83,7 @@
             <div class="relative w-full sm:w-80">
               <input v-model="ingredientSearch" @focus="searchOpen = true"
                      placeholder="Hammadde ara veya yeni ekle..."
-                     class="w-full px-4 py-2 rounded-xl border border-gray-200
-                            focus:border-accent focus:outline-none text-sm"/>
+                     class="w-full px-3 rounded-lg border border-gray-200 text-[13.5px] h-10 bg-white"/>
 
               <div v-if="searchOpen && ingredientSearch.trim()"
                    class="absolute z-20 mt-1 w-full bg-white rounded-xl shadow-lg
@@ -142,8 +139,7 @@
               <input v-model.number="copyFactor" type="number" step="0.1" min="0.1"
                      class="w-20 px-2 py-1 border border-blue-200 rounded-lg text-sm text-primary"/>
               <button @click="copyFromBase" :disabled="!baseRecipe.length"
-                      class="px-3 py-1 bg-accent text-white rounded-lg text-xs font-bold
-                             hover:bg-blue-600 disabled:opacity-40">
+                      class="btn-primary disabled:opacity-40">
                 Kopyala
               </button>
               <span v-if="!baseRecipe.length" class="text-xs opacity-70">(ana reçete boş)</span>
@@ -175,8 +171,7 @@
                   <td class="px-5 py-3">
                     <input v-model.number="r.quantity" type="number" step="0.001" min="0"
                            @input="dirty = true"
-                           class="w-full px-3 py-1.5 text-right border border-gray-200 rounded-lg
-                                  focus:border-accent focus:outline-none text-sm"/>
+                           class="w-full px-3 py-1.5 text-right border border-gray-200 rounded-lg text-[13.5px] bg-white"/>
                   </td>
                   <td class="px-5 py-3 text-sm text-muted">{{ r.unit }}</td>
                   <td class="px-5 py-3 text-sm text-right font-semibold text-primary">
@@ -202,7 +197,7 @@
                   <td colspan="3" class="px-5 py-4 text-sm font-bold text-primary">
                     Toplam Reçete Maliyeti
                   </td>
-                  <td class="px-5 py-4 text-right text-lg font-bold text-primary">
+                  <td class="px-5 py-4 text-right text-lg font-semibold text-primary">
                     {{ money(totalCost) }}
                   </td>
                   <td/>
@@ -225,23 +220,23 @@
       <div v-if="createModal.show"
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-          <h2 class="text-xl font-bold mb-1">Yeni Hammadde</h2>
+          <h2 class="modal-title mb-1">Yeni Hammadde</h2>
           <p class="text-sm text-muted mb-6">
             Kaydedildiğinde <b>{{ selected?.name }}</b> reçetesine 1 birim olarak eklenir.
           </p>
 
           <div class="space-y-3">
             <div>
-              <label class="block text-xs font-semibold text-muted mb-1">Hammadde adı</label>
+              <label class="field-label-muted">Hammadde adı</label>
               <input v-model="createForm.name"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-semibold text-muted mb-1">Birim tipi</label>
+                <label class="field-label-muted">Birim tipi</label>
                 <select v-model="createForm.unit"
-                        class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
+                        class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white">
                   <option value="gr">Gram</option>
                   <option value="kg">Kilogram</option>
                   <option value="ml">Mililitre</option>
@@ -251,9 +246,9 @@
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-muted mb-1">Birim maliyeti (₺)</label>
+                <label class="field-label-muted">Birim maliyeti (₺)</label>
                 <input v-model.number="createForm.costPerUnit" type="number" step="0.0001" min="0"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
             </div>
           </div>
@@ -265,12 +260,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="createModal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               Vazgeç
             </button>
             <button @click="createIngredient" :disabled="createModal.saving"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                           hover:bg-blue-600 disabled:opacity-50">
+                    class="btn-primary disabled:opacity-50">
               {{ createModal.saving ? 'Kaydediliyor...' : 'Kaydet ve Ekle' }}
             </button>
           </div>

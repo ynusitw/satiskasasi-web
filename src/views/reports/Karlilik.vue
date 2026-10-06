@@ -12,16 +12,15 @@
         <label class="text-xs text-muted">
           Başlangıç
           <input v-model="from" type="date"
-                 class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="block mt-1 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         </label>
         <label class="text-xs text-muted">
           Bitiş
           <input v-model="to" type="date"
-                 class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="block mt-1 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         </label>
         <button @click="load" :disabled="loading"
-                class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                       hover:bg-blue-600 disabled:opacity-50">
+                class="btn-primary disabled:opacity-50">
           {{ loading ? 'Yükleniyor...' : 'Getir' }}
         </button>
       </div>
@@ -32,23 +31,23 @@
     <!-- Özet -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
       <div class="bg-white rounded-2xl shadow-sm p-5">
-        <div class="text-xs font-bold uppercase tracking-wide text-muted">Ciro</div>
-        <div class="text-2xl font-bold text-primary mt-1">{{ money(summary.revenue) }}</div>
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Ciro</div>
+        <div class="text-2xl font-semibold tracking-tight text-primary mt-1">{{ money(summary.revenue) }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
-        <div class="text-xs font-bold uppercase tracking-wide text-muted">Maliyet</div>
-        <div class="text-2xl font-bold text-amber-600 mt-1">{{ money(summary.cost) }}</div>
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Maliyet</div>
+        <div class="text-2xl font-semibold tracking-tight text-amber-600 mt-1">{{ money(summary.cost) }}</div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
-        <div class="text-xs font-bold uppercase tracking-wide text-muted">Kâr</div>
-        <div class="text-2xl font-bold mt-1"
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Kâr</div>
+        <div class="text-2xl font-semibold tracking-tight mt-1"
              :class="(summary.profit ?? 0) >= 0 ? 'text-success' : 'text-danger'">
           {{ money(summary.profit) }}
         </div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
-        <div class="text-xs font-bold uppercase tracking-wide text-muted">Kâr Marjı</div>
-        <div class="text-2xl font-bold text-primary mt-1">
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Kâr Marjı</div>
+        <div class="text-2xl font-semibold tracking-tight text-primary mt-1">
           {{ summary.margin != null ? pct(summary.margin) : '—' }}
         </div>
       </div>

@@ -15,17 +15,16 @@
     <label class="text-xs text-muted">
       Başlangıç
       <input :value="from" type="date" @input="onFrom"
-             class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
+             class="block mt-1 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
     </label>
     <label class="text-xs text-muted">
       Bitiş
       <input :value="to" type="date" @input="onTo"
-             class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
+             class="block mt-1 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
     </label>
 
     <button type="button" @click="$emit('apply')" :disabled="loading"
-            class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                   hover:bg-blue-600 disabled:opacity-50">
+            class="btn-primary disabled:opacity-50">
       {{ loading ? 'Yükleniyor...' : 'Getir' }}
     </button>
   </div>

@@ -164,7 +164,7 @@
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
             </svg>
             <input v-model="search" placeholder="Ürün ara..."
-                   class="pl-9 pr-3 h-9 border border-gray-200 rounded-lg text-[13px] w-64"/>
+                   class="pl-9 pr-3 h-9 border border-gray-200 rounded-lg text-[13px] w-64 bg-white"/>
           </div>
 
         </div>
@@ -283,7 +283,7 @@
         <!-- Üst bar -->
         <div class="bg-white flex items-center gap-4 px-6 py-3.5 shadow-sm flex-shrink-0">
           <div class="flex-1 min-w-0">
-            <h2 class="font-bold text-primary text-base">Hızlı Fotoğraf Ekle</h2>
+            <h2 class="section-title">Hızlı Fotoğraf Ekle</h2>
             <p class="text-xs text-muted">{{ filteredPhotoItems.length }} ürün gösteriliyor · Tıkla veya sürükle</p>
           </div>
 
@@ -295,8 +295,7 @@
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
             </svg>
             <input v-model="photoSearch" placeholder="Ürün ara..."
-                   class="pl-9 pr-4 py-1.5 border border-gray-200 rounded-lg text-sm
-                          focus:border-accent focus:outline-none w-48"/>
+                   class="pl-9 pr-4 py-1.5 border border-gray-200 rounded-lg text-[13.5px] w-48 bg-white"/>
           </div>
 
           <!-- Kapat -->
@@ -398,35 +397,32 @@
            @click.self="catModal.show = false">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8">
 
-          <h2 class="text-xl font-bold mb-6">
+          <h2 class="modal-title mb-6">
             {{ catModal.editing ? 'Grubu Düzenle' : 'Yeni Grup Ekle' }}
           </h2>
 
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-semibold mb-1">Grup Adı *</label>
+              <label class="field-label">Grup Adı *</label>
               <input v-model="catForm.name" placeholder="ör. Sıcak İçecekler"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
 
             <div>
-              <label class="block text-sm font-semibold mb-1">Renk</label>
+              <label class="field-label">Renk</label>
               <div class="flex items-center gap-3">
                 <input v-model="catForm.colorHex" type="color"
                        class="w-12 h-10 rounded-lg border cursor-pointer p-1"/>
                 <input v-model="catForm.colorHex"
-                       class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm
-                              font-mono focus:border-accent focus:outline-none"
+                       class="flex-1 px-3 border border-gray-200 rounded-lg text-[13.5px] font-mono h-10 bg-white"
                        placeholder="#3498DB"/>
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-semibold mb-1">Sıra</label>
+              <label class="field-label">Sıra</label>
               <input v-model.number="catForm.displayOrder" type="number" min="0"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                            focus:border-accent focus:outline-none"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
           </div>
 
@@ -437,12 +433,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="catModal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               İptal
             </button>
             <button @click="saveCat" :disabled="catSaving"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                           hover:bg-blue-600 disabled:opacity-50 transition-colors">
+                    class="btn-primary disabled:opacity-50">
               {{ catSaving ? 'Kaydediliyor...' : 'Kaydet' }}
             </button>
           </div>
@@ -458,7 +453,7 @@
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
 
           <!-- Başlık -->
-          <h2 class="text-xl font-bold mb-2">Excel İçe Aktarma</h2>
+          <h2 class="modal-title mb-2">Excel İçe Aktarma</h2>
 
           <!-- İşleniyor -->
           <div v-if="importModal.processing" class="py-8 flex flex-col items-center gap-4">
@@ -476,19 +471,19 @@
           <div v-else-if="importModal.done > 0 || importModal.errors.length">
             <div class="grid grid-cols-4 gap-3 mt-4 mb-5">
               <div class="bg-green-50 rounded-xl p-3 text-center">
-                <div class="text-2xl font-bold text-success">{{ importModal.productsCreated }}</div>
+                <div class="text-2xl font-semibold tracking-tight text-primary">{{ importModal.productsCreated }}</div>
                 <div class="text-xs text-muted mt-0.5">Ürün Eklendi</div>
               </div>
               <div class="bg-blue-50 rounded-xl p-3 text-center">
-                <div class="text-2xl font-bold text-accent">{{ importModal.catsCreated }}</div>
+                <div class="text-2xl font-semibold tracking-tight text-primary">{{ importModal.catsCreated }}</div>
                 <div class="text-xs text-muted mt-0.5">Grup Oluşturuldu</div>
               </div>
               <div class="bg-purple-50 rounded-xl p-3 text-center">
-                <div class="text-2xl font-bold text-purple-600">{{ importModal.photosUpdated }}</div>
+                <div class="text-2xl font-semibold tracking-tight text-purple-600">{{ importModal.photosUpdated }}</div>
                 <div class="text-xs text-muted mt-0.5">Fotoğraf Güncellendi</div>
               </div>
               <div class="bg-gray-50 rounded-xl p-3 text-center">
-                <div class="text-2xl font-bold text-muted">{{ importModal.skipped }}</div>
+                <div class="text-2xl font-semibold tracking-tight text-muted">{{ importModal.skipped }}</div>
                 <div class="text-xs text-muted mt-0.5">Atlandı</div>
               </div>
             </div>
@@ -504,7 +499,7 @@
 
           <div class="flex justify-end gap-3 mt-6">
             <button @click="importModal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               Kapat
             </button>
           </div>
@@ -519,14 +514,14 @@
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
 
           <div class="px-8 pt-8 pb-6 border-b border-gray-100">
-            <h2 class="text-xl font-bold">{{ modal.editing ? 'Ürünü Düzenle' : 'Yeni Ürün' }}</h2>
+            <h2 class="modal-title">{{ modal.editing ? 'Ürünü Düzenle' : 'Yeni Ürün' }}</h2>
           </div>
 
           <div class="px-8 py-6 space-y-5">
 
             <!-- Ürün Görseli -->
             <div>
-              <label class="block text-sm font-semibold mb-2">Ürün Görseli
+              <label class="field-label">Ürün Görseli
                 <span class="text-muted font-normal">(192×192 · POS'ta görünür)</span>
               </label>
               <div class="flex gap-4 items-start">
@@ -591,45 +586,39 @@
 
             <!-- Ürün Bilgileri -->
             <div>
-              <label class="block text-sm font-semibold mb-1">Ürün Adı *</label>
+              <label class="field-label">Ürün Adı *</label>
               <input v-model="form.name"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                            focus:border-accent focus:outline-none text-sm"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1">Barkod</label>
+              <label class="field-label">Barkod</label>
               <input v-model="form.barcode"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                            focus:border-accent focus:outline-none text-sm font-mono"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] font-mono h-10 bg-white"/>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1">Kategori</label>
+              <label class="field-label">Kategori</label>
               <select v-model="form.categoryId"
-                      class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                             focus:border-accent focus:outline-none text-sm bg-white">
+                      class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] bg-white h-10">
                 <option :value="null">Kategori seçin</option>
                 <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-semibold mb-1">Fiyat (₺) *</label>
+                <label class="field-label">Fiyat (₺) *</label>
                 <input v-model.number="form.price" type="number" step="0.01" min="0"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                              focus:border-accent focus:outline-none text-sm"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
               <div>
-                <label class="block text-sm font-semibold mb-1">Stok</label>
+                <label class="field-label">Stok</label>
                 <input v-model.number="form.currentStock" type="number" min="0"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                              focus:border-accent focus:outline-none text-sm"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1">Kritik Stok Seviyesi</label>
+              <label class="field-label">Kritik Stok Seviyesi</label>
               <input v-model.number="form.minimumStock" type="number" min="0"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                            focus:border-accent focus:outline-none text-sm"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
 
             <!-- Fiyat seçenekleri (porsiyon / dürüm / 1.5 porsiyon) -->
@@ -648,11 +637,9 @@
                 <div v-for="(v, i) in form.variants" :key="v._key"
                      class="flex items-center gap-2">
                   <input v-model="v.name" placeholder="Örn. Dürüm" maxlength="40"
-                         class="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm
-                                focus:border-accent focus:outline-none"/>
+                         class="flex-1 min-w-0 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                   <input v-model.number="v.price" type="number" step="0.01" min="0" placeholder="Fiyat"
-                         class="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm
-                                focus:border-accent focus:outline-none"/>
+                         class="w-28 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                   <label class="flex items-center gap-1 text-xs text-muted whitespace-nowrap">
                     <input type="checkbox" v-model="v.isActive"/> Aktif
                   </label>
@@ -717,12 +704,12 @@
                 <div v-for="(c, i) in form.comboComponents" :key="c._key"
                      class="flex items-center gap-2 mb-2">
                   <select v-model.number="c.componentProductId"
-                          class="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                          class="flex-1 min-w-0 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white">
                     <option :value="null" disabled>Ürün seçin</option>
                     <option v-for="p in otherProducts" :key="p.id" :value="p.id">{{ p.name }}</option>
                   </select>
                   <input v-model.number="c.quantity" type="number" step="0.001" min="0.001"
-                         class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm"/>
+                         class="w-24 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                   <button type="button" @click="form.comboComponents.splice(i, 1)"
                           class="px-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded" title="Kaldır">Kaldır</button>
                 </div>
@@ -752,7 +739,7 @@
 
               <div v-for="(r, i) in form.recipe" :key="r._key" class="flex items-center gap-2 mb-2">
                 <select v-model.number="r.ingredientId"
-                        class="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                        class="flex-1 min-w-0 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white">
                   <option :value="null" disabled>Hammadde seçin</option>
                   <option v-for="ing in ingredients" :key="ing.id" :value="ing.id">
                     {{ ing.name }} ({{ ing.unit }})
@@ -760,7 +747,7 @@
                 </select>
                 <input v-model.number="r.quantity" type="number" step="0.001" min="0"
                        placeholder="Miktar"
-                       class="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm"/>
+                       class="w-28 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <button type="button" @click="form.recipe.splice(i, 1)"
                         class="px-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded" title="Kaldır">Kaldır</button>
               </div>
@@ -772,17 +759,16 @@
 
             <!-- Dijital menü alanları -->
             <div>
-              <label class="block text-sm font-semibold mb-1">
+              <label class="field-label">
                 Açıklama
                 <span class="text-xs font-normal text-muted">(dijital menüde görünür)</span>
               </label>
               <textarea v-model="form.description" rows="2"
                         placeholder="Örn. Odun ateşinde pişirilmiş, özel baharatlarla..."
-                        class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                               focus:border-accent focus:outline-none text-sm resize-none"/>
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13.5px] resize-none bg-white"/>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-2">
+              <label class="field-label">
                 Alerjenler
                 <span class="text-xs font-normal text-muted">(dijital menüde görünür)</span>
               </label>
@@ -810,12 +796,11 @@
 
           <div class="px-8 pb-8 flex gap-3 justify-end">
             <button @click="modal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               İptal
             </button>
             <button @click="save" :disabled="saving"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                           hover:bg-blue-600 disabled:opacity-50 transition-colors">
+                    class="btn-primary disabled:opacity-50">
               {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
             </button>
           </div>

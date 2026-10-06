@@ -21,20 +21,20 @@
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam Nakit</div>
-          <div class="text-2xl font-bold text-success">{{ fmt(totals.cash) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(totals.cash) }}</div>
           <div class="text-xs text-muted mt-1">{{ reports.length }} rapor</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam Kart</div>
-          <div class="text-2xl font-bold text-accent">{{ fmt(totals.card) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(totals.card) }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam İndirim</div>
-          <div class="text-2xl font-bold text-danger">{{ fmt(totals.discount) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-danger">{{ fmt(totals.discount) }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Genel Toplam</div>
-          <div class="text-2xl font-bold text-primary">{{ fmt(totals.grand) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(totals.grand) }}</div>
           <div class="text-xs text-muted mt-1">{{ totals.sales }} işlem</div>
         </div>
       </div>
@@ -70,16 +70,16 @@
                 <td class="px-6 py-4 text-sm text-right text-muted font-semibold">
                   {{ z.saleCount }}
                 </td>
-                <td class="px-6 py-4 text-sm text-right text-success font-semibold">
+                <td class="px-6 py-4 text-sm text-right text-primary font-semibold">
                   {{ fmt(z.totalCash) }}
                 </td>
-                <td class="px-6 py-4 text-sm text-right text-accent font-semibold">
+                <td class="px-6 py-4 text-sm text-right text-primary font-semibold">
                   {{ fmt(z.totalCard) }}
                 </td>
                 <td class="px-6 py-4 text-sm text-right text-danger">
                   {{ fmt(z.totalDiscount) }}
                 </td>
-                <td class="px-6 py-4 text-sm text-right font-bold text-primary">
+                <td class="px-6 py-4 text-sm text-right font-semibold text-primary">
                   {{ fmt(z.grandTotal) }}
                 </td>
                 <!-- Personel satışı: ciroya dahil değil, kasaya giren tutar ayrı -->
@@ -92,8 +92,7 @@
                 </td>
                 <td class="px-6 py-4 text-center">
                   <button @click="openDetail(z)"
-                          class="px-3 py-1.5 text-xs font-semibold text-accent bg-accent/10
-                                 hover:bg-accent hover:text-white rounded-lg transition-all">
+                          class="chip-accent">
                     Detay
                   </button>
                 </td>
@@ -103,12 +102,12 @@
             <tfoot v-if="reports.length > 1" class="bg-gray-50 border-t-2 border-gray-200">
               <tr>
                 <td class="px-6 py-3 text-sm font-bold">TOPLAM</td>
-                <td class="px-6 py-3 text-sm text-right font-bold text-muted">{{ totals.sales }}</td>
-                <td class="px-6 py-3 text-sm text-right font-bold text-success">{{ fmt(totals.cash) }}</td>
-                <td class="px-6 py-3 text-sm text-right font-bold text-accent">{{ fmt(totals.card) }}</td>
-                <td class="px-6 py-3 text-sm text-right font-bold text-danger">{{ fmt(totals.discount) }}</td>
-                <td class="px-6 py-3 text-sm text-right font-bold text-primary">{{ fmt(totals.grand) }}</td>
-                <td class="px-6 py-3 text-sm text-right font-bold text-muted">{{ fmt(totals.staff) }}</td>
+                <td class="px-6 py-3 text-sm text-right font-semibold text-muted">{{ totals.sales }}</td>
+                <td class="px-6 py-3 text-sm text-right font-semibold text-primary">{{ fmt(totals.cash) }}</td>
+                <td class="px-6 py-3 text-sm text-right font-semibold text-primary">{{ fmt(totals.card) }}</td>
+                <td class="px-6 py-3 text-sm text-right font-semibold text-danger">{{ fmt(totals.discount) }}</td>
+                <td class="px-6 py-3 text-sm text-right font-semibold text-primary">{{ fmt(totals.grand) }}</td>
+                <td class="px-6 py-3 text-sm text-right font-semibold text-muted">{{ fmt(totals.staff) }}</td>
                 <td/>
               </tr>
             </tfoot>

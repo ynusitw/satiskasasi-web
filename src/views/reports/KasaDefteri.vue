@@ -9,7 +9,7 @@
         </p>
       </div>
       <button @click="load" :disabled="loading"
-              class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 disabled:opacity-50">
+              class="btn-primary disabled:opacity-50">
         {{ loading ? 'Yükleniyor...' : 'Yenile' }}
       </button>
     </div>
@@ -22,18 +22,18 @@
       <!-- Ana tutarlar -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="bg-white rounded-2xl shadow-sm p-6">
-          <div class="text-xs font-bold uppercase tracking-wide text-muted">Nakit</div>
-          <div class="text-3xl font-bold text-success mt-1">{{ fmt(report.totalCash) }}</div>
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Nakit</div>
+          <div class="text-3xl font-semibold tracking-tight text-primary mt-1">{{ fmt(report.totalCash) }}</div>
           <div class="text-xs text-muted mt-1">{{ pct(report.totalCash) }} · parçalı ödemelerin nakit payı dahil</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-6">
-          <div class="text-xs font-bold uppercase tracking-wide text-muted">Kredi Kartı</div>
-          <div class="text-3xl font-bold text-accent mt-1">{{ fmt(report.totalCard) }}</div>
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Kredi Kartı</div>
+          <div class="text-3xl font-semibold tracking-tight text-primary mt-1">{{ fmt(report.totalCard) }}</div>
           <div class="text-xs text-muted mt-1">{{ pct(report.totalCard) }} · parçalı ödemelerin kart payı dahil</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-6">
-          <div class="text-xs font-bold uppercase tracking-wide text-muted">Genel Toplam</div>
-          <div class="text-3xl font-bold text-primary mt-1">{{ fmt(report.grandTotal) }}</div>
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Genel Toplam</div>
+          <div class="text-3xl font-semibold tracking-tight text-primary mt-1">{{ fmt(report.grandTotal) }}</div>
           <div class="text-xs text-muted mt-1">{{ report.saleCount }} işlem</div>
         </div>
       </div>
@@ -41,8 +41,8 @@
       <!-- İkincil göstergeler -->
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div v-for="k in secondary" :key="k.label" class="bg-white rounded-2xl shadow-sm p-5">
-          <div class="text-xs font-bold uppercase tracking-wide text-muted">{{ k.label }}</div>
-          <div class="text-xl font-bold mt-1" :class="k.tone">{{ k.value }}</div>
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">{{ k.label }}</div>
+          <div class="text-xl font-semibold tracking-tight mt-1" :class="k.tone">{{ k.value }}</div>
           <div v-if="k.hint" class="text-xs text-muted mt-1">{{ k.hint }}</div>
         </div>
       </div>
@@ -50,7 +50,7 @@
       <!-- Kasiyer -->
       <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100">
-          <h2 class="font-bold text-primary">Kasiyere Göre</h2>
+          <h2 class="section-title">Kasiyere Göre</h2>
         </div>
         <table class="w-full text-sm">
           <thead class="bg-gray-50">

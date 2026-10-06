@@ -20,11 +20,9 @@
           <label class="block text-sm font-semibold text-primary mb-1.5">Menü Bağlantısı</label>
           <div class="flex gap-2">
             <input :value="menuUrl" readonly
-                   class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                          bg-gray-50 text-muted"/>
+                   class="flex-1 px-3 border border-gray-200 rounded-lg text-[13.5px] bg-gray-50 text-muted h-10"/>
             <button @click="copyLink"
-                    class="px-4 py-2.5 bg-accent text-white rounded-xl text-sm
-                           font-bold hover:bg-blue-600 transition-colors whitespace-nowrap">
+                    class="btn-primary btn-lg whitespace-nowrap">
               {{ copied ? 'Kopyalandı' : 'Kopyala' }}
             </button>
           </div>
@@ -38,7 +36,7 @@
 
       <!-- Görünürlük Ayarları -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-1">Görünürlük Ayarları</h2>
+        <h2 class="section-title mb-1">Görünürlük Ayarları</h2>
         <p class="text-xs text-muted mb-4">
           Firma adının altında hangi iletişim bilgilerinin gösterileceğini seçin.
         </p>
@@ -83,7 +81,7 @@
       <!-- Bunları Beğenebilirsiniz -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
         <div class="flex items-start justify-between gap-4 mb-1">
-          <h2 class="font-bold text-primary">Bunları Beğenebilirsiniz</h2>
+          <h2 class="section-title">Bunları Beğenebilirsiniz</h2>
           <span class="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
                 :class="featuredIds.length >= featuredLimit
                   ? 'bg-accent/10 text-accent' : 'bg-gray-100 text-muted'">
@@ -95,8 +93,7 @@
         </p>
 
         <input v-model="productSearch" placeholder="Ürün ara..."
-               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm
-                      focus:border-accent focus:outline-none mb-3"/>
+               class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] mb-3 h-10 bg-white"/>
 
         <div class="max-h-72 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-50">
           <label v-for="p in filteredProducts" :key="p.id"
@@ -129,7 +126,7 @@
       <!-- Kategori Görselleri -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
         <div class="flex items-start justify-between gap-3 mb-1">
-          <h2 class="font-bold text-primary">Kategori Görselleri</h2>
+          <h2 class="section-title">Kategori Görselleri</h2>
 
           <!-- Başka bir firmaya taşımak için: görseller yeniden
                sıkıştırılmadan, olduğu gibi aktarılır. -->
@@ -200,8 +197,7 @@
           {{ configError ? configError : (configSaved ? 'Menü ayarları kaydedildi' : '') }}
         </span>
         <button @click="saveConfig" :disabled="configSaving"
-                class="px-6 py-2.5 bg-accent text-white rounded-xl text-sm
-                       font-bold hover:bg-blue-600 disabled:opacity-50 transition-colors">
+                class="btn-primary btn-lg disabled:opacity-50">
           {{ configSaving ? 'Kaydediliyor...' : 'Menü Ayarlarını Kaydet' }}
         </button>
       </div>

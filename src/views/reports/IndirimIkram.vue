@@ -27,16 +27,15 @@
         <label class="text-xs text-muted" :class="mode === 'current' ? 'opacity-40' : ''">
           Başlangıç
           <input v-model="from" type="date" :disabled="mode === 'current'"
-                 class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="block mt-1 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         </label>
         <label class="text-xs text-muted" :class="mode === 'current' ? 'opacity-40' : ''">
           Bitiş
           <input v-model="to" type="date" :disabled="mode === 'current'"
-                 class="block mt-1 px-3 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="block mt-1 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         </label>
         <button @click="load" :disabled="loading"
-                class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                       hover:bg-blue-600 disabled:opacity-50">
+                class="btn-primary disabled:opacity-50">
           {{ loading ? 'Yükleniyor...' : 'Getir' }}
         </button>
       </div>
@@ -47,8 +46,8 @@
       <button v-for="c in cards" :key="c.type" @click="toggleType(c.type)"
               class="text-left bg-white rounded-2xl shadow-sm p-5 border-2 transition-colors"
               :class="type === c.type ? 'border-accent' : 'border-transparent hover:border-gray-200'">
-        <div class="text-xs font-bold uppercase tracking-wide text-muted">{{ c.label }}</div>
-        <div class="text-2xl font-bold mt-1" :class="c.color">{{ fmt(c.total) }}</div>
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">{{ c.label }}</div>
+        <div class="text-2xl font-semibold tracking-tight mt-1" :class="c.color">{{ fmt(c.total) }}</div>
         <div class="text-xs text-muted mt-1">{{ c.count }} işlem</div>
       </button>
     </div>
@@ -133,13 +132,13 @@ const loading = ref(false)
 const error   = ref('')
 
 const cards = computed(() => [
-  { type: 'Discount', label: 'İndirim',  total: summary.value.discountTotal, count: summary.value.discountCount, color: 'text-amber-600' },
-  { type: 'Comp',     label: 'İkram',    total: summary.value.compTotal,     count: summary.value.compCount,     color: 'text-purple-600' },
-  { type: 'Staff',    label: 'Personel', total: summary.value.staffTotal,    count: summary.value.staffCount,    color: 'text-blue-600' },
+  { type: 'Discount', label: 'İndirim',  total: summary.value.discountTotal, count: summary.value.discountCount, color: 'text-primary' },
+  { type: 'Comp',     label: 'İkram',    total: summary.value.compTotal,     count: summary.value.compCount,     color: 'text-primary' },
+  { type: 'Staff',    label: 'Personel', total: summary.value.staffTotal,    count: summary.value.staffCount,    color: 'text-primary' },
   // Liste fiyatının altında satılan satırlar (sunucudaki fiyat doğrulaması).
   // Fiyat güncellemesinden önce çevrimdışı yapılmış satışlar da buraya düşer.
   { type: 'PriceMismatch', label: 'Fiyat Farkı', total: summary.value.priceMismatchTotal,
-    count: summary.value.priceMismatchCount, color: 'text-red-600' },
+    count: summary.value.priceMismatchCount, color: 'text-danger' },
 ])
 
 const filtered = computed(() => type.value ? rows.value.filter(r => r.type === type.value) : rows.value)
@@ -186,7 +185,7 @@ function detail(r) {
   return parts.join(' · ') || '—'
 }
 
-const fmt = v => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(v || 0)
+const fmt = v => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v || 0) + ' ₺'
 const qty = v => Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 3 })
 const dt  = v => new Date(v).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })
 

@@ -2,7 +2,7 @@
   <div class="p-8">
     <div class="flex items-center justify-between mb-6">
       <h1 class="page-title">Kullanıcılar</h1>
-      <button @click="openCreate" class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors">+ Yeni Kullanıcı</button>
+      <button @click="openCreate" class="btn-primary">+ Yeni Kullanıcı</button>
     </div>
 
     <!-- Personel satışı: kasadaki "İndirimli" seçeneğinin oranı -->
@@ -18,11 +18,9 @@
         <span class="text-sm text-muted">İndirim oranı</span>
         <span class="text-sm font-semibold">%</span>
         <input v-model.number="staffPercent" type="number" min="1" max="99"
-               class="w-20 px-3 py-2 border border-gray-200 rounded-xl text-sm
-                      focus:border-accent focus:outline-none"/>
+               class="w-20 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
         <button @click="saveStaff" :disabled="staffSaving"
-                class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                       hover:bg-blue-600 disabled:opacity-50">
+                class="btn-primary disabled:opacity-50">
           {{ staffSaving ? '...' : 'Kaydet' }}
         </button>
         <span v-if="staffSaved" class="text-xs text-green-600">Kaydedildi</span>
@@ -59,8 +57,8 @@
             </td>
             <td class="px-6 py-4">
               <div class="flex gap-2 justify-end">
-                <button @click="openEdit(u)" class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent rounded-lg hover:bg-accent hover:text-white transition-colors">Düzenle</button>
-                <button @click="deleteUser(u)" class="px-3 py-1 text-xs font-bold bg-red-50 text-danger rounded-lg hover:bg-danger hover:text-white transition-colors">Sil</button>
+                <button @click="openEdit(u)" class="chip-accent">Düzenle</button>
+                <button @click="deleteUser(u)" class="chip-danger">Sil</button>
               </div>
             </td>
           </tr>
@@ -70,15 +68,15 @@
     <Teleport to="body">
       <div v-if="modal.show" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-          <h2 class="text-xl font-bold mb-6">{{ modal.editing ? 'Kullanıcıyı Düzenle' : 'Yeni Kullanıcı' }}</h2>
+          <h2 class="modal-title mb-6">{{ modal.editing ? 'Kullanıcıyı Düzenle' : 'Yeni Kullanıcı' }}</h2>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-semibold mb-1">Kullanıcı Adı *</label>
-              <input v-model="form.username" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
+              <label class="field-label">Kullanıcı Adı *</label>
+              <input v-model="form.username" class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div>
-              <label class="block text-sm font-semibold mb-1">Şifre *</label>
-              <input v-model="form.password" type="password" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-accent focus:outline-none text-sm"/>
+              <label class="field-label">Şifre *</label>
+              <input v-model="form.password" type="password" class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
@@ -116,7 +114,7 @@
               </label>
 
               <div v-if="form.isAdmin || form.canApproveAdjustments">
-                <label class="block text-xs font-semibold text-muted mb-1">
+                <label class="field-label-muted">
                   PIN (4-8 rakam)
                   <span v-if="form.hasManagerPin && !removePin" class="text-green-600 font-normal">
                     — tanımlı; değiştirmek için yenisini yazın
@@ -126,8 +124,7 @@
                   <input v-model="form.managerPin" type="password" inputmode="numeric"
                          maxlength="8" autocomplete="new-password" :disabled="removePin"
                          :placeholder="form.hasManagerPin ? '••••' : 'Örn. 4821'"
-                         class="w-40 px-4 py-2 border border-gray-200 rounded-xl text-sm
-                                focus:border-accent focus:outline-none"/>
+                         class="w-40 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                   <label v-if="form.hasManagerPin" class="flex items-center gap-1 text-xs text-red-600">
                     <input v-model="removePin" type="checkbox"/> PIN'i kaldır
                   </label>
@@ -137,8 +134,8 @@
           </div>
           <div v-if="error" class="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{{ error }}</div>
           <div class="flex gap-3 mt-6 justify-end">
-            <button @click="modal.show = false" class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">İptal</button>
-            <button @click="save" :disabled="saving" class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 disabled:opacity-50">{{ saving ? 'Kaydediliyor...' : 'Kaydet' }}</button>
+            <button @click="modal.show = false" class="btn-secondary">İptal</button>
+            <button @click="save" :disabled="saving" class="btn-primary disabled:opacity-50">{{ saving ? 'Kaydediliyor...' : 'Kaydet' }}</button>
           </div>
         </div>
       </div>

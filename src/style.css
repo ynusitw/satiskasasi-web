@@ -66,6 +66,25 @@
   .btn-secondary { @apply btn bg-white text-primary shadow-sm hover:bg-gray-50; }
   .btn-ghost     { @apply btn text-muted hover:text-primary hover:bg-gray-100; }
   .btn-danger    { @apply btn bg-white text-danger shadow-sm hover:bg-red-50; }
+  .btn-dark      { @apply btn bg-primary text-white shadow-sm hover:bg-primary/90; }
+  .btn-success   { @apply btn bg-success text-white shadow-sm hover:bg-emerald-700; }
+  .btn-solid-danger { @apply btn bg-danger text-white shadow-sm hover:bg-red-700; }
+  .btn-sm        { @apply h-8 px-3 text-[12.5px]; }
+  .btn-lg        { @apply h-10 px-4 text-[13.5px]; }
+
+  /* Tablo satırlarındaki küçük renkli eylemler (Düzenle, Sil, Aktifleştir…) */
+  .chip-btn     { @apply inline-flex items-center justify-center h-7 px-2.5 rounded-md text-[12px] font-medium whitespace-nowrap
+                         disabled:opacity-50 disabled:cursor-not-allowed; }
+  .chip-accent  { @apply chip-btn bg-blue-50 text-accent hover:bg-blue-100; }
+  .chip-danger  { @apply chip-btn bg-red-50 text-danger hover:bg-red-100; }
+  .chip-success { @apply chip-btn bg-green-50 text-success hover:bg-green-100; }
+  .chip-neutral { @apply chip-btn bg-gray-100 text-primary hover:bg-gray-200; }
+
+  /* Form alanı etiketleri */
+  .field-label   { @apply block text-[13px] font-medium text-primary mb-1.5; }
+  .field-label-muted { @apply block text-[12.5px] font-medium text-muted mb-1.5; }
+  .section-title { @apply text-[15px] font-semibold text-primary; }
+  .modal-title   { @apply text-[18px] font-semibold text-primary; letter-spacing: -0.012em; }
 
   /* Açılır menü */
   .menu-pop  { @apply absolute z-30 mt-2 min-w-[240px] rounded-xl bg-white p-1.5 shadow-lg; }
@@ -154,6 +173,15 @@
 .theme-dark .btn-secondary:hover,
 .theme-dark .menu-item:hover { background: #16203A !important; }
 .theme-dark .btn-ghost:hover { background: #1A2440 !important; }
+.theme-dark .btn-dark { background: #E2E8F0 !important; color: #0F172A !important; }
+.theme-dark .field-label,
+.theme-dark .section-title,
+.theme-dark .modal-title { color: #E2E8F0 !important; }
+.theme-dark .field-label-muted { color: #94A3B8 !important; }
+.theme-dark .chip-accent  { background: rgb(37 99 235 / 0.16) !important; color: #93C5FD !important; }
+.theme-dark .chip-danger  { background: rgb(220 38 38 / 0.16) !important; color: #FCA5A5 !important; }
+.theme-dark .chip-success { background: rgb(5 150 105 / 0.16) !important; color: #6EE7B7 !important; }
+.theme-dark .chip-neutral { background: #1A2440 !important; color: #E2E8F0 !important; }
 
 /* Settings modal kendisi her zaman açık temada kalır */
 .theme-dark [data-settings-modal] .bg-white { background: #ffffff !important; color: #0F172A; }
@@ -170,3 +198,14 @@
 .theme-dark .bg-amber-100,
 .theme-dark .bg-yellow-100 { background: rgb(217 119 6 / 0.22) !important; }
 .theme-dark .bg-blue-100   { background: rgb(37 99 235 / 0.22) !important; }
+.theme-dark .bg-purple-100 { background: rgb(147 51 234 / 0.22) !important; }
+.theme-dark .bg-orange-50  { background: rgb(234 88 12 / 0.13) !important; }
+.theme-dark .bg-orange-100 { background: rgb(234 88 12 / 0.22) !important; }
+
+/* Rozet/uyarı metinleri: koyu zeminde okunur açık tonlar */
+.theme-dark .text-green-600,  .theme-dark .text-green-700  { color: #6EE7B7 !important; }
+.theme-dark .text-red-600,    .theme-dark .text-red-700    { color: #FCA5A5 !important; }
+.theme-dark .text-blue-600,   .theme-dark .text-blue-700   { color: #93C5FD !important; }
+.theme-dark .text-purple-600, .theme-dark .text-purple-700 { color: #D8B4FE !important; }
+.theme-dark .text-amber-600,  .theme-dark .text-amber-700,
+.theme-dark .text-amber-800,  .theme-dark .text-orange-600 { color: #FCD34D !important; }

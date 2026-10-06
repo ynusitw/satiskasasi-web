@@ -8,8 +8,7 @@
         <p class="page-subtitle">{{ selectedDate }} tarihine ait satış özeti</p>
       </div>
       <input v-model="selectedDate" type="date"
-             class="px-4 py-2 border border-gray-200 rounded-xl text-sm
-                    focus:border-accent focus:outline-none"/>
+             class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
     </div>
 
     <div v-if="loading" class="text-center py-16 text-muted">Yükleniyor...</div>
@@ -20,19 +19,19 @@
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Toplam Satış</div>
-          <div class="text-2xl font-bold text-primary">{{ fmt(report.grandTotal) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(report.grandTotal) }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">İşlem Sayısı</div>
-          <div class="text-2xl font-bold text-primary">{{ report.saleCount }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-primary">{{ report.saleCount }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Nakit</div>
-          <div class="text-2xl font-bold text-success">{{ fmt(report.totalCash) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(report.totalCash) }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Kart</div>
-          <div class="text-2xl font-bold text-accent">{{ fmt(report.totalCard) }}</div>
+          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(report.totalCard) }}</div>
         </div>
       </div>
 
@@ -89,7 +88,7 @@
                     </span>
                   </td>
 
-                  <td class="px-5 py-3.5 text-sm font-bold text-right text-success">
+                  <td class="px-5 py-3.5 text-sm font-semibold text-right text-primary">
                     {{ fmt(s.total) }}
                   </td>
 
@@ -183,13 +182,13 @@
                             </tbody>
                             <tfoot class="bg-gray-50 border-t-2 border-gray-200">
                               <tr>
-                                <td colspan="3" class="px-4 py-2.5 text-sm font-bold text-right hidden sm:table-cell">
+                                <td colspan="3" class="px-4 py-2.5 text-sm font-semibold text-right hidden sm:table-cell">
                                   Toplam
                                 </td>
                                 <td colspan="2" class="px-4 py-2.5 text-sm font-bold sm:hidden">
                                   Toplam
                                 </td>
-                                <td class="px-4 py-2.5 text-right font-bold text-success">
+                                <td class="px-4 py-2.5 text-right font-semibold text-primary">
                                   {{ fmt(s.total) }}
                                 </td>
                               </tr>

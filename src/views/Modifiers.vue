@@ -8,8 +8,7 @@
         </p>
       </div>
       <button @click="openCreate"
-              class="px-4 py-2 bg-accent text-white rounded-lg text-sm font-bold
-                     hover:bg-blue-600 transition-colors">
+              class="btn-primary">
         + Yeni Grup
       </button>
     </div>
@@ -22,8 +21,8 @@
 
     <div v-else-if="groups.length === 0"
          class="bg-white rounded-2xl shadow-sm py-16 text-center">
-      <p class="text-sm font-semibold text-gray-400">Henüz çeşni grubu yok.</p>
-      <p class="text-xs text-gray-300 mt-1">
+      <p class="text-sm font-medium text-primary">Henüz çeşni grubu yok.</p>
+      <p class="text-xs text-muted mt-1">
         Örnek: "Hamur Tipi" (zorunlu, tek seçim) ya da "Ekstra Malzemeler" (opsiyonel, çoklu seçim).
       </p>
     </div>
@@ -41,13 +40,11 @@
           </div>
           <div class="flex gap-2 flex-shrink-0">
             <button @click="openEdit(g)"
-                    class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent rounded-lg
-                           hover:bg-accent hover:text-white transition-colors">
+                    class="chip-accent">
               Düzenle
             </button>
             <button @click="remove(g)"
-                    class="px-3 py-1 text-xs font-bold bg-red-50 text-danger rounded-lg
-                           hover:bg-danger hover:text-white transition-colors">
+                    class="chip-danger">
               Sil
             </button>
           </div>
@@ -68,21 +65,21 @@
       <div v-if="modal.show"
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-8 max-h-[90vh] overflow-y-auto">
-          <h2 class="text-xl font-bold mb-1">{{ modal.editing ? 'Grubu Düzenle' : 'Yeni Çeşni Grubu' }}</h2>
+          <h2 class="modal-title mb-1">{{ modal.editing ? 'Grubu Düzenle' : 'Yeni Çeşni Grubu' }}</h2>
           <p class="text-sm text-muted mb-6">Kasada bu grup satış anında sorulur</p>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <input v-model="form.name" placeholder="Grup adı * (Hamur Tipi)"
-                   class="sm:col-span-3 px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="sm:col-span-3 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <div>
-              <label class="block text-xs font-semibold text-muted mb-1">En az seçim</label>
+              <label class="field-label-muted">En az seçim</label>
               <input v-model.number="form.minSelect" type="number" min="0"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-muted mb-1">En çok seçim</label>
+              <label class="field-label-muted">En çok seçim</label>
               <input v-model.number="form.maxSelect" type="number" min="1"
-                     class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div class="flex items-end">
               <label class="flex items-center gap-2 cursor-pointer pb-2">
@@ -110,11 +107,11 @@
                  class="border border-gray-100 rounded-xl p-3 mb-2">
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
                 <input v-model="o.name" placeholder="Seçenek adı"
-                       class="sm:col-span-5 px-3 py-2 border border-gray-200 rounded-lg text-sm"/>
+                       class="sm:col-span-5 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <div class="sm:col-span-3">
                   <input v-model.number="o.priceDelta" type="number" step="0.01"
                          placeholder="Fiyat farkı ₺"
-                         class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"/>
+                         class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 </div>
                 <label class="sm:col-span-3 flex items-center gap-2 text-xs cursor-pointer">
                   <input v-model="o.isDefault" type="checkbox" class="w-4 h-4"/>
@@ -129,14 +126,14 @@
               <!-- Stok bağı: seçim depoyu etkiliyorsa -->
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 mt-2 items-center">
                 <select v-model="o.stockKind"
-                        class="sm:col-span-4 px-3 py-2 border border-gray-200 rounded-lg text-xs">
+                        class="sm:col-span-4 px-3 border border-gray-200 rounded-lg text-xs h-10 bg-white">
                   <option value="none">Stoğu etkilemez</option>
                   <option value="ingredient">Hammadde düşsün</option>
                   <option value="product">Ürün düşsün</option>
                 </select>
 
                 <select v-if="o.stockKind === 'ingredient'" v-model.number="o.ingredientId"
-                        class="sm:col-span-5 px-3 py-2 border border-gray-200 rounded-lg text-xs">
+                        class="sm:col-span-5 px-3 border border-gray-200 rounded-lg text-xs h-10 bg-white">
                   <option :value="null" disabled>Hammadde seçin</option>
                   <option v-for="i in ingredients" :key="i.id" :value="i.id">
                     {{ i.name }} ({{ i.unit }})
@@ -144,14 +141,14 @@
                 </select>
 
                 <select v-if="o.stockKind === 'product'" v-model.number="o.linkedProductId"
-                        class="sm:col-span-5 px-3 py-2 border border-gray-200 rounded-lg text-xs">
+                        class="sm:col-span-5 px-3 border border-gray-200 rounded-lg text-xs h-10 bg-white">
                   <option :value="null" disabled>Ürün seçin</option>
                   <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
                 </select>
 
                 <input v-if="o.stockKind !== 'none'" v-model.number="o.stockQuantity"
                        type="number" step="0.001" placeholder="Miktar"
-                       class="sm:col-span-3 px-3 py-2 border border-gray-200 rounded-lg text-xs"/>
+                       class="sm:col-span-3 px-3 border border-gray-200 rounded-lg text-xs h-10 bg-white"/>
               </div>
             </div>
           </div>
@@ -162,12 +159,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="modal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               Vazgeç
             </button>
             <button @click="save" :disabled="saving"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                           hover:bg-blue-600 disabled:opacity-50">
+                    class="btn-primary disabled:opacity-50">
               {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
             </button>
           </div>

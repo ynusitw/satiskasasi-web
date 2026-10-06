@@ -13,8 +13,8 @@
     <!-- Özet -->
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
       <div v-for="k in kpis" :key="k.label" class="bg-white rounded-2xl shadow-sm p-5">
-        <div class="text-xs font-bold uppercase tracking-wide text-muted">{{ k.label }}</div>
-        <div class="text-2xl font-bold mt-1" :class="k.tone">{{ k.value }}</div>
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">{{ k.label }}</div>
+        <div class="text-2xl font-semibold tracking-tight mt-1" :class="k.tone">{{ k.value }}</div>
         <div v-if="k.hint" class="text-xs text-muted mt-1">{{ k.hint }}</div>
       </div>
     </div>
@@ -22,7 +22,7 @@
     <!-- Şu an açık masalar -->
     <div class="bg-white rounded-2xl shadow-sm mb-6 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h2 class="font-bold text-primary">Şu An Açık Masalar</h2>
+        <h2 class="section-title">Şu An Açık Masalar</h2>
         <span class="text-sm text-muted">{{ open.length }} masa · {{ money(s.openTotal) }}</span>
       </div>
       <div v-if="open.length" class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3 p-4">
@@ -41,7 +41,7 @@
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
       <!-- Bölümler -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-4">Bölümler</h2>
+        <h2 class="section-title mb-4">Bölümler</h2>
         <div v-if="sections.length" class="space-y-4">
           <div v-for="sec in sections" :key="sec.section">
             <div class="flex justify-between text-sm mb-1">

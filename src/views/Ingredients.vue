@@ -8,8 +8,7 @@
         </p>
       </div>
       <button @click="openCreate"
-              class="px-4 py-2 bg-accent text-white rounded-lg text-sm font-bold
-                     hover:bg-blue-600 transition-colors">
+              class="btn-primary">
         + Yeni Hammadde
       </button>
     </div>
@@ -19,8 +18,7 @@
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-4">
         <input v-model="search" placeholder="Hammadde ara..."
-               class="px-4 py-2 rounded-xl border border-gray-200
-                      focus:border-accent focus:outline-none text-sm w-72"/>
+               class="px-3 rounded-lg border border-gray-200 text-[13.5px] w-72 h-10 bg-white"/>
         <span class="text-xs text-muted">{{ filtered.length }} kayıt</span>
       </div>
 
@@ -61,18 +59,15 @@
               </td>
               <td class="px-6 py-4 text-right whitespace-nowrap">
                 <button @click="openMovement(i)"
-                        class="px-3 py-1 text-xs font-bold bg-green-50 text-green-600
-                               rounded-lg hover:bg-green-600 hover:text-white transition-colors">
+                        class="chip-success">
                   Stok Hareketi
                 </button>
                 <button @click="openEdit(i)"
-                        class="ml-2 px-3 py-1 text-xs font-bold bg-blue-50 text-accent
-                               rounded-lg hover:bg-accent hover:text-white transition-colors">
+                        class="chip-accent ml-2">
                   Düzenle
                 </button>
                 <button @click="remove(i)"
-                        class="ml-2 px-3 py-1 text-xs font-bold bg-red-50 text-danger
-                               rounded-lg hover:bg-danger hover:text-white transition-colors">
+                        class="chip-danger ml-2">
                   Sil
                 </button>
               </td>
@@ -91,18 +86,18 @@
       <div v-if="modal.show"
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
-          <h2 class="text-xl font-bold mb-1">{{ modal.editing ? 'Hammadde Düzenle' : 'Yeni Hammadde' }}</h2>
+          <h2 class="modal-title mb-1">{{ modal.editing ? 'Hammadde Düzenle' : 'Yeni Hammadde' }}</h2>
           <p class="text-sm text-muted mb-6">Depoda takip edilen malzeme</p>
 
           <div class="space-y-3">
             <input v-model="form.name" placeholder="Hammadde adı * (Kıyma, Ekmek, Kola)"
-                   class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                   class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-semibold text-muted mb-1">Birim</label>
+                <label class="field-label-muted">Birim</label>
                 <select v-model="form.unit"
-                        class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm">
+                        class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white">
                   <option value="adet">adet</option>
                   <option value="gr">gram</option>
                   <option value="kg">kilogram</option>
@@ -112,26 +107,25 @@
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-muted mb-1">Birim maliyet (₺)</label>
+                <label class="field-label-muted">Birim maliyet (₺)</label>
                 <input v-model.number="form.costPerUnit" type="number" step="0.0001" min="0"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-semibold text-muted mb-1">
+                <label class="field-label-muted">
                   {{ modal.editing ? 'Stok (hareketle değişir)' : 'Açılış stoğu' }}
                 </label>
                 <input v-model.number="form.currentStock" type="number" step="0.001"
                        :disabled="modal.editing"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm
-                              disabled:bg-gray-50 disabled:text-muted"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] disabled:bg-gray-50 disabled:text-muted h-10 bg-white"/>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-muted mb-1">Kritik seviye</label>
+                <label class="field-label-muted">Kritik seviye</label>
                 <input v-model.number="form.minimumStock" type="number" step="0.001" min="0"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
             </div>
 
@@ -147,12 +141,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="modal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               Vazgeç
             </button>
             <button @click="save" :disabled="saving"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                           hover:bg-blue-600 disabled:opacity-50">
+                    class="btn-primary disabled:opacity-50">
               {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
             </button>
           </div>
@@ -165,7 +158,7 @@
       <div v-if="movement.show"
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
-          <h2 class="text-xl font-bold mb-1">{{ movement.ingredient?.name }}</h2>
+          <h2 class="modal-title mb-1">{{ movement.ingredient?.name }}</h2>
           <p class="text-sm text-muted mb-6">
             Mevcut stok: <b>{{ num(movement.ingredient?.currentStock) }}</b> {{ movement.ingredient?.unit }}
           </p>
@@ -181,17 +174,17 @@
           </div>
 
           <!-- Sayımda elde kalan girilir, fark otomatik hesaplanır -->
-          <label class="block text-xs font-semibold text-muted mb-1">
+          <label class="field-label-muted">
             {{ movement.type === 'Adjustment' ? 'Sayımda bulunan miktar' : 'Miktar' }}
           </label>
           <input v-model.number="movement.quantity" type="number" step="0.001"
-                 class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm mb-1"/>
+                 class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] mb-1 h-10 bg-white"/>
           <p class="text-xs text-muted mb-3">
             {{ movementHint }}
           </p>
 
           <input v-model="movement.note" placeholder="Açıklama (fatura no, sebep...)"
-                 class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                 class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
 
           <div v-if="modalError" class="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">
             {{ modalError }}
@@ -199,12 +192,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="movement.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               Vazgeç
             </button>
             <button @click="saveMovement" :disabled="saving"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm font-bold
-                           hover:bg-blue-600 disabled:opacity-50">
+                    class="btn-primary disabled:opacity-50">
               {{ saving ? 'Kaydediliyor...' : 'Uygula' }}
             </button>
           </div>

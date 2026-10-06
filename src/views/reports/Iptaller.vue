@@ -15,8 +15,8 @@
       <button v-for="c in cards" :key="c.type ?? 'all'" @click="type = c.type"
               class="text-left bg-white rounded-2xl shadow-sm p-5 border-2 transition-colors"
               :class="type === c.type ? 'border-accent' : 'border-transparent hover:border-gray-200'">
-        <div class="text-xs font-bold uppercase tracking-wide text-muted">{{ c.label }}</div>
-        <div class="text-2xl font-bold mt-1 text-danger">{{ money(c.amount) }}</div>
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">{{ c.label }}</div>
+        <div class="text-2xl font-semibold tracking-tight mt-1 text-danger">{{ money(c.amount) }}</div>
         <div class="text-xs text-muted mt-1">{{ c.count }} kayıt</div>
       </button>
     </div>
@@ -24,7 +24,7 @@
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
       <!-- Kasiyer -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-4">Kasiyere Göre</h2>
+        <h2 class="section-title mb-4">Kasiyere Göre</h2>
         <div v-if="byCashier.length" class="space-y-3">
           <div v-for="c in byCashier" :key="c.cashier" class="flex items-center justify-between text-sm">
             <div>
@@ -39,7 +39,7 @@
 
       <!-- En çok iptal edilen ürünler -->
       <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-4">En Çok İptal Edilen Ürünler</h2>
+        <h2 class="section-title mb-4">En Çok İptal Edilen Ürünler</h2>
         <div v-if="byProduct.length" class="space-y-3">
           <div v-for="p in byProduct" :key="p.product">
             <div class="flex justify-between text-sm mb-1">

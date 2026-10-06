@@ -13,8 +13,8 @@
     <!-- Özet -->
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
       <div v-for="k in kpis" :key="k.label" class="bg-white rounded-2xl shadow-sm p-5">
-        <div class="text-xs font-bold uppercase tracking-wide text-muted">{{ k.label }}</div>
-        <div class="text-2xl font-bold mt-1" :class="k.tone">{{ k.value }}</div>
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">{{ k.label }}</div>
+        <div class="text-2xl font-semibold tracking-tight mt-1" :class="k.tone">{{ k.value }}</div>
         <div v-if="k.hint" class="text-xs text-muted mt-1">{{ k.hint }}</div>
       </div>
     </div>
@@ -22,7 +22,7 @@
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
       <!-- Günlük ciro -->
       <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-4">Günlük Ciro</h2>
+        <h2 class="section-title mb-4">Günlük Ciro</h2>
         <VueApexCharts v-if="days.some(d => d.revenue)" type="bar" height="260"
                        :options="dayChart" :series="[{ name: 'Ciro', data: days.map(d => d.revenue) }]"/>
         <div v-else class="py-16 text-center text-sm text-muted">Bu aralıkta satış yok</div>
@@ -30,7 +30,7 @@
 
       <!-- Ödeme türleri -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-4">Ödeme Türleri</h2>
+        <h2 class="section-title mb-4">Ödeme Türleri</h2>
         <div class="space-y-4">
           <div v-for="p in payments" :key="p.label">
             <div class="flex justify-between text-sm mb-1">
@@ -54,7 +54,7 @@
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
       <!-- Saatlik yoğunluk -->
       <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-1">Saatlik Yoğunluk</h2>
+        <h2 class="section-title mb-1">Saatlik Yoğunluk</h2>
         <p class="text-xs text-muted mb-4">Seçilen günlerin toplamı — personel planlaması için</p>
         <VueApexCharts v-if="hours.some(h => h.count)" type="bar" height="240"
                        :options="hourChart" :series="[{ name: 'İşlem', data: hours.map(h => h.count) }]"/>
@@ -63,7 +63,7 @@
 
       <!-- Kasiyer -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-4">Kasiyer</h2>
+        <h2 class="section-title mb-4">Kasiyer</h2>
         <div v-if="byUser.length" class="space-y-3">
           <div v-for="u in byUser" :key="u.user" class="flex items-center justify-between text-sm">
             <div>
@@ -80,7 +80,7 @@
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
       <!-- Kategori -->
       <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="font-bold text-primary mb-4">Kategori</h2>
+        <h2 class="section-title mb-4">Kategori</h2>
         <div v-if="byCategory.length" class="space-y-4">
           <div v-for="c in byCategory" :key="c.category">
             <div class="flex justify-between text-sm mb-1">
@@ -99,9 +99,9 @@
       <!-- Ürünler -->
       <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
-          <h2 class="font-bold text-primary">Ürünler</h2>
+          <h2 class="section-title">Ürünler</h2>
           <input v-model="productSearch" placeholder="Ürün ara..."
-                 class="px-3 py-1.5 rounded-lg border border-gray-200 text-sm w-48"/>
+                 class="px-3 py-1.5 rounded-lg border border-gray-200 text-[13.5px] w-48 bg-white"/>
         </div>
         <div class="max-h-[440px] overflow-y-auto">
           <table class="w-full text-sm">

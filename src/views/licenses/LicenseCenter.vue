@@ -10,8 +10,7 @@
         </p>
       </div>
       <button @click="load"
-              class="px-4 py-2 bg-accent text-white rounded-lg
-                     text-sm font-semibold hover:bg-blue-600 transition-colors">
+              class="btn-primary">
         Yenile
       </button>
     </div>
@@ -94,13 +93,11 @@
               </td>
               <td class="px-6 py-4 text-right whitespace-nowrap">
                 <button @click="openModules(l)"
-                        class="px-3 py-1 text-xs font-bold bg-blue-50 text-accent
-                               rounded-lg hover:bg-accent hover:text-white transition-colors">
+                        class="chip-accent">
                   Modüller
                 </button>
                 <button v-if="l.isActive" @click="revoke(l)"
-                        class="ml-2 px-3 py-1 text-xs font-bold bg-red-50 text-danger
-                               rounded-lg hover:bg-danger hover:text-white transition-colors">
+                        class="chip-danger ml-2">
                   İptal Et
                 </button>
               </td>
@@ -148,13 +145,11 @@
               </td>
               <td class="px-6 py-4 text-right whitespace-nowrap">
                 <button @click="openApprove(r)"
-                        class="px-3 py-1 text-xs font-bold bg-green-50 text-green-600
-                               rounded-lg hover:bg-green-600 hover:text-white transition-colors">
+                        class="chip-success">
                   {{ tab === 'reddedilen' ? 'Aktif Et' : 'Onayla' }}
                 </button>
                 <button v-if="tab === 'bekleyen'" @click="reject(r)"
-                        class="ml-2 px-3 py-1 text-xs font-bold bg-red-50 text-danger
-                               rounded-lg hover:bg-danger hover:text-white transition-colors">
+                        class="chip-danger ml-2">
                   Reddet
                 </button>
               </td>
@@ -174,7 +169,7 @@
       <div v-if="approveModal.show"
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
-          <h2 class="text-xl font-bold mb-1">Lisansı Tanımla</h2>
+          <h2 class="modal-title mb-1">Lisansı Tanımla</h2>
           <p class="text-xs font-mono text-muted mb-6">{{ approveModal.request?.deviceId }}</p>
 
           <div class="space-y-4">
@@ -194,34 +189,32 @@
               </p>
 
               <select v-if="!newTenant" v-model="form.tenantId"
-                      class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                             focus:border-accent focus:outline-none text-sm">
+                      class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white">
                 <option :value="null" disabled>Müşteri seçin</option>
                 <option v-for="t in tenants" :key="t.id" :value="t.id">{{ t.businessName }}</option>
               </select>
 
               <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
                 <input v-model="tenantForm.businessName" placeholder="İşletme adı *"
-                       class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                       class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <input v-model="tenantForm.contactPerson" placeholder="Yetkili kişi"
-                       class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                       class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <input v-model="tenantForm.username" placeholder="Kullanıcı adı *"
-                       class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                       class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <input v-model="tenantForm.password" type="text" placeholder="Şifre *"
-                       class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                       class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <input v-model="tenantForm.email" placeholder="E-posta"
-                       class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                       class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
                 <input v-model="tenantForm.phone" placeholder="Telefon"
-                       class="px-4 py-2 border border-gray-200 rounded-xl text-sm"/>
+                       class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-semibold mb-1">Lisans Tipi</label>
+                <label class="field-label">Lisans Tipi</label>
                 <select v-model="form.licenseType"
-                        class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                               focus:border-accent focus:outline-none text-sm">
+                        class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white">
                   <option value="Full">Tam (süresiz)</option>
                   <option value="Demo">Demo (14 gün)</option>
                   <option value="Limited">Sınırlı (gün seç)</option>
@@ -229,10 +222,9 @@
               </div>
 
               <div v-if="form.licenseType === 'Limited'">
-                <label class="block text-sm font-semibold mb-1">Gün Sayısı</label>
+                <label class="field-label">Gün Sayısı</label>
                 <input v-model.number="form.days" type="number" min="1"
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl
-                              focus:border-accent focus:outline-none text-sm"/>
+                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
             </div>
 
@@ -250,12 +242,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="approveModal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               Vazgeç
             </button>
             <button @click="approve" :disabled="saving || (!form.tenantId && !newTenant)"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm
-                           font-bold hover:bg-blue-600 disabled:opacity-50">
+                    class="btn-primary disabled:opacity-50">
               {{ saving ? 'Kaydediliyor...' : 'Lisansı Ver' }}
             </button>
           </div>
@@ -268,7 +259,7 @@
       <div v-if="moduleModal.show"
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
-          <h2 class="text-xl font-bold mb-1">Modüller</h2>
+          <h2 class="modal-title mb-1">Modüller</h2>
           <p class="text-sm text-muted mb-6">{{ moduleModal.license?.tenantName }}</p>
 
           <div v-if="modulesLoading" class="text-sm text-muted py-4">Modüller yükleniyor...</div>
@@ -283,12 +274,11 @@
 
           <div class="flex gap-3 mt-6 justify-end">
             <button @click="moduleModal.show = false"
-                    class="px-5 py-2 bg-gray-100 rounded-xl text-sm font-bold hover:bg-gray-200">
+                    class="btn-secondary">
               Vazgeç
             </button>
             <button @click="saveModules" :disabled="saving || modulesLoading"
-                    class="px-5 py-2 bg-accent text-white rounded-xl text-sm
-                           font-bold hover:bg-blue-600 disabled:opacity-50">
+                    class="btn-primary disabled:opacity-50">
               {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
             </button>
           </div>

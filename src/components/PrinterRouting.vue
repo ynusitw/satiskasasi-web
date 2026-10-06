@@ -3,7 +3,7 @@
        sekmesindeydi; fiş ayarlarıyla birlikte tek sayfada toplandı. -->
   <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-100">
-      <h2 class="font-bold text-primary">Kategori Yönlendirmesi</h2>
+      <h2 class="section-title">Kategori Yönlendirmesi</h2>
       <p class="text-xs text-muted mt-0.5">
         Her kategori için hangi yazıcıdan kaç kopya çıkacağını belirleyin.
         Yönlendirilmemiş kategoriler varsayılan fiş yazıcısını kullanır.
@@ -14,10 +14,10 @@
       <table class="w-full">
         <thead class="bg-gray-50">
           <tr>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase tracking-wide">Kategori</th>
-            <th class="text-left px-6 py-3 text-xs font-bold text-muted uppercase tracking-wide">Mutfak / Bar Yazıcısı</th>
-            <th class="text-center px-6 py-3 text-xs font-bold text-muted uppercase tracking-wide">Kopya</th>
-            <th class="text-center px-6 py-3 text-xs font-bold text-muted uppercase tracking-wide">Aksiyon</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted">Kategori</th>
+            <th class="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted">Mutfak / Bar Yazıcısı</th>
+            <th class="text-center px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted">Kopya</th>
+            <th class="text-center px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted">Aksiyon</th>
           </tr>
         </thead>
         <tbody>
@@ -31,8 +31,7 @@
             </td>
             <td class="px-6 py-3.5">
               <select v-model="row.printerName"
-                      class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm
-                             focus:border-accent focus:outline-none bg-white min-w-[180px]">
+                      class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] bg-white min-w-[180px] h-10">
                 <option value="">— Yazıcı yok —</option>
                 <option v-for="p in printers" :key="p" :value="p">{{ p }}</option>
               </select>
@@ -53,8 +52,7 @@
             <td class="px-6 py-3.5">
               <div class="flex items-center justify-center">
                 <button @click="removeRouting(row.categoryId)"
-                        class="px-3 py-1.5 text-xs font-semibold text-danger bg-red-50
-                               hover:bg-danger hover:text-white rounded-lg transition-all">
+                        class="chip-danger">
                   Kaldır
                 </button>
               </div>
@@ -78,8 +76,7 @@
             <td class="px-6 py-3.5">
               <div class="flex items-center justify-center">
                 <button @click="addRouting(cat)"
-                        class="px-3 py-1.5 text-xs font-semibold text-accent bg-accent/10
-                               hover:bg-accent hover:text-white rounded-lg transition-all">
+                        class="chip-accent">
                   + Ekle
                 </button>
               </div>

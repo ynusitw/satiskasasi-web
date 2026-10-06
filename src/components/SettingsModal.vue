@@ -192,8 +192,7 @@
                     </div>
                     <div class="flex-shrink-0">
                       <button @click="show2FAInfo = !show2FAInfo"
-                              class="text-xs font-semibold px-3 py-1.5 rounded-lg border
-                                     border-gray-200 hover:bg-gray-50 transition-colors text-primary">
+                              class="btn-secondary">
                         {{ show2FAInfo ? 'Kapat' : 'Yapılandır' }}
                       </button>
                     </div>
@@ -595,7 +594,7 @@ export const SectionHeader = {
   props: ['title', 'desc'],
   template: `
     <div class="mb-5">
-      <h3 class="font-bold text-primary mb-1">{{ title }}</h3>
+      <h3 class="section-title mb-1">{{ title }}</h3>
       <p class="text-sm text-muted">{{ desc }}</p>
       <div class="mt-4 border-t border-gray-100"/>
     </div>

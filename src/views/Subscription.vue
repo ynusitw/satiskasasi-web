@@ -6,7 +6,7 @@
 
       <!-- Mevcut Plan -->
       <div class="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 class="font-bold text-primary mb-4">Mevcut Plan</h2>
+        <h2 class="section-title mb-4">Mevcut Plan</h2>
         <div class="space-y-3">
           <div class="flex justify-between py-2 border-b border-gray-100">
             <span class="text-sm text-muted">İşletme</span>
@@ -36,7 +36,7 @@
 
       <!-- Yenileme -->
       <div class="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 class="font-bold text-primary mb-4">Aboneliği Yenile</h2>
+        <h2 class="section-title mb-4">Aboneliği Yenile</h2>
 
         <div v-if="isExpiringSoon"
              class="p-4 bg-yellow-50 rounded-xl text-sm text-yellow-700 mb-4">
