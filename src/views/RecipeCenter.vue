@@ -63,7 +63,6 @@
         <!-- Ürün seçilmediyse -->
         <div v-if="!selected"
              class="bg-white rounded-2xl shadow-sm py-24 text-center select-none">
-          <div class="text-4xl mb-3">🧾</div>
           <p class="text-sm font-semibold text-gray-400">Soldan bir ürün seçin</p>
           <p class="text-xs text-gray-300 mt-1">Seçtiğiniz ürünün reçetesi burada açılır.</p>
         </div>
@@ -185,9 +184,7 @@
                   </td>
                   <td class="px-5 py-3 text-center">
                     <button @click="removeRow(idx)" title="Satırı sil"
-                            class="w-8 h-8 rounded-lg text-danger hover:bg-red-50 transition-colors">
-                      🗑
-                    </button>
+                            class="px-2 h-8 rounded-lg text-xs font-semibold text-danger hover:bg-red-50 transition-colors">Sil</button>
                   </td>
                 </tr>
 

@@ -19,7 +19,7 @@
         <button @click="load"
                 class="px-4 py-2 bg-accent text-white rounded-xl text-sm
                        font-semibold hover:bg-blue-600 transition-colors">
-          ↻ Yenile
+          Yenile
         </button>
       </div>
     </div>
@@ -238,7 +238,7 @@ const filters = [
   { value: 'all',    label: 'Tümü'    },
   { value: 'basic',  label: 'Basic'   },
   { value: 'pro',    label: 'Pro'     },
-  { value: 'expiring', label: '⚠ Sona Eriyor' },
+  { value: 'expiring', label: 'Sona Eriyor' },
 ]
 
 async function load() {
@@ -281,7 +281,7 @@ function formatDate(d) {
 function statusLabel(t) {
   if (!t.isActive)           return 'Pasif'
   if (isExpired(t.expiresAt)) return 'Süresi Doldu'
-  if (isDueSoon(t.expiresAt)) return '⚠ Sona Eriyor'
+  if (isDueSoon(t.expiresAt)) return 'Sona Eriyor'
   return 'Aktif'
 }
 

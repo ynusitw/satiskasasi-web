@@ -2,7 +2,6 @@
   <div class="min-h-screen bg-gradient-to-br from-primary to-accent flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8">
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-accent to-blue-400 rounded-2xl text-3xl mb-4 shadow-lg">🏪</div>
         <h1 class="text-2xl font-bold text-primary">SatışKasası</h1>
         <p class="text-muted text-sm mt-1">Yönetim Paneline Giriş</p>
       </div>

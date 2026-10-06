@@ -48,7 +48,7 @@
                    class="search-input w-full pl-4 pr-9 py-2.5 rounded-full text-sm
                           text-ink placeholder:text-inkmuted/70 focus:outline-none"/>
             <button v-if="search" @click="search = ''"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-inkmuted text-sm">✕</button>
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-inkmuted text-xs font-semibold">Temizle</button>
           </div>
         </div>
       </div>
@@ -139,14 +139,14 @@
 
       <Transition name="fade">
         <button v-if="showScrollTop" @click="scrollToTop"
-                class="scroll-top-btn" aria-label="Yukarı çık">↑</button>
+                class="scroll-top-btn" aria-label="Yukarı çık">Yukarı</button>
       </Transition>
 
       <!-- ── Ürün fotoğrafı önizleme ──────────────────────────────── -->
       <Transition name="fade">
         <div v-if="preview" class="lightbox" @click="closePreview">
           <div class="lightbox-inner" @click.stop>
-            <button class="lightbox-close" @click="closePreview" aria-label="Kapat">✕</button>
+            <button class="lightbox-close" @click="closePreview" aria-label="Kapat">Kapat</button>
             <!-- Küçük görsel anında görünür (bulanık), tam çözünürlüklü
                  fotoğraf inince üstüne biner. -->
             <div class="lightbox-media" :class="{ 'is-inactive': preview.isActive === false }">
@@ -431,8 +431,8 @@ onUnmounted(() => {
 /* Scroll-to-top */
 .scroll-top-btn {
   position: fixed; right: 16px; bottom: 20px; z-index: 30;
-  width: 42px; height: 42px; border-radius: 999px;
-  background: var(--brand); color: white; font-size: 18px; font-weight: 700;
+  height: 40px; padding: 0 16px; border-radius: 999px;
+  background: var(--brand); color: white; font-size: 13px; font-weight: 700;
   box-shadow: 0 4px 14px rgba(0,0,0,0.2);
 }
 
@@ -474,9 +474,9 @@ onUnmounted(() => {
 .lightbox-media.is-inactive { filter: grayscale(1); opacity: .6; }
 .lightbox-close {
   position: absolute; top: 10px; right: 10px; z-index: 2;
-  width: 32px; height: 32px; border-radius: 50%; border: none;
+  height: 30px; padding: 0 12px; border-radius: 999px; border: none;
   background: rgba(0,0,0,0.5); color: white;
-  font-size: 14px; line-height: 1; cursor: pointer;
+  font-size: 12px; font-weight: 700; line-height: 1; cursor: pointer;
 }
 .lightbox-info { padding: 14px 16px 16px; overflow-y: auto; }
 .lightbox-name { font-size: 17px; font-weight: 800; color: #1F2937; line-height: 1.25; }

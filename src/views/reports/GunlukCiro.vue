@@ -200,7 +200,6 @@
                         <!-- Ürün bilgisi henüz API'den gelmiyor -->
                         <template v-else>
                           <div class="px-4 py-6 text-center text-muted text-sm">
-                            <div class="text-2xl mb-2">🛒</div>
                             <div>Bu satışa ait ürün detayı bulunamadı.</div>
                             <div class="text-xs mt-1 text-muted/60">
                               API yanıtında <code class="bg-gray-100 px-1 rounded">items</code> alanı bekleniyor.

@@ -13,12 +13,12 @@
         <button @click="load" :disabled="loading || saving"
                 class="px-4 py-2 bg-gray-100 text-primary rounded-xl text-sm
                        font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50">
-          ↺ Yenile
+          Yenile
         </button>
         <button @click="save" :disabled="loading || saving"
                 class="px-5 py-2 bg-accent text-white rounded-xl text-sm
                        font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50">
-          {{ saving ? 'Kaydediliyor...' : '✓ Kaydet' }}
+          {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
         </button>
       </div>
     </div>
@@ -30,7 +30,7 @@
     <div v-if="savedOk"
          class="mb-4 p-3 bg-green-50 text-success rounded-xl text-sm font-semibold
                 border border-green-100">
-      ✓ Ayarlar başarıyla kaydedildi
+      Ayarlar başarıyla kaydedildi
     </div>
 
     <div v-if="loading" class="flex justify-center py-24 text-muted text-sm">
@@ -320,7 +320,7 @@
                   </div>
                 </template>
 
-                <div class="text-center text-gray-300 mt-3">✂ - - - - - - - -</div>
+                <div class="text-center text-gray-300 mt-3">- - - - - - - - -</div>
               </div>
             </div>
           </div>

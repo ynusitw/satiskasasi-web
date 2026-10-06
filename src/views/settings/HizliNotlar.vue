@@ -48,10 +48,10 @@
               <div class="flex flex-col">
                 <button @click="move(i, -1)" :disabled="i === 0"
                         class="text-xs leading-none text-muted disabled:opacity-25"
-                        title="Yukarı">▲</button>
+                        title="Yukarı">Yukarı</button>
                 <button @click="move(i, 1)" :disabled="i === notes.length - 1"
                         class="text-xs leading-none text-muted disabled:opacity-25"
-                        title="Aşağı">▼</button>
+                        title="Aşağı">Aşağı</button>
               </div>
 
               <input v-model="n.text" maxlength="40"
@@ -65,8 +65,8 @@
               </label>
 
               <button @click="remove(n)"
-                      class="text-red-600 text-sm px-2 hover:bg-red-50 rounded"
-                      title="Sil">✕</button>
+                      class="text-red-600 text-xs font-semibold px-2 hover:bg-red-50 rounded"
+                      title="Sil">Sil</button>
             </li>
           </ul>
         </div>

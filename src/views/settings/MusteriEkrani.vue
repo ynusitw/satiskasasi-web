@@ -91,8 +91,8 @@
               <div v-for="(s, i) in slides" :key="i" class="relative group">
                 <img :src="s" class="w-full h-20 object-cover rounded-lg"/>
                 <button @click="slides.splice(i, 1)"
-                        class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white
-                               text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                        class="absolute top-1 right-1 px-2 h-6 rounded-md bg-black/60 text-white
+                               text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Sil</button>
               </div>
             </div>
 

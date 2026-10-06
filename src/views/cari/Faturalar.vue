@@ -31,7 +31,7 @@
 
     <!-- Filtre -->
     <div class="flex flex-wrap gap-3 mb-4">
-      <input v-model="search" placeholder="🔍 Fatura no veya cari ara..."
+      <input v-model="search" placeholder="Fatura no veya cari ara..."
              class="flex-1 min-w-48 px-4 py-2 border border-gray-200 rounded-xl
                     text-sm focus:border-accent focus:outline-none"/>
       <select v-model="filterTip"
@@ -205,7 +205,6 @@
                       <tbody>
                         <tr v-if="!kalemler.length">
                           <td colspan="9" class="text-center py-10 text-muted">
-                            <div class="text-2xl mb-2">📦</div>
                             <div class="text-sm">"Yeni Ürün Ekle" butonuna basarak kalem girin</div>
                           </td>
                         </tr>

@@ -40,7 +40,7 @@
 
         <div v-if="isExpiringSoon"
              class="p-4 bg-yellow-50 rounded-xl text-sm text-yellow-700 mb-4">
-          ⚠️ Aboneliğiniz yakında bitiyor. Kesintisiz hizmet için yenileyin.
+          Aboneliğiniz yakında bitiyor. Kesintisiz hizmet için yenileyin.
         </div>
 
         <p class="text-sm text-muted mb-6">
@@ -51,12 +51,12 @@
           <a href="mailto:admin@genpos.tr"
              class="flex items-center gap-3 p-4 bg-blue-50 rounded-xl
                     text-accent font-semibold text-sm hover:bg-blue-100 transition-colors">
-            📧 yekutuk@gmail.com
+            yekutuk@gmail.com
           </a>
           <a href="tel:+905001234567"
              class="flex items-center gap-3 p-4 bg-green-50 rounded-xl
                     text-green-600 font-semibold text-sm hover:bg-green-100 transition-colors">
-            📞 +90 505 406 00 17
+            +90 505 406 00 17
           </a>
         </div>
 

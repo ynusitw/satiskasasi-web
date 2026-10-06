@@ -92,7 +92,6 @@
       <!-- Boş durum -->
       <div v-if="!store.plans.length"
            class="col-span-full text-center py-16 text-muted">
-        <div class="text-4xl mb-3">📦</div>
         <div class="font-semibold">Henüz paket tanımlanmamış</div>
         <div class="text-sm mt-1">Yeni Paket butonuyla başlayın</div>
       </div>

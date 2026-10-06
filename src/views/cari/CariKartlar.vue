@@ -38,7 +38,7 @@
 
     <!-- Arama & Filtre -->
     <div class="flex flex-wrap gap-3 mb-4">
-      <input v-model="search" placeholder="🔍 Ad, telefon veya vergi no ara..."
+      <input v-model="search" placeholder="Ad, telefon veya vergi no ara..."
              class="flex-1 min-w-48 px-4 py-2 border border-gray-200 rounded-xl
                     text-sm focus:border-accent focus:outline-none"/>
       <select v-model="filterTip"
@@ -108,7 +108,7 @@
                   {{ fmt(c.riskLimiti) }}
                 </span>
                 <div v-if="c.bakiye > c.riskLimiti"
-                     class="text-xs text-danger mt-0.5">⚠ Limit aşıldı</div>
+                     class="text-xs text-danger mt-0.5">Limit aşıldı</div>
               </td>
 
               <!-- Son işlem -->

@@ -12,7 +12,7 @@
       <button @click="load"
               class="px-4 py-2 bg-accent text-white rounded-lg
                      text-sm font-semibold hover:bg-blue-600 transition-colors">
-        ↻ Yenile
+        Yenile
       </button>
     </div>
 

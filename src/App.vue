@@ -11,7 +11,6 @@
 
       <!-- Logo + Tenant -->
       <div class="px-6 py-5 border-b border-white/10">
-        <div class="text-2xl mb-1">🏪</div>
         <div class="flex items-center justify-between gap-1">
           <div class="font-bold text-sm">SatışKasası</div>
           <button @click="settingsOpen = true"
@@ -49,21 +48,21 @@
                    hover:text-white hover:bg-white/8 border-l-4
                    border-transparent transition-all"
             active-class="text-white !bg-white/10 !border-accent">
-            <span>👑</span><span>Müşteri Yönetimi</span>
+            <span>Müşteri Yönetimi</span>
           </RouterLink>
           <RouterLink to="/superadmin/gelir"
             class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
                    hover:text-white hover:bg-white/8 border-l-4
                    border-transparent transition-all"
             active-class="text-white !bg-white/10 !border-accent">
-            <span>💰</span><span>Gelir Analizi</span>
+            <span>Gelir Analizi</span>
           </RouterLink>
           <RouterLink to="/superadmin/paketler"
             class="flex items-center gap-3 px-6 py-3 text-sm text-white/70
                    hover:text-white hover:bg-white/8 border-l-4
                    border-transparent transition-all"
             active-class="text-white !bg-white/10 !border-accent">
-            <span>📦</span><span>Paket Yönetimi</span>
+            <span>Paket Yönetimi</span>
           </RouterLink>
           <!-- Lisans Accordion: başvurudan aktif lisansa kadar tek yerde -->
           <div>
@@ -73,7 +72,6 @@
                     :class="isLisansActive
                       ? 'text-white bg-white/10 border-accent'
                       : 'text-white/70 hover:text-white hover:bg-white/8'">
-              <span>🔑</span>
               <span class="flex-1 text-left">Lisans</span>
               <svg class="w-4 h-4 transition-transform duration-300"
                    :class="lisansOpen ? 'rotate-180' : ''"
@@ -103,7 +101,6 @@
                    hover:text-white hover:bg-white/8 border-l-4
                    border-transparent transition-all"
             active-class="text-white !bg-white/10 !border-accent">
-            <span>{{ item.icon }}</span>
             <span>{{ item.label }}</span>
           </RouterLink>
 
@@ -115,7 +112,6 @@
                     :class="isCariActive
                       ? 'text-white bg-white/10 border-accent'
                       : 'text-white/70 hover:text-white hover:bg-white/8'">
-              <span>👤</span>
               <span class="flex-1 text-left">Cari İşlemler</span>
               <svg class="w-4 h-4 transition-transform duration-300"
                    :class="cariOpen ? 'rotate-180' : ''"
@@ -145,7 +141,6 @@
                     :class="isReportsActive
                       ? 'text-white bg-white/10 border-accent'
                       : 'text-white/70 hover:text-white hover:bg-white/8'">
-              <span>📈</span>
               <span class="flex-1 text-left">Raporlar</span>
               <svg class="w-4 h-4 transition-transform duration-300"
                    :class="reportsOpen ? 'rotate-180' : ''"
@@ -217,7 +212,6 @@
                    hover:text-white hover:bg-white/8 border-l-4
                    border-transparent transition-all"
             active-class="text-white !bg-white/10 !border-accent">
-            <span>{{ item.icon }}</span>
             <span>{{ item.label }}</span>
           </RouterLink>
         </template>
@@ -233,13 +227,13 @@
         </div>
         <div v-if="isExpiringSoon"
              class="text-xs text-yellow-400 mt-1">
-          ⚠ Yakında bitiyor!
+          Yakında bitiyor!
         </div>
       </div>
 
       <!-- Kullanıcı + Çıkış -->
       <div class="p-4 border-t border-white/10">
-        <div class="text-xs text-white/40 mb-1">👤 {{ auth.username }}</div>
+        <div class="text-xs text-white/40 mb-1">{{ auth.username }}</div>
         <RouterLink to="/subscription"
           v-if="!auth.isSuperAdmin"
           class="block text-xs text-accent mb-2 hover:underline">
@@ -249,7 +243,7 @@
                 class="w-full py-2 rounded-lg text-sm font-semibold
                        bg-red-500/20 text-red-400 hover:bg-red-500
                        hover:text-white transition-all">
-          ⏻ Çıkış Yap
+          Çıkış Yap
         </button>
       </div>
     </aside>
@@ -354,11 +348,11 @@ const lisansSubMenu = [
 ]
 
 const menuTopAll = [
-  { to: '/',            icon: '📊', label: 'Dashboard'       },
-  { to: '/products',    icon: '📦', label: 'Ürün Düzenleme'  },
-  { to: '/modifiers',   icon: '🧂', label: 'Çeşni & Ekstra'  },
-  { to: '/recipes',     icon: '🧾', label: 'Reçete Merkezi', module: MODULES.STOCK },
-  { to: '/ingredients', icon: '🥫', label: 'Hammaddeler',    module: MODULES.STOCK },
+  { to: '/',            label: 'Dashboard'       },
+  { to: '/products',    label: 'Ürün Düzenleme'  },
+  { to: '/modifiers',   label: 'Çeşni & Ekstra'  },
+  { to: '/recipes',     label: 'Reçete Merkezi', module: MODULES.STOCK },
+  { to: '/ingredients', label: 'Hammaddeler',    module: MODULES.STOCK },
 ]
 
 const cariSubMenu = [
@@ -381,7 +375,7 @@ const reportSubMenu = [
 ]
 
 const kasaYapiSubMenu = [
-  { to: '/settings/dijital-menu',    label: '📱 Dijital Menü (QR)',  module: MODULES.QR_MENU },
+  { to: '/settings/dijital-menu',    label: 'Dijital Menü (QR)',  module: MODULES.QR_MENU },
   { to: '/settings/masa-ayarlari',   label: 'Masa Ayarları',         module: MODULES.TABLES  },
   { to: '/settings/hizli-notlar',    label: 'Hızlı Notlar',          module: MODULES.TABLES  },
   { to: '/settings/receipt',         label: 'Fiş & Yazıcı Ayarları' },
@@ -403,7 +397,7 @@ const visibleKasaYapiSubMenu = computed(() => kasaYapiSubMenu.filter(allowed))
 const showCari               = computed(() => allowed({ module: MODULES.CARI }))
 
 const menuBottom = [
-  { to: '/users', icon: '👥', label: 'Kullanıcılar' },
+  { to: '/users', label: 'Kullanıcılar' },
 ]
 
 const isExpiringSoon = computed(() => {

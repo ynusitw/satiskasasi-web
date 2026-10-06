@@ -18,7 +18,6 @@
     </div>
 
     <div v-if="!secilenCariId" class="bg-white rounded-2xl shadow-sm p-16 text-center text-muted">
-      <div class="text-4xl mb-3">📋</div>
       <div class="font-semibold">Ekstre görüntülemek için cari seçin</div>
     </div>
 
@@ -48,7 +47,7 @@
             </div>
             <div class="text-sm font-semibold mt-1"
                  :class="secilenCari.bakiye > 0 ? 'text-danger' : secilenCari.bakiye < 0 ? 'text-success' : 'text-muted'">
-              {{ secilenCari.bakiye > 0 ? '▲ Borçlu' : secilenCari.bakiye < 0 ? '▼ Alacaklı' : 'Sıfır' }}
+              {{ secilenCari.bakiye > 0 ? 'Borçlu' : secilenCari.bakiye < 0 ? 'Alacaklı' : 'Sıfır' }}
             </div>
           </div>
         </div>

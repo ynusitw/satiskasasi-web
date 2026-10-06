@@ -132,7 +132,7 @@
                 <button @click="txForm.type = 'tahsilat'"
                   :class="txForm.type === 'tahsilat' ? 'bg-green-500 text-white' : 'bg-white text-green-600 border border-green-200'"
                   class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors">
-                  ✓ Tahsilat (Ödeme Aldı)
+                  Tahsilat (Ödeme Aldı)
                 </button>
                 <button @click="txForm.type = 'borc'"
                   :class="txForm.type === 'borc' ? 'bg-red-500 text-white' : 'bg-white text-red-500 border border-red-200'"

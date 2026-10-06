@@ -10,7 +10,7 @@
       </div>
       <button @click="load" :disabled="loading"
               class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold hover:bg-blue-600 disabled:opacity-50">
-        {{ loading ? 'Yükleniyor...' : '↻ Yenile' }}
+        {{ loading ? 'Yükleniyor...' : 'Yenile' }}
       </button>
     </div>
 

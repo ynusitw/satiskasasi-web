@@ -33,7 +33,7 @@
             <div class="flex items-center gap-3 mt-2">
               <span class="text-xs font-bold px-2.5 py-1 rounded-full transition-colors"
                     :class="aktif ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'">
-                {{ aktif ? '✓ Aktif' : 'Pasif' }}
+                {{ aktif ? 'Aktif' : 'Pasif' }}
               </span>
               <span v-if="aktif" class="text-xs text-muted">
                 {{ bolumler.length }} bölüm · {{ toplamMasa() }} masa

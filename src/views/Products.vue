@@ -224,7 +224,6 @@
                          class="w-full h-full object-cover"/>
                     <div v-else
                          class="w-full h-full flex items-center justify-center text-gray-300 text-base">
-                      📦
                     </div>
                   </div>
                 </td>
@@ -603,12 +602,12 @@
                     <button type="button" @click="triggerFileInput"
                             class="px-3 py-1.5 border border-accent text-accent rounded-xl
                                    text-xs font-bold hover:bg-accent hover:text-white transition-colors">
-                      📁 Dosya Seç
+                      Dosya Seç
                     </button>
                     <button v-if="form.imageBase64" type="button" @click="form.imageBase64 = ''"
                             class="px-3 py-1.5 border border-red-200 text-danger rounded-xl
                                    text-xs font-bold hover:bg-danger hover:text-white transition-colors">
-                      🗑 Görseli Kaldır
+                      Görseli Kaldır
                     </button>
                   </div>
                 </div>
@@ -685,7 +684,7 @@
                     <input type="checkbox" v-model="v.isActive"/> Aktif
                   </label>
                   <button type="button" @click="form.variants.splice(i, 1)"
-                          class="px-2 text-red-600 hover:bg-red-50 rounded" title="Kaldır">✕</button>
+                          class="px-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded" title="Kaldır">Kaldır</button>
                 </div>
               </div>
             </div>
@@ -752,7 +751,7 @@
                   <input v-model.number="c.quantity" type="number" step="0.001" min="0.001"
                          class="w-24 px-3 py-2 border border-gray-200 rounded-lg text-sm"/>
                   <button type="button" @click="form.comboComponents.splice(i, 1)"
-                          class="px-2 text-red-600 hover:bg-red-50 rounded" title="Kaldır">✕</button>
+                          class="px-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded" title="Kaldır">Kaldır</button>
                 </div>
                 <p v-if="!form.comboComponents.length" class="text-xs text-muted">
                   Bileşen eklenmedi.
@@ -790,7 +789,7 @@
                        placeholder="Miktar"
                        class="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm"/>
                 <button type="button" @click="form.recipe.splice(i, 1)"
-                        class="px-2 text-red-600 hover:bg-red-50 rounded" title="Kaldır">✕</button>
+                        class="px-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded" title="Kaldır">Kaldır</button>
               </div>
 
               <div v-if="form.recipe.length" class="text-xs text-muted mt-2">

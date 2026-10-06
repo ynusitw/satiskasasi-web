@@ -18,7 +18,7 @@
                   :class="form.tip === t.value
                     ? t.activeClass
                     : 'border-gray-200 text-muted hover:border-gray-300'">
-            {{ t.icon }} {{ t.label }}
+            {{ t.label }}
           </button>
         </div>
 
@@ -42,7 +42,7 @@
             <span class="font-bold"
                   :class="secilenCari.bakiye > 0 ? 'text-danger' : secilenCari.bakiye < 0 ? 'text-success' : 'text-muted'">
               {{ fmt(Math.abs(secilenCari.bakiye)) }}
-              {{ secilenCari.bakiye > 0 ? '▲ Borçlu' : secilenCari.bakiye < 0 ? '▼ Alacaklı' : 'Sıfır' }}
+              {{ secilenCari.bakiye > 0 ? 'Borçlu' : secilenCari.bakiye < 0 ? 'Alacaklı' : 'Sıfır' }}
             </span>
           </div>
 
@@ -95,7 +95,7 @@
           <button @click="save"
                   class="w-full py-3 rounded-xl text-sm font-bold text-white transition-colors"
                   :class="form.tip === 'Tahsilat' ? 'bg-success hover:bg-green-600' : 'bg-danger hover:bg-red-600'">
-            {{ form.tip === 'Tahsilat' ? '✓ Tahsilat Makbuzu Kes' : '✓ Tediye Makbuzu Kes' }}
+            {{ form.tip === 'Tahsilat' ? 'Tahsilat Makbuzu Kes' : 'Tediye Makbuzu Kes' }}
           </button>
         </div>
       </div>
@@ -149,8 +149,8 @@ onMounted(() => store.fetchCariler())
 const today = new Date().toISOString().split('T')[0]
 
 const islemTipleri = [
-  { value: 'Tahsilat', label: 'Tahsilat', icon: '↓', activeClass: 'border-success bg-green-50 text-success' },
-  { value: 'Tediye',   label: 'Tediye',   icon: '↑', activeClass: 'border-danger bg-red-50 text-danger'   },
+  { value: 'Tahsilat', label: 'Tahsilat', activeClass: 'border-success bg-green-50 text-success' },
+  { value: 'Tediye',   label: 'Tediye',   activeClass: 'border-danger bg-red-50 text-danger'   },
 ]
 
 const error = ref('')

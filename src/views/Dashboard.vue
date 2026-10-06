@@ -34,14 +34,13 @@
         <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs font-bold text-muted uppercase tracking-wide">Nakit</span>
-            <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center text-base">💵</div>
           </div>
           <div class="flex items-center gap-2 mt-1">
             <span class="text-2xl font-bold text-primary">{{ fmt(data?.periodCash) }}</span>
             <span v-if="trends.cash !== null"
                   :class="trendBadge(trends.cash)"
                   class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              {{ trends.cash >= 0 ? '↑' : '↓' }} {{ Math.abs(trends.cash).toFixed(1) }}%
+              {{ trends.cash >= 0 ? '+' : '−' }} {{ Math.abs(trends.cash).toFixed(1) }}%
             </span>
           </div>
           <div class="mt-3 -mx-1">
@@ -55,14 +54,13 @@
         <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs font-bold text-muted uppercase tracking-wide">Kart</span>
-            <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-base">💳</div>
           </div>
           <div class="flex items-center gap-2 mt-1">
             <span class="text-2xl font-bold text-primary">{{ fmt(data?.periodCard) }}</span>
             <span v-if="trends.card !== null"
                   :class="trendBadge(trends.card)"
                   class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              {{ trends.card >= 0 ? '↑' : '↓' }} {{ Math.abs(trends.card).toFixed(1) }}%
+              {{ trends.card >= 0 ? '+' : '−' }} {{ Math.abs(trends.card).toFixed(1) }}%
             </span>
           </div>
           <div class="mt-3 -mx-1">
@@ -76,14 +74,13 @@
         <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs font-bold text-muted uppercase tracking-wide">Toplam Ciro</span>
-            <div class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-base">💰</div>
           </div>
           <div class="flex items-center gap-2 mt-1">
             <span class="text-2xl font-bold text-primary">{{ fmt(data?.periodTotal) }}</span>
             <span v-if="trends.total !== null"
                   :class="trendBadge(trends.total)"
                   class="flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              {{ trends.total >= 0 ? '↑' : '↓' }} {{ Math.abs(trends.total).toFixed(1) }}%
+              {{ trends.total >= 0 ? '+' : '−' }} {{ Math.abs(trends.total).toFixed(1) }}%
             </span>
           </div>
           <div class="mt-3 -mx-1">
@@ -97,7 +94,6 @@
         <div class="bg-white rounded-2xl shadow-sm p-5 flex flex-col justify-between">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs font-bold text-muted uppercase tracking-wide">Kritik Stok</span>
-            <div class="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center text-base">⚠️</div>
           </div>
           <div class="text-5xl font-black mt-2"
                :class="(data?.lowStockCount ?? 0) > 0 ? 'text-danger' : 'text-success'">
@@ -206,7 +202,6 @@
 
           <div v-if="!topProducts.length"
                class="flex-1 flex flex-col items-center justify-center gap-2 py-8 select-none">
-            <span class="text-3xl">🛍️</span>
             <p class="text-sm font-semibold text-gray-400">Bu ay henüz satış yapılmadı.</p>
             <p class="text-xs text-gray-300">Satışlar gerçekleştikçe liste burada oluşacak.</p>
           </div>
