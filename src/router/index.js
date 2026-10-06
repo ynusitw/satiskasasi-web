@@ -53,6 +53,7 @@ const routes = [
     path: '/users',
     component: () => import('../views/Users.vue'),
   },
+  { path: '/notifications', component: () => import('../views/Notifications.vue') },
   { path: '/cari',              redirect: '/cari/kartlar' },
   { path: '/cari/kartlar',   component: () => import('../views/cari/CariKartlar.vue'), meta: { module: MODULES.CARI } },
   { path: '/cari/faturalar', component: () => import('../views/cari/Faturalar.vue'), meta: { module: MODULES.CARI } },

@@ -33,7 +33,12 @@
             <!-- Tek bağlantı -->
             <RouterLink v-if="!item.children" :to="item.to"
                         class="nav-item" :class="isExact(item.to) ? 'nav-item-active' : ''">
-              {{ item.label }}
+              <span class="flex-1">{{ item.label }}</span>
+              <span v-if="item.badge && notificationsStore.unread"
+                    class="min-w-[20px] h-5 px-1.5 rounded-full bg-accent text-white text-[11px] font-semibold
+                           flex items-center justify-center">
+                {{ notificationsStore.unread > 99 ? '99+' : notificationsStore.unread }}
+              </span>
             </RouterLink>
 
             <!-- Açılır grup -->
@@ -130,11 +135,12 @@
 </template>
 
 <script setup>
-import { computed, ref, reactive, watch, onMounted } from 'vue'
+import { computed, ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute }  from 'vue-router'
 import { useAuthStore }         from './stores/auth'
 import { useSettingsStore }     from './stores/settings'
 import { useModulesStore }      from './stores/modules'
+import { useNotificationsStore } from './stores/notifications'
 import { MODULES }              from './constants/modules'
 import SettingsModal            from './components/SettingsModal.vue'
 
@@ -145,17 +151,31 @@ const _settings = useSettingsStore()
 _settings.init()
 
 const modulesStore = useModulesStore()
+const notificationsStore = useNotificationsStore()
+
+// Okunmamış bildirim rozeti dakikada bir tazelenir (süper yöneticide bildirim yok).
+let notifTimer = null
+function pollNotifications() {
+  if (auth.isLoggedIn && !auth.isSuperAdmin) notificationsStore.refresh()
+}
 
 // Sayfa yenilendiğinde modül listesi localStorage'dan anında gelir (menü boş
 // görünmesin); ardından sunucudan tazelenir ki yöneticinin yaptığı
 // değişiklik yeniden giriş beklemeden yansısın.
 onMounted(() => {
   if (auth.isLoggedIn && !auth.isSuperAdmin) modulesStore.load()
+  pollNotifications()
+  notifTimer = setInterval(pollNotifications, 60_000)
 
   // API bir isteği "modül yok" diye reddettiyse (api.js yayınlar) liste
   // eskimiştir; tazele ki menü de hemen güncellensin.
   window.addEventListener('module-denied', () => modulesStore.load())
 })
+
+onUnmounted(() => clearInterval(notifTimer))
+
+// Giriş yapınca rozet hemen dolsun.
+watch(() => auth.isLoggedIn, v => { if (v) pollNotifications() })
 
 // Modülü olmayan bir sayfaya gidilmek istendiğinde yönlendirici panoya
 // "?yetkisiz=<kod>" ile döner; kullanıcıya sebebini söyleyelim.
@@ -264,7 +284,7 @@ const navSections = computed(() => {
 
   const [home, ...catalog] = menuTop.value
   const sections = [
-    { title: 'Genel', items: [home] },
+    { title: 'Genel', items: [home, { to: '/notifications', label: 'Bildirimler', badge: true }] },
     { title: 'Katalog', items: catalog },
     { title: 'İşlemler', items: [
       ...(showCari.value ? [{ key: 'cari', label: 'Cari İşlemler', prefix: '/cari', children: cariSubMenu }] : []),

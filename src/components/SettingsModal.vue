@@ -207,24 +207,58 @@
               <!-- ══════════════ BİLDİRİMLER ══════════════ -->
               <section v-else-if="activeTab === 'notifications'">
                 <SectionHeader title="Bildirim Tercihleri"
-                               desc="Hangi olaylarda uyarı almak istediğinizi ayarlayın."/>
+                               desc="Tüm olaylar panelde Bildirimler sayfasında görünür. Buradaki anahtarlar e-posta gönderimini açar."/>
 
-                <div class="space-y-3 mb-6">
-                  <ToggleRow
-                    v-model="settings.notifications.zRaporuEmail"
-                    title="Z-Raporu E-posta Bildirimi"
-                    desc="Gün sonu Z-Raporu alındığında kayıtlı e-posta adresinize özet gönderilir."/>
+                <div v-if="notif.loading" class="text-sm text-muted mb-6">Yükleniyor...</div>
+                <template v-else>
+                  <div v-if="!notif.smtpConfigured"
+                       class="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-[13px] text-amber-800">
+                    E-posta sunucusu (SMTP) henüz yapılandırılmamış: bildirimler panelde görünür,
+                    e-posta gönderilmez. Sunucu ayarlarına <code>Smtp</code> bilgileri eklenince e-postalar başlar.
+                  </div>
 
-                  <ToggleRow
-                    v-model="settings.notifications.stokUyarisi"
-                    title="Kritik Stok Uyarısı"
-                    desc="Herhangi bir üründe stok miktarı 5 adedinin altına düştüğünde web panelde bildirim çıkar."/>
+                  <label class="field-label">Bildirim e-posta adresi</label>
+                  <input v-model="notif.email" type="email"
+                         :placeholder="notif.defaultEmail || 'ornek@isletme.com'"
+                         class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white mb-1"/>
+                  <p class="text-xs text-muted mb-5">
+                    Boş bırakılırsa işletmenin kayıtlı adresi kullanılır{{ notif.defaultEmail ? ` (${notif.defaultEmail})` : '' }}.
+                  </p>
 
-                  <ToggleRow
-                    v-model="settings.notifications.hataliGirisUyarisi"
-                    title="Hatalı Giriş Uyarısı"
-                    desc="Hesabınıza hatalı şifre ile giriş denemesi yapıldığında anında bildirim alırsınız."/>
-                </div>
+                  <div class="space-y-3 mb-4">
+                    <ToggleRow v-model="notif.emailZReport"
+                               title="Z raporu özeti"
+                               desc="Gün sonu Z raporu alındığında ciro, ödeme dağılımı ve kasa sayımı e-postayla gönderilir."/>
+                    <ToggleRow v-model="notif.emailCashDifference"
+                               title="Kasa farkı uyarısı"
+                               desc="Z alınırken sayılan nakit beklenenden belirlenen tutardan fazla saparsa uyarır."/>
+                    <div v-if="notif.emailCashDifference" class="flex items-center gap-3 pl-1">
+                      <span class="text-[13px] text-muted">Uyarı eşiği</span>
+                      <input v-model.number="notif.cashDifferenceThreshold" type="number" min="0" step="10"
+                             class="w-28 px-3 h-9 border border-gray-200 rounded-lg text-[13.5px] bg-white text-right"/>
+                      <span class="text-[13px] text-muted">₺ ve üzeri fark</span>
+                    </div>
+                    <ToggleRow v-model="notif.emailLowStock"
+                               title="Kritik stok özeti"
+                               desc="Kritik seviyedeki ürün ve hammaddeler günde bir kez listelenir (reçeteli ürünler hammaddeden izlenir)."/>
+                    <ToggleRow v-model="notif.emailFailedLogin"
+                               title="Hatalı giriş kilidi"
+                               desc="Bir kullanıcı art arda hatalı şifre girip giriş geçici olarak kilitlendiğinde uyarır."/>
+                  </div>
+
+                  <div v-if="notif.message" class="mb-3 text-[13px]"
+                       :class="notif.messageOk ? 'text-success' : 'text-danger'">{{ notif.message }}</div>
+
+                  <div class="flex items-center gap-2 mb-6">
+                    <button @click="saveNotif" :disabled="notif.saving" class="btn-primary">
+                      {{ notif.saving ? 'Kaydediliyor...' : 'Kaydet' }}
+                    </button>
+                    <button @click="testNotif" :disabled="notif.testing || !notif.smtpConfigured" class="btn-secondary"
+                            :title="notif.smtpConfigured ? 'Kayıtlı adrese deneme e-postası gönderir' : 'Önce SMTP yapılandırılmalı'">
+                      {{ notif.testing ? 'Gönderiliyor...' : 'Test e-postası gönder' }}
+                    </button>
+                  </div>
+                </template>
 
                 <!-- Son hatalı giriş -->
                 <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
@@ -352,7 +386,7 @@
 </template>
 
 <script setup>
-import { ref, h, watch } from 'vue'
+import { ref, h, watch, reactive } from 'vue'
 import { useSettingsStore } from '../stores/settings'
 import { useAuthStore }     from '../stores/auth'
 import api                  from '../api/api'
@@ -403,6 +437,68 @@ async function loadFailedAttempts() {
   }
 }
 
+// ─── Bildirim ayarları (sunucuda) ───────────────────────────────────────────
+// Önceden yalnızca tarayıcıda saklanıyor, hiçbir şey göndermiyordu.
+const notif = reactive({
+  loading: false, saving: false, testing: false, message: '', messageOk: true,
+  email: '', defaultEmail: '', smtpConfigured: false,
+  emailZReport: false, emailCashDifference: true, emailLowStock: true, emailFailedLogin: true,
+  cashDifferenceThreshold: 50,
+})
+
+async function loadNotif() {
+  notif.loading = true
+  notif.message = ''
+  try {
+    const { data } = await api.getNotificationSettings()
+    Object.assign(notif, data)
+  } catch {
+    notif.message = 'Bildirim ayarları alınamadı.'
+    notif.messageOk = false
+  } finally {
+    notif.loading = false
+  }
+}
+
+async function saveNotif() {
+  notif.saving = true
+  notif.message = ''
+  try {
+    await api.saveNotificationSettings({
+      email: notif.email,
+      emailZReport: notif.emailZReport,
+      emailCashDifference: notif.emailCashDifference,
+      emailLowStock: notif.emailLowStock,
+      emailFailedLogin: notif.emailFailedLogin,
+      cashDifferenceThreshold: Number(notif.cashDifferenceThreshold) || 0,
+    })
+    notif.message = 'Kaydedildi.'
+    notif.messageOk = true
+  } catch (e) {
+    notif.message = e.response?.status === 403
+      ? 'Bu ayarı yalnızca yönetici değiştirebilir.'
+      : (e.response?.data?.message || 'Kaydedilemedi.')
+    notif.messageOk = false
+  } finally {
+    notif.saving = false
+  }
+}
+
+async function testNotif() {
+  notif.testing = true
+  notif.message = ''
+  try {
+    const { data } = await api.sendTestNotification()
+    notif.message = data?.message || 'Test e-postası gönderildi.'
+    notif.messageOk = true
+  } catch (e) {
+    notif.message = e.response?.data?.message || 'Gönderilemedi.'
+    notif.messageOk = false
+  } finally {
+    notif.testing = false
+  }
+}
+
 // Modal açıldığında veya sekme değiştiğinde veri yükle
 watch(() => props.open, open => {
   if (open) {
@@ -414,6 +510,7 @@ watch(() => props.open, open => {
 watch(activeTab, tab => {
   if (tab === 'security'      && !sessions.value.length)      loadSessions()
   if (tab === 'notifications' && !failedAttempts.value.length) loadFailedAttempts()
+  if (tab === 'notifications') loadNotif()
 })
 
 // ─── SVG ikon bileşenleri (inline, CDN yok) ──────────────────────────────────
@@ -589,52 +686,51 @@ function openSupportTicket() {
 
 <!-- Alt bileşenler -->
 <script>
+import { h as hh } from 'vue'
+
+// Paneldeki Vue sürümü şablon derleyicisi içermiyor: "template" metniyle
+// tanımlanan bileşenler hiç çizilmiyordu (bölüm başlıkları ve anahtarlar
+// görünmüyordu). Render fonksiyonu derleyici gerektirmez.
+
 // SectionHeader yardımcı bileşeni
 export const SectionHeader = {
   props: ['title', 'desc'],
-  template: `
-    <div class="mb-5">
-      <h3 class="section-title mb-1">{{ title }}</h3>
-      <p class="text-sm text-muted">{{ desc }}</p>
-      <div class="mt-4 border-t border-gray-100"/>
-    </div>
-  `
+  render() {
+    return hh('div', { class: 'mb-5' }, [
+      hh('h3', { class: 'section-title mb-1' }, this.title),
+      hh('p', { class: 'text-sm text-muted' }, this.desc),
+      hh('div', { class: 'mt-4 border-t border-gray-100' }),
+    ])
+  },
 }
 
 // ToggleRow yardımcı bileşeni
 export const ToggleRow = {
   props: ['modelValue', 'title', 'desc'],
   emits: ['update:modelValue'],
-  template: `
-    <div class="flex items-start justify-between gap-4 p-4 rounded-xl border border-gray-100
-                bg-gray-50 hover:bg-gray-100 transition-colors">
-      <div>
-        <div class="text-sm font-semibold text-primary">{{ title }}</div>
-        <div class="text-xs text-muted mt-0.5">{{ desc }}</div>
-      </div>
-      <button @click="$emit('update:modelValue', !modelValue)"
-              class="relative inline-flex h-6 w-11 items-center rounded-full
-                     transition-colors duration-200 ease-in-out flex-shrink-0 mt-0.5"
-              :class="modelValue ? 'bg-accent' : 'bg-gray-300'">
-        <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
-                     transition-transform duration-200"
-              :class="modelValue ? 'translate-x-6' : 'translate-x-1'"/>
-      </button>
-    </div>
-  `
+  render() {
+    const on = !!this.modelValue
+    return hh('div', {
+      class: 'flex items-start justify-between gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors',
+    }, [
+      hh('div', [
+        hh('div', { class: 'text-sm font-semibold text-primary' }, this.title),
+        hh('div', { class: 'text-xs text-muted mt-0.5' }, this.desc),
+      ]),
+      hh('button', {
+        type: 'button',
+        role: 'switch',
+        'aria-checked': on,
+        onClick: () => this.$emit('update:modelValue', !on),
+        class: ['relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out flex-shrink-0 mt-0.5',
+                on ? 'bg-accent' : 'bg-gray-300'],
+      }, [
+        hh('span', {
+          class: ['inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200',
+                  on ? 'translate-x-6' : 'translate-x-1'],
+        }),
+      ]),
+    ])
+  },
 }
 </script>
-
-<style scoped>
-.modal-fade-enter-active { transition: opacity 0.2s ease; }
-.modal-fade-leave-active { transition: opacity 0.15s ease; }
-.modal-fade-enter-from,
-.modal-fade-leave-to    { opacity: 0; }
-
-.modal-fade-enter-active .relative,
-.modal-fade-leave-active .relative {
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-.modal-fade-enter-from .relative { transform: translateY(-12px); opacity: 0; }
-.modal-fade-leave-to  .relative  { transform: translateY(-8px);  opacity: 0; }
-</style>

@@ -61,6 +61,14 @@ export default {
   approveLicense:     (id, d)  => api.post(`licenses/requests/${id}/approve`, d),
 
   // ── Aşama 2: personel satışı ve indirim/ikram raporu ─────────────
+  // Bildirim merkezi
+  getNotifications:          (take = 50) => api.get('notifications', { params: { take } }),
+  getUnreadNotificationCount: ()  => api.get('notifications/unread-count'),
+  markNotificationRead:      (id) => api.post(`notifications/${id}/read`),
+  markAllNotificationsRead:  ()   => api.post('notifications/read-all'),
+  getNotificationSettings:   ()   => api.get('notifications/settings'),
+  saveNotificationSettings:  (d)  => api.put('notifications/settings', d),
+  sendTestNotification:      ()   => api.post('notifications/test'),
   getCancellationSettings:  ()  => api.get('settings/cancellations'),
   saveCancellationSettings: (d) => api.put('settings/cancellations', d),
   getStaffSettings:   ()        => api.get('settings/staff'),

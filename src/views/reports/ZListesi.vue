@@ -18,7 +18,7 @@
       </div>
 
       <!-- Özet kartlar -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam Nakit</div>
           <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(totals.cash) }}</div>
@@ -37,6 +37,13 @@
           <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(totals.grand) }}</div>
           <div class="text-xs text-muted mt-1">{{ totals.sales }} işlem</div>
         </div>
+        <div class="bg-white rounded-2xl shadow-sm p-5">
+          <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Kasa Farkı</div>
+          <div class="text-2xl font-semibold tracking-tight" :class="diffClass(totals.diff, true)">
+            {{ totals.counted ? signed(totals.diff) : '—' }}
+          </div>
+          <div class="text-xs text-muted mt-1">{{ totals.counted }} / {{ reports.length }} rapor sayıldı</div>
+        </div>
       </div>
 
       <!-- Tablo -->
@@ -50,47 +57,58 @@
           <table class="w-full">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left  px-6 py-3 text-[11px] font-semibold text-muted uppercase">Tarih</th>
-                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">İşlem</th>
-                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Nakit</th>
-                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Kart</th>
-                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">İndirim</th>
-                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase">Toplam</th>
-                <th class="text-right px-6 py-3 text-[11px] font-semibold text-muted uppercase"
+                <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tarih</th>
+                <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">İşlem</th>
+                <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Nakit</th>
+                <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Kart</th>
+                <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">İndirim</th>
+                <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Toplam</th>
+                <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase"
+                    title="Sayılan − beklenen nakit (eksi: kasa açığı)">Kasa Farkı</th>
+                <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase"
                     title="Personel satışları ciroya dahil değildir">Personel</th>
-                <th class="text-center px-6 py-3 text-[11px] font-semibold text-muted uppercase">Detay</th>
+                <th class="text-center px-4 py-3 text-[11px] font-semibold text-muted uppercase">Detay</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="z in reports" :key="z.id"
                   class="border-t border-gray-50 hover:bg-gray-50/60 transition-colors">
-                <td class="px-6 py-4 text-sm font-semibold text-primary whitespace-nowrap">
+                <td class="px-4 py-4 text-sm font-semibold text-primary whitespace-nowrap">
                   {{ fmtDate(z.reportDate) }}
                 </td>
-                <td class="px-6 py-4 text-sm text-right text-muted font-semibold">
+                <td class="px-4 py-4 text-sm text-right whitespace-nowrap text-muted font-semibold">
                   {{ z.saleCount }}
                 </td>
-                <td class="px-6 py-4 text-sm text-right text-primary font-semibold">
+                <td class="px-4 py-4 text-sm text-right whitespace-nowrap text-primary font-semibold">
                   {{ fmt(z.totalCash) }}
                 </td>
-                <td class="px-6 py-4 text-sm text-right text-primary font-semibold">
+                <td class="px-4 py-4 text-sm text-right whitespace-nowrap text-primary font-semibold">
                   {{ fmt(z.totalCard) }}
                 </td>
-                <td class="px-6 py-4 text-sm text-right text-danger">
+                <td class="px-4 py-4 text-sm text-right whitespace-nowrap text-danger">
                   {{ fmt(z.totalDiscount) }}
                 </td>
-                <td class="px-6 py-4 text-sm text-right font-semibold text-primary">
+                <td class="px-4 py-4 text-sm text-right whitespace-nowrap font-semibold text-primary">
                   {{ fmt(z.grandTotal) }}
                 </td>
+                <!-- Kasa sayımı -->
+                <td class="px-4 py-4 text-right whitespace-nowrap">
+                  <span v-if="z.countedCash == null" class="text-xs text-muted">Sayılmadı</span>
+                  <span v-else class="inline-block px-2 py-0.5 rounded-md text-[12.5px] font-semibold"
+                        :class="diffBadge(z.cashDifference)"
+                        :title="z.countNote || ''">
+                    {{ Math.abs(z.cashDifference ?? 0) < 0.005 ? 'Tam' : signed(z.cashDifference) }}
+                  </span>
+                </td>
                 <!-- Personel satışı: ciroya dahil değil, kasaya giren tutar ayrı -->
-                <td class="px-6 py-4 text-sm text-right text-muted whitespace-nowrap">
+                <td class="px-4 py-4 text-sm text-right text-muted whitespace-nowrap">
                   <template v-if="z.staffSaleCount">
                     <div class="font-semibold">{{ fmt(z.staffCollected) }}</div>
                     <div class="text-xs">{{ z.staffSaleCount }} işlem · tüketim {{ fmt(z.staffConsumption) }}</div>
                   </template>
                   <span v-else>—</span>
                 </td>
-                <td class="px-6 py-4 text-center">
+                <td class="px-4 py-4 text-center">
                   <button @click="openDetail(z)"
                           class="chip-accent">
                     Detay
@@ -101,13 +119,16 @@
             <!-- Toplam satırı -->
             <tfoot v-if="reports.length > 1" class="bg-gray-50 border-t-2 border-gray-200">
               <tr>
-                <td class="px-6 py-3 text-sm font-bold">TOPLAM</td>
-                <td class="px-6 py-3 text-sm text-right font-semibold text-muted">{{ totals.sales }}</td>
-                <td class="px-6 py-3 text-sm text-right font-semibold text-primary">{{ fmt(totals.cash) }}</td>
-                <td class="px-6 py-3 text-sm text-right font-semibold text-primary">{{ fmt(totals.card) }}</td>
-                <td class="px-6 py-3 text-sm text-right font-semibold text-danger">{{ fmt(totals.discount) }}</td>
-                <td class="px-6 py-3 text-sm text-right font-semibold text-primary">{{ fmt(totals.grand) }}</td>
-                <td class="px-6 py-3 text-sm text-right font-semibold text-muted">{{ fmt(totals.staff) }}</td>
+                <td class="px-4 py-3 text-sm font-bold">TOPLAM</td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-muted">{{ totals.sales }}</td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-primary">{{ fmt(totals.cash) }}</td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-primary">{{ fmt(totals.card) }}</td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-danger">{{ fmt(totals.discount) }}</td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-primary">{{ fmt(totals.grand) }}</td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold" :class="diffClass(totals.diff, true)">
+                  {{ totals.counted ? signed(totals.diff) : '—' }}
+                </td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-muted">{{ fmt(totals.staff) }}</td>
                 <td/>
               </tr>
             </tfoot>
@@ -150,19 +171,49 @@
             </div>
             <template v-else-if="modal.data">
               <!-- Rapor özeti -->
-              <div class="grid grid-cols-3 gap-3 mb-5">
-                <div class="bg-green-50 rounded-xl p-3 text-center">
+              <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="bg-gray-50 rounded-xl p-3">
                   <div class="text-xs text-muted mb-0.5">Nakit</div>
-                  <div class="font-bold text-success text-sm">{{ fmt(modal.zRow?.totalCash) }}</div>
+                  <div class="font-semibold text-primary text-sm">{{ fmt(modal.zRow?.totalCash) }}</div>
                 </div>
-                <div class="bg-blue-50 rounded-xl p-3 text-center">
+                <div class="bg-gray-50 rounded-xl p-3">
                   <div class="text-xs text-muted mb-0.5">Kart</div>
-                  <div class="font-bold text-accent text-sm">{{ fmt(modal.zRow?.totalCard) }}</div>
+                  <div class="font-semibold text-primary text-sm">{{ fmt(modal.zRow?.totalCard) }}</div>
                 </div>
-                <div class="bg-gray-50 rounded-xl p-3 text-center">
+                <div class="bg-gray-50 rounded-xl p-3">
                   <div class="text-xs text-muted mb-0.5">Toplam</div>
-                  <div class="font-bold text-primary text-sm">{{ fmt(modal.zRow?.grandTotal) }}</div>
+                  <div class="font-semibold text-primary text-sm">{{ fmt(modal.zRow?.grandTotal) }}</div>
                 </div>
+              </div>
+
+              <!-- Kasa sayımı -->
+              <div class="rounded-xl border border-gray-100 p-4 mb-5">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="text-[13px] font-semibold text-primary">Kasa sayımı</div>
+                  <span v-if="modal.zRow?.countedCash != null"
+                        class="px-2 py-0.5 rounded-md text-[12.5px] font-semibold"
+                        :class="diffBadge(modal.zRow.cashDifference)">
+                    {{ diffLabel(modal.zRow.cashDifference) }}
+                  </span>
+                </div>
+                <p v-if="modal.zRow?.countedCash == null" class="text-sm text-muted">
+                  Bu Z raporunda kasa sayılmadı.
+                </p>
+                <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
+                  <div><div class="text-xs text-muted">Devreden (açılış)</div><div class="font-medium">{{ fmt(modal.zRow.openingCash) }}</div></div>
+                  <div><div class="text-xs text-muted">Beklenen</div><div class="font-medium">{{ fmt(modal.zRow.expectedCash) }}</div></div>
+                  <div><div class="text-xs text-muted">Sayılan</div><div class="font-medium">{{ fmt(modal.zRow.countedCash) }}</div></div>
+                  <div><div class="text-xs text-muted">Fark</div>
+                    <div class="font-semibold" :class="diffClass(modal.zRow.cashDifference)">{{ signed(modal.zRow.cashDifference) }}</div></div>
+                  <div v-if="modal.zRow.leftInDrawer != null"><div class="text-xs text-muted">Yarına devreden</div><div class="font-medium">{{ fmt(modal.zRow.leftInDrawer) }}</div></div>
+                  <div v-if="modal.zRow.countedBy"><div class="text-xs text-muted">Sayan</div><div class="font-medium">{{ modal.zRow.countedBy }}</div></div>
+                  <div v-if="modal.zRow.countNote" class="col-span-full">
+                    <div class="text-xs text-muted">Açıklama</div><div>{{ modal.zRow.countNote }}</div>
+                  </div>
+                </div>
+                <p class="text-xs text-muted mt-3">
+                  Beklenen = devreden nakit + dönemin nakit tahsilatı (parçalı ödemelerin nakit payı dahil, veresiye hariç).
+                </p>
               </div>
 
               <!-- Satışlar tablosu -->
@@ -222,7 +273,29 @@ const totals = computed(() => ({
   grand:    reports.value.reduce((s, z) => s + (z.grandTotal    ?? 0), 0),
   sales:    reports.value.reduce((s, z) => s + (z.saleCount     ?? 0), 0),
   staff:    reports.value.reduce((s, z) => s + (z.staffCollected ?? 0), 0),
+  counted:  reports.value.filter(z => z.countedCash != null).length,
+  diff:     reports.value.reduce((s, z) => s + (z.countedCash != null ? (z.cashDifference ?? 0) : 0), 0),
 }))
+
+// Kasa farkı: eksi = açık (kırmızı), artı = fazla (sarı), sıfır = tam (yeşil)
+function signed(v) {
+  const n = v ?? 0
+  if (Math.abs(n) < 0.005) return fmt(0)
+  return (n > 0 ? '+' : '−') + fmt(Math.abs(n))
+}
+function diffLabel(v) {
+  const n = v ?? 0
+  return Math.abs(n) < 0.005 ? 'Kasa tam' : n < 0 ? 'Kasa açığı' : 'Kasa fazlası'
+}
+function diffBadge(v) {
+  const n = v ?? 0
+  return Math.abs(n) < 0.005 ? 'bg-green-50 text-success' : n < 0 ? 'bg-red-50 text-danger' : 'bg-amber-50 text-warning'
+}
+function diffClass(v, muteZero = false) {
+  const n = v ?? 0
+  if (Math.abs(n) < 0.005) return muteZero ? 'text-primary' : 'text-success'
+  return n < 0 ? 'text-danger' : 'text-warning'
+}
 
 function fmt(v) {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
