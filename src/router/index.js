@@ -14,6 +14,12 @@ const routes = [
     meta: { public: true }
   },
   {
+    // Mutfaktaki ekran: oturum yok, adresteki istasyon kodu yetkidir.
+    path: '/mutfak/:token',
+    component: () => import('../views/KitchenDisplay.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/',
     component: () => import('../views/Dashboard.vue'),
   },
@@ -67,6 +73,7 @@ const routes = [
   { path: '/settings/masa-ayarlari',   component: () => import('../views/settings/MasaAyarlari.vue'), meta: { module: MODULES.TABLES } },
   { path: '/settings/hizli-notlar',    component: () => import('../views/settings/HizliNotlar.vue'), meta: { module: MODULES.TABLES } },
   { path: '/settings/dijital-menu',    component: () => import('../views/settings/DigitalMenuView.vue'), meta: { module: MODULES.QR_MENU } },
+  { path: '/settings/mutfak-ekrani',   component: () => import('../views/settings/KitchenSettings.vue'), meta: { module: MODULES.KITCHEN } },
   { path: '/settings/fis-ayarlari',    redirect: '/settings/receipt' },
   { path: '/settings/receipt',         component: () => import('../views/settings/ReceiptSettings.vue') },
   // Yazıcı ayarları fiş sayfasıyla birleştirildi; eski bağlantılar oraya gider.

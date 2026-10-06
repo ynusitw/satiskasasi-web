@@ -207,7 +207,8 @@ watch(() => route.path, path => {
   if (path.startsWith('/superadmin/lisans')) open.lisans = true
 }, { immediate: true })
 
-const isMenuRoute      = computed(() => route.path.startsWith('/menu/'))
+// Herkese açık tam sayfa ekranlar (QR menü, mutfak ekranı): panel iskeleti yok
+const isMenuRoute      = computed(() => route.path.startsWith('/menu/') || route.path.startsWith('/mutfak/'))
 
 const lisansSubMenu = [
   { to: '/superadmin/lisans/aktif',      label: 'Aktif Lisanslar'      },
@@ -245,6 +246,7 @@ const reportSubMenu = [
 const kasaYapiSubMenu = [
   { to: '/settings/dijital-menu',    label: 'Dijital Menü (QR)',  module: MODULES.QR_MENU },
   { to: '/settings/masa-ayarlari',   label: 'Masa Ayarları',         module: MODULES.TABLES  },
+  { to: '/settings/mutfak-ekrani',   label: 'Mutfak Ekranı',         module: MODULES.KITCHEN },
   { to: '/settings/hizli-notlar',    label: 'Hızlı Notlar',          module: MODULES.TABLES  },
   { to: '/settings/receipt',         label: 'Fiş & Yazıcı Ayarları' },
   { to: '/settings/musteri-ekrani',  label: 'Müşteri Ekranı Ayarı'  },

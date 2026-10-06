@@ -136,6 +136,21 @@ export default {
   regenerateQrToken:   (id) => api.post(`qrorders/tables/${id}/token`),
   getQrOrders:         (take = 50) => api.get('qrorders', { params: { take } }),
 
+  // Mutfak ekranı — mutfaktaki cihaz (oturumsuz, istasyon koduyla)
+  getKitchenDisplay:      (token) => api.get(`kitchen/display/${token}`),
+  setKitchenTicketStatus: (token, id, status) => api.post(`kitchen/display/${token}/tickets/${id}/status`, { status }),
+  setKitchenItemDone:     (token, itemId, done) => api.post(`kitchen/display/${token}/items/${itemId}/done`, { done }),
+  // Mutfak ekranı — panel ayarları
+  getKitchenStations:     ()        => api.get('kitchen/stations'),
+  createKitchenStation:   (d)       => api.post('kitchen/stations', d),
+  updateKitchenStation:   (id, d)   => api.put(`kitchen/stations/${id}`, d),
+  deleteKitchenStation:   (id)      => api.delete(`kitchen/stations/${id}`),
+  regenerateKitchenToken: (id)      => api.post(`kitchen/stations/${id}/token`),
+  getKitchenCategories:   ()        => api.get('kitchen/categories'),
+  saveKitchenCategories:  (list)    => api.put('kitchen/categories', list),
+  getKitchenSettings:     ()        => api.get('kitchen/settings'),
+  saveKitchenSettings:    (d)       => api.put('kitchen/settings', d),
+
   // Dijital Menü yapılandırması (öne çıkanlar + kategori görselleri)
   getMenuConfig:  ()  => api.get('menu/config'),
   saveMenuConfig: (d) => api.put('menu/config', d),
