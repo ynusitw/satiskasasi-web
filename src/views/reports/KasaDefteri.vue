@@ -79,8 +79,8 @@
 
       <p class="text-xs text-muted mt-6">
         Personel satışları ciroya ve kasiyer tablosuna dahil değildir, ayrıca gösterilir.
-        Veresiye satışlar kasada seçilen ödeme yöntemiyle kaydedildiğinden nakit/kart toplamlarının
-        içindedir; cariye yazılan tutar "Veresiye" kartında ayrıca görünür.
+        Açık hesap (cariye yazılan) satışlar tahsil edilmediği için nakit ve kart toplamlarına girmez;
+        "Açık Hesap" kartında ayrıca görünür. Nakit + Kart + Açık Hesap = toplam satış.
         Z raporu kasadan alınır; alındığında bu sayfa sıfırlanır.
       </p>
     </template>
@@ -113,7 +113,7 @@ const secondary = computed(() => {
     { label: 'Ortalama Fiş', value: r.saleCount ? fmt(r.grandTotal / r.saleCount) : '—', tone: 'text-primary' },
     { label: 'İndirim',      value: fmt(r.totalDiscount), tone: 'text-danger' },
     { label: 'İkram',        value: fmt(r.compTotal),     tone: 'text-amber-600', hint: 'ikram edilen ürünlerin değeri' },
-    { label: 'Veresiye',     value: fmt(r.totalCari),     tone: 'text-amber-600', hint: 'cariye yazılan' },
+    { label: 'Açık Hesap',   value: fmt(r.totalCari),     tone: 'text-amber-600', hint: 'cariye yazılan, tahsil edilmemiş' },
     { label: 'Personel',     value: fmt(r.staffConsumption), tone: 'text-muted',
       hint: `${r.staffSaleCount ?? 0} işlem · ${fmt(r.staffCollected)} tahsil` },
   ]

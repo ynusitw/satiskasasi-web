@@ -16,7 +16,7 @@
     <template v-else-if="report">
 
       <!-- Özet Kartlar -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Toplam Satış</div>
           <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(report.grandTotal) }}</div>
@@ -32,6 +32,10 @@
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Kart</div>
           <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(report.totalCard) }}</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-5">
+          <div class="text-xs text-muted mb-1">Açık Hesap</div>
+          <div class="text-2xl font-semibold tracking-tight text-amber-600">{{ fmt(report.totalOpenAccount) }}</div>
         </div>
       </div>
 

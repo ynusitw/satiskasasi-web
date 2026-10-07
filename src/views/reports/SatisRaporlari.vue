@@ -44,8 +44,8 @@
           </div>
         </div>
         <p class="text-xs text-muted mt-4">
-          Parçalı ödemeler nakit ve kart paylarına bölünür. Veresiye satışlar tahsil edilmediği için
-          nakit/kartta değil, yalnızca veresiyede sayılır; üçü ciroyu tam böler.
+          Parçalı ödemeler nakit, kart ve açık hesap paylarına bölünür. Açık hesaba yazılan tutar
+          tahsil edilmediği için nakit/kartta değil, yalnızca açık hesapta sayılır; üçü ciroyu tam böler.
           <template v-if="s.compOrders"><br>{{ s.compOrders }} hesap tümüyle ikram edildi.</template>
         </p>
       </div>
@@ -189,7 +189,7 @@ const kpis = computed(() => [
 const payments = computed(() => [
   { label: 'Nakit',           value: s.value.cash, color: 'bg-emerald-500' },
   { label: 'Kredi Kartı',     value: s.value.card, color: 'bg-blue-500' },
-  { label: 'Veresiye (cari)', value: s.value.cari, color: 'bg-amber-500' },
+  { label: 'Açık Hesap',      value: s.value.cari, color: 'bg-amber-500' },
 ])
 
 const productTotal = computed(() => byProduct.value.reduce((a, p) => a + p.revenue, 0))

@@ -234,6 +234,7 @@ const kpis = computed(() => {
 const secondary = computed(() => {
   const d = data.value ?? {}
   return [
+    { label: 'Açık Hesap', value: fmt(d.periodOpenAccount), tone: 'text-amber-600', hint: 'Cariye yazılan, ciroya dahil' },
     { label: 'İndirim', value: fmt(d.periodDiscount), tone: 'text-danger', hint: 'Ciroya yansımış' },
     { label: 'İkram', value: fmt(d.periodCompTotal), tone: 'text-primary', hint: 'Satır ve hesap ikramları' },
     { label: 'Personel Tüketimi', value: fmt(d.periodStaffConsumption), tone: 'text-primary',

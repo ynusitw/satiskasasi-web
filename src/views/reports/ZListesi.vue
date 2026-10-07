@@ -27,6 +27,7 @@
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam Kart</div>
           <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(totals.card) }}</div>
+          <div v-if="totals.openAccount" class="text-xs text-amber-600 mt-1">+ {{ fmt(totals.openAccount) }} açık hesap</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam İndirim</div>
@@ -61,6 +62,8 @@
                 <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">İşlem</th>
                 <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Nakit</th>
                 <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Kart</th>
+                <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase"
+                    title="Cari hesaba yazılan, tahsil edilmemiş">Açık Hesap</th>
                 <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">İndirim</th>
                 <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Toplam</th>
                 <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase"
@@ -84,6 +87,10 @@
                 </td>
                 <td class="px-4 py-4 text-sm text-right whitespace-nowrap text-primary font-semibold">
                   {{ fmt(z.totalCard) }}
+                </td>
+                <td class="px-4 py-4 text-sm text-right whitespace-nowrap font-semibold"
+                    :class="z.totalOpenAccount ? 'text-amber-600' : 'text-muted'">
+                  {{ fmt(z.totalOpenAccount) }}
                 </td>
                 <td class="px-4 py-4 text-sm text-right whitespace-nowrap text-danger">
                   {{ fmt(z.totalDiscount) }}
@@ -123,6 +130,7 @@
                 <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-muted">{{ totals.sales }}</td>
                 <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-primary">{{ fmt(totals.cash) }}</td>
                 <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-primary">{{ fmt(totals.card) }}</td>
+                <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-amber-600">{{ fmt(totals.openAccount) }}</td>
                 <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-danger">{{ fmt(totals.discount) }}</td>
                 <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold text-primary">{{ fmt(totals.grand) }}</td>
                 <td class="px-4 py-3 text-sm text-right whitespace-nowrap font-semibold" :class="diffClass(totals.diff, true)">
@@ -171,7 +179,7 @@
             </div>
             <template v-else-if="modal.data">
               <!-- Rapor özeti -->
-              <div class="grid grid-cols-3 gap-3 mb-4">
+              <div class="grid grid-cols-4 gap-3 mb-4">
                 <div class="bg-gray-50 rounded-xl p-3">
                   <div class="text-xs text-muted mb-0.5">Nakit</div>
                   <div class="font-semibold text-primary text-sm">{{ fmt(modal.zRow?.totalCash) }}</div>
@@ -179,6 +187,10 @@
                 <div class="bg-gray-50 rounded-xl p-3">
                   <div class="text-xs text-muted mb-0.5">Kart</div>
                   <div class="font-semibold text-primary text-sm">{{ fmt(modal.zRow?.totalCard) }}</div>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-3">
+                  <div class="text-xs text-muted mb-0.5">Açık Hesap</div>
+                  <div class="font-semibold text-amber-600 text-sm">{{ fmt(modal.zRow?.totalOpenAccount) }}</div>
                 </div>
                 <div class="bg-gray-50 rounded-xl p-3">
                   <div class="text-xs text-muted mb-0.5">Toplam</div>
@@ -212,7 +224,7 @@
                   </div>
                 </div>
                 <p class="text-xs text-muted mt-3">
-                  Beklenen = devreden nakit + dönemin nakit tahsilatı (parçalı ödemelerin nakit payı dahil, veresiye hariç).
+                  Beklenen = devreden nakit + dönemin nakit tahsilatı (parçalı ödemelerin nakit payı dahil, açık hesap hariç).
                 </p>
               </div>
 
@@ -269,6 +281,7 @@ const loadError = ref('')
 const totals = computed(() => ({
   cash:     reports.value.reduce((s, z) => s + (z.totalCash     ?? 0), 0),
   card:     reports.value.reduce((s, z) => s + (z.totalCard     ?? 0), 0),
+  openAccount: reports.value.reduce((s, z) => s + (z.totalOpenAccount ?? 0), 0),
   discount: reports.value.reduce((s, z) => s + (z.totalDiscount ?? 0), 0),
   grand:    reports.value.reduce((s, z) => s + (z.grandTotal    ?? 0), 0),
   sales:    reports.value.reduce((s, z) => s + (z.saleCount     ?? 0), 0),
