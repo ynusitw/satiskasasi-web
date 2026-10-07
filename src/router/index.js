@@ -52,6 +52,12 @@ const routes = [
     meta: { module: MODULES.STOCK },
   },
   {
+    // Tüketim hızına göre tedarikçi bazlı sipariş listesi
+    path: '/purchasing',
+    component: () => import('../views/PurchaseSuggestions.vue'),
+    meta: { module: MODULES.STOCK }
+  },
+  {
     path: '/modifiers',
     component: () => import('../views/Modifiers.vue'),
   },

@@ -222,6 +222,7 @@ const menuTopAll = [
   { to: '/modifiers',   label: 'Çeşni & Ekstra'  },
   { to: '/recipes',     label: 'Reçete Merkezi', module: MODULES.STOCK },
   { to: '/ingredients', label: 'Hammaddeler',    module: MODULES.STOCK },
+  { to: '/purchasing',  label: 'Sipariş Önerisi', module: MODULES.STOCK },
 ]
 
 const cariSubMenu = [
