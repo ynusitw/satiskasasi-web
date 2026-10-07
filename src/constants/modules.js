@@ -4,7 +4,6 @@
 export const MODULES = Object.freeze({
   QR_MENU: 'qr_menu',
   TABLES:  'tables',
-  OKC:     'okc',
   STOCK:   'stock',
   CARI:    'cari',
   KITCHEN: 'kitchen',

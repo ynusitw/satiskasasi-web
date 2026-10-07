@@ -90,7 +90,6 @@ const routes = [
   // Yazıcı ayarları fiş sayfasıyla birleştirildi; eski bağlantılar oraya gider.
   { path: '/settings/yazici-ayarlari', redirect: '/settings/receipt' },
   { path: '/settings/musteri-ekrani',  component: () => import('../views/settings/MusteriEkrani.vue') },
-  { path: '/settings/okc-durum',       component: () => import('../views/settings/OkcDurum.vue'), meta: { module: MODULES.OKC } },
   { path: '/settings/terminal',        component: () => import('../views/settings/TerminalAyarlari.vue') },
   {
     path: '/subscription',

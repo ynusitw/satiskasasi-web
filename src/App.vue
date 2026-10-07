@@ -182,7 +182,7 @@ watch(() => auth.isLoggedIn, v => { if (v) pollNotifications() })
 const MODULE_NAMES = {
   [MODULES.QR_MENU]: 'QR Menü',
   [MODULES.TABLES]:  'Masa Yönetimi',
-  [MODULES.OKC]:     'ÖKC',
+  [MODULES.KITCHEN]: 'Mutfak Ekranı',
   [MODULES.STOCK]:   'Stok Yönetimi',
   [MODULES.CARI]:    'Cari İşlemler',
 }
@@ -252,7 +252,6 @@ const kasaYapiSubMenu = [
   { to: '/settings/hizli-notlar',    label: 'Hızlı Notlar',          module: MODULES.TABLES  },
   { to: '/settings/receipt',         label: 'Fiş & Yazıcı Ayarları' },
   { to: '/settings/musteri-ekrani',  label: 'Müşteri Ekranı Ayarı'  },
-  { to: '/settings/okc-durum',       label: 'ÖKC Durum',             module: MODULES.OKC     },
   { to: '/settings/terminal',        label: 'Terminal Ayarları'      },
 ]
 

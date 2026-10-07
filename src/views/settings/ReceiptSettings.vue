@@ -313,6 +313,11 @@
                   </div>
                 </template>
 
+                <!-- Kasa fişi mali belge değildir -->
+                <div v-if="form.showInfoNote" class="text-center text-gray-500 mt-1">
+                  BILGI FISIDIR - MALI DEGERI YOKTUR
+                </div>
+
                 <div class="text-center text-gray-300 mt-3">- - - - - - - - -</div>
               </div>
             </div>
@@ -395,6 +400,7 @@ const form = reactive({
   showDiscount:        true,
   showPaymentMethod:   true,
   showFooter:          true,
+  showInfoNote:        true,
 })
 
 async function load() {
@@ -492,5 +498,6 @@ const visibilityOptions = [
   { key: 'showDiscount',       label: 'İndirim'         },
   { key: 'showPaymentMethod',  label: 'Ödeme Yöntemi'   },
   { key: 'showFooter',         label: 'Alt Not'          },
+  { key: 'showInfoNote',       label: 'Bilgi Fişi Notu'  },
 ]
 </script>
