@@ -62,6 +62,11 @@ const routes = [
     component: () => import('../views/Modifiers.vue'),
   },
   {
+    // Saatlik indirim, X al Y öde, sepet indirimi
+    path: '/campaigns',
+    component: () => import('../views/Campaigns.vue'),
+  },
+  {
     path: '/users',
     component: () => import('../views/Users.vue'),
   },

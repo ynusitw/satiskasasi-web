@@ -55,7 +55,7 @@
           <button type="button" @click="qty = Math.min(20, qty + 1)" :disabled="qty >= 20">+</button>
         </div>
         <button type="button" class="add-main" :disabled="!!missing" @click="add">
-          {{ missing || `Sepete ekle · ${fmt(unitPrice * qty)}` }}
+          {{ missing || `Sepete ekle · ${fmt(finalUnit * qty)}` }}
         </button>
       </div>
     </div>
@@ -64,6 +64,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
+import { unitDiscount } from '../utils/campaign'
 
 const props = defineProps({ product: { type: Object, required: true } })
 const emit = defineEmits(['add', 'close'])
@@ -100,6 +101,9 @@ const unitPrice = computed(() => {
   const base = v ? v.price : props.product.price
   return base + chosenOptions.value.reduce((s, o) => s + (o.priceDelta || 0), 0)
 })
+
+// Saatlik kampanya varsa (sunucu da aynı kuralla hesaplar)
+const finalUnit = computed(() => unitPrice.value - unitDiscount(props.product.campaign, unitPrice.value))
 
 // Eksik seçim varsa buton metni neyin eksik olduğunu söyler.
 const missing = computed(() => {

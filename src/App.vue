@@ -220,6 +220,7 @@ const menuTopAll = [
   { to: '/',            label: 'Genel Bakış'     },
   { to: '/products',    label: 'Ürünler'         },
   { to: '/modifiers',   label: 'Çeşni & Ekstra'  },
+  { to: '/campaigns',   label: 'Kampanyalar'     },
   { to: '/recipes',     label: 'Reçete Merkezi', module: MODULES.STOCK },
   { to: '/ingredients', label: 'Hammaddeler',    module: MODULES.STOCK },
   { to: '/purchasing',  label: 'Sipariş Önerisi', module: MODULES.STOCK },

@@ -96,6 +96,13 @@ export default {
   getIngredientMovements:   (id)    => api.get(`ingredients/${id}/movements`),
   // Yalnızca reçeteyi yazar; ürünün diğer alanlarına dokunmaz.
   saveRecipe: (productId, d) => api.put(`products/${productId}/recipe`, d),
+  // Kampanyalar
+  getCampaigns:    ()      => api.get('campaigns'),
+  createCampaign:  (d)     => api.post('campaigns', d),
+  updateCampaign:  (id, d) => api.put(`campaigns/${id}`, d),
+  toggleCampaign:  (id)    => api.post(`campaigns/${id}/toggle`),
+  deleteCampaign:  (id)    => api.delete(`campaigns/${id}`),
+
   // Sipariş önerisi ve tedarikçiler
   getPurchaseSuggestions: ()        => api.get('purchasing/suggestions'),
   savePurchasingSettings: (d)       => api.put('purchasing/settings', d),

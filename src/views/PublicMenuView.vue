@@ -48,6 +48,13 @@
         <template v-else>{{ menu.ordering.message }}</template>
       </div>
 
+      <!-- Şu an geçerli kampanyalar -->
+      <div v-if="menu.campaigns?.length" class="camp-strip">
+        <div v-for="c in menu.campaigns" :key="c.name" class="camp-chip">
+          <strong>{{ c.name }}</strong> · {{ c.description }}<span v-if="c.endTime"> · bitiş {{ c.endTime }}</span>
+        </div>
+      </div>
+
       <!-- Verilen siparişin durumu -->
       <button v-if="activeOrder && orderStatus" type="button" class="status-pill"
               :class="`is-${statusInfo.tone}`" @click="statusOpen = true">
@@ -122,7 +129,9 @@
                 </div>
                 <div class="px-2 py-2 text-center">
                   <div class="text-xs font-bold text-ink truncate">{{ p.name }}</div>
-                  <div class="text-xs font-extrabold price-tag mt-0.5">{{ fmt(p.price) }}</div>
+                  <div class="text-xs font-extrabold price-tag mt-0.5">
+                    <span v-if="p.campaign" class="price-old">{{ fmt(p.price) }}</span>{{ fmt(menuPrice(p)) }}
+                  </div>
                   <button v-if="canOrder" type="button" class="featured-add" @click.stop="startAdd(p)">Ekle</button>
                 </div>
               </div>
@@ -184,7 +193,9 @@
                 Alerjen: {{ previewAllergens.join(', ') }}
               </div>
               <div class="lightbox-foot">
-                <span class="lightbox-price">{{ fmt(preview.price) }}</span>
+                <span class="lightbox-price">
+                  <span v-if="preview.campaign && preview.isActive !== false" class="price-old">{{ fmt(preview.price) }}</span>{{ fmt(menuPrice(preview)) }}
+                </span>
                 <span v-if="preview.isActive === false" class="lightbox-unavailable">
                   Şu anda mevcut değil
                 </span>
@@ -226,7 +237,7 @@
                 <div v-if="l.optionNames?.length || l.note" class="cart-line-detail">
                   {{ [l.optionNames?.join(', '), l.note].filter(Boolean).join(' · ') }}
                 </div>
-                <div class="cart-line-price">{{ fmt(l.unitPrice * l.quantity) }}</div>
+                <div class="cart-line-price">{{ fmt((l.unitPrice - (l.unitDiscount || 0)) * l.quantity) }}</div>
               </div>
               <div class="qty">
                 <button type="button" @click="changeQty(i, -1)">−</button>
@@ -275,7 +286,7 @@
                   {{ [it.modifiersText, it.note].filter(Boolean).join(' · ') }}
                 </div>
               </div>
-              <div class="cart-line-price">{{ fmt(it.unitPrice * it.quantity) }}</div>
+              <div class="cart-line-price">{{ fmt(it.unitPrice * it.quantity - (it.discountAmount || 0)) }}</div>
             </div>
             <div class="status-total">Toplam <strong>{{ fmt(orderStatus.total) }}</strong></div>
           </div>
@@ -298,6 +309,7 @@ import api from '../api/api'
 import ProductRow from '../components/MenuProductRow.vue'
 import MenuImage from '../components/MenuImage.vue'
 import MenuOptionSheet from '../components/MenuOptionSheet.vue'
+import { unitDiscount, discountedPrice } from '../utils/campaign'
 import { allergenLabels } from '../constants/allergens'
 
 const route      = useRoute()
@@ -420,7 +432,15 @@ const toast = ref('')
 let toastTimer = null
 
 const cartCount = computed(() => cart.value.reduce((s, l) => s + l.quantity, 0))
-const cartTotal = computed(() => cart.value.reduce((s, l) => s + l.unitPrice * l.quantity, 0))
+const cartTotal = computed(() => cart.value.reduce((s, l) => s + (l.unitPrice - (l.unitDiscount || 0)) * l.quantity, 0))
+
+// Saatlik kampanya: menüdeki fiyat ve sepetteki indirim (sunucu da aynı kuralla hesaplar)
+const productById = computed(() => {
+  const map = {}
+  for (const c of menu.value.categories || []) for (const p of c.products || []) map[p.id] = p
+  return map
+})
+const menuPrice = p => (p.isActive === false ? p.price : discountedPrice(p.campaign, p.price))
 
 function startAdd(p) {
   if (!canOrder.value || p.isActive === false) return
@@ -433,6 +453,7 @@ function startAdd(p) {
 }
 
 function addToCart(line) {
+  line.unitDiscount = unitDiscount(productById.value[line.productId]?.campaign, line.unitPrice)
   const key = l => `${l.productId}|${l.variantId ?? ''}|${[...l.optionIds].sort().join(',')}|${l.note ?? ''}`
   const same = cart.value.find(l => key(l) === key(line))
   if (same) same.quantity = Math.min(20, same.quantity + line.quantity)
@@ -739,6 +760,14 @@ onUnmounted(() => {
   font-size: 11px; font-weight: 700; color: #9CA3AF;
   background: #F3F4F6; padding: 3px 9px; border-radius: 999px;
 }
+
+/* ── Kampanyalar ───────────────────────────────────────────────── */
+.camp-strip { display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px 0; max-width: 672px; margin: 0 auto; }
+.camp-chip {
+  flex-shrink: 0; padding: 7px 12px; border-radius: 12px;
+  background: #DCFCE7; color: #14532D; font-size: 12.5px; white-space: nowrap;
+}
+.price-old { font-weight: 600; opacity: .6; text-decoration: line-through; margin-right: 5px; font-size: .9em; }
 
 /* ── Masadan sipariş ───────────────────────────────────────────── */
 .order-banner {

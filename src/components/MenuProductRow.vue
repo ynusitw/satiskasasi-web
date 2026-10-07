@@ -9,11 +9,13 @@
     </div>
     <div class="product-body">
       <div class="product-name">{{ product.name }}</div>
+      <div v-if="campaign" class="camp-badge">{{ campaign.name }} · {{ campaign.label }}</div>
       <div v-if="product.description" class="product-desc">{{ product.description }}</div>
       <div v-if="labels.length" class="product-allergens">
         Alerjen: {{ labels.join(', ') }}
       </div>
       <div class="product-foot">
+        <span v-if="campaign" class="price-old">{{ listLabel }}</span>
         <span class="price-tag">{{ priceLabel }}</span>
         <span v-if="isInactive" class="unavailable">Şu anda mevcut değil</span>
         <!-- Masadan sipariş açıksa -->
@@ -30,6 +32,7 @@
 import { computed } from 'vue'
 import { allergenLabels } from '../constants/allergens'
 import MenuImage from './MenuImage.vue'
+import { discountedPrice } from '../utils/campaign'
 
 const props = defineProps({
   product:  { type: Object, required: true },
@@ -38,15 +41,20 @@ const props = defineProps({
 })
 const emit  = defineEmits(['open', 'add'])
 
+// Şu an geçerli saatlik kampanya (pasif üründe gösterilmez)
+const campaign = computed(() => props.product.isActive === false ? null : props.product.campaign)
+
 // Porsiyonlu üründe en düşük porsiyon fiyatı "… den başlayan" olarak gösterilir.
-const priceLabel = computed(() => {
+function label(priceOf) {
   const v = props.product.variants
   if (v?.length) {
-    const min = Math.min(...v.map(x => x.price))
+    const min = Math.min(...v.map(x => priceOf(x.price)))
     return fmt(min) + (v.length > 1 ? "'den" : '')
   }
-  return fmt(props.product.price)
-})
+  return fmt(priceOf(props.product.price))
+}
+const priceLabel = computed(() => label(p => discountedPrice(campaign.value, p)))
+const listLabel  = computed(() => label(p => p))
 
 // Görsel artık menü yanıtında gelmiyor; API yalnızca var/yok bilgisi veriyor.
 const hasImage = computed(() => !!props.product.hasImage && !!props.imageUrl)
@@ -67,6 +75,11 @@ function fmt(v) {
    miras alınır (CSS değişkenleri scoped stilden bağımsız olarak kalıtılır).
    Yönetici panelinin koyu teması "bg-white", <input> gibi çıplak seçicileri
    ezdiği için burada da yalnızca kendi class isimlerimiz kullanılıyor. */
+.price-old { font-size: 12px; color: var(--ink-muted, #8B8378); text-decoration: line-through; margin-right: 4px; }
+.camp-badge {
+  display: inline-block; margin-top: 3px; padding: 1px 8px; border-radius: 999px;
+  background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 800;
+}
 .product-row {
   display: flex; gap: 12px; align-items: flex-start;
   background: white; border-radius: 16px; padding: 10px;

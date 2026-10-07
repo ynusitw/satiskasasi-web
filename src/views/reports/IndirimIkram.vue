@@ -42,7 +42,7 @@
     </div>
 
     <!-- Özet: türe tıklayınca liste o türe süzülür -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
       <button v-for="c in cards" :key="c.type" @click="toggleType(c.type)"
               class="text-left bg-white rounded-2xl shadow-sm p-5 border-2 transition-colors"
               :class="type === c.type ? 'border-accent' : 'border-transparent hover:border-gray-200'">
@@ -135,6 +135,7 @@ const cards = computed(() => [
   { type: 'Discount', label: 'İndirim',  total: summary.value.discountTotal, count: summary.value.discountCount, color: 'text-primary' },
   { type: 'Comp',     label: 'İkram',    total: summary.value.compTotal,     count: summary.value.compCount,     color: 'text-primary' },
   { type: 'Staff',    label: 'Personel', total: summary.value.staffTotal,    count: summary.value.staffCount,    color: 'text-primary' },
+  { type: 'Campaign', label: 'Kampanya', total: summary.value.campaignTotal, count: summary.value.campaignCount, color: 'text-primary' },
   // Liste fiyatının altında satılan satırlar (sunucudaki fiyat doğrulaması).
   // Fiyat güncellemesinden önce çevrimdışı yapılmış satışlar da buraya düşer.
   { type: 'PriceMismatch', label: 'Fiyat Farkı', total: summary.value.priceMismatchTotal,
@@ -167,12 +168,13 @@ async function load() {
   }
 }
 
-const LABELS = { Discount: 'İndirim', Comp: 'İkram', Staff: 'Personel', PriceMismatch: 'Fiyat Farkı' }
+const LABELS = { Discount: 'İndirim', Comp: 'İkram', Staff: 'Personel', Campaign: 'Kampanya', PriceMismatch: 'Fiyat Farkı' }
 const typeLabel = t => LABELS[t] || t
 const badge = t => ({
   Discount: 'bg-amber-100 text-amber-700',
   Comp:     'bg-purple-100 text-purple-700',
   Staff:    'bg-blue-100 text-blue-700',
+  Campaign: 'bg-emerald-100 text-emerald-700',
   PriceMismatch: 'bg-red-100 text-red-700',
 }[t] || 'bg-gray-100 text-gray-600')
 
