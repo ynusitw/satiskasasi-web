@@ -11,10 +11,6 @@
           <div class="text-[15px] font-semibold truncate">{{ title }}</div>
           <div class="text-[11.5px] text-white/55 truncate">{{ auth.username }} · {{ auth.tenantName }}</div>
         </div>
-        <button v-if="screen === 'floor' && shiftEnabled" class="h-8 px-2.5 rounded-lg text-[12px] font-semibold whitespace-nowrap"
-                :class="shift ? 'bg-green-500/20 text-green-200' : 'bg-white/10 text-white'" :disabled="shiftBusy" @click="toggleShift">
-          {{ shift ? `Mesaide · ${since(shift.clockIn)}` : 'Mesaiye başla' }}
-        </button>
         <button v-if="screen === 'floor'" class="text-[12px] font-semibold text-white/70 px-2 h-9" @click="logout">Çıkış</button>
         <button v-else-if="screen === 'menu' && cartCount" class="relative h-9 px-3 rounded-lg bg-accent text-[13px] font-semibold"
                 @click="screen = 'cart'">
@@ -210,8 +206,6 @@ import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api/api'
 import { useAuthStore } from '../stores/auth'
-import { useModulesStore } from '../stores/modules'
-import { MODULES } from '../constants/modules'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -421,39 +415,9 @@ function flash(msg) {
   toastTimer = setTimeout(() => (toast.value = ''), 1800)
 }
 
-// ── Mesai ──────────────────────────────────────────────────────────────
-const modules = useModulesStore()
-const shiftEnabled = computed(() => modules.has(MODULES.STAFF))
-const shift = ref(null)
-const shiftBusy = ref(false)
-
-async function loadShift() {
-  if (!shiftEnabled.value) return
-  try { shift.value = (await api.myShift()).data } catch { /* mesai bilgisi isteğe bağlı */ }
-}
-
-async function toggleShift() {
-  const out = !!shift.value
-  if (!confirm(out ? `Mesainiz bitirilsin mi? (${since(shift.value.clockIn)})` : 'Mesainiz başlatılsın mı?')) return
-  shiftBusy.value = true
-  try {
-    const { data } = await api.punchShift(out ? 'out' : 'in')
-    shift.value = out ? null : data
-    flash(out ? 'Mesai bitti' : 'Mesai başladı')
-  } catch (e) {
-    error.value = e.response?.data?.message || 'Mesai kaydedilemedi.'
-    await loadShift()
-  } finally {
-    shiftBusy.value = false
-  }
-}
-
-async function logout() {
-  if (shift.value && shiftEnabled.value) {
-    if (confirm(`Mesainiz açık (${since(shift.value.clockIn)}). Çıkarken mesainiz de bitsin mi?\n\nTamam: bitir ve çık · İptal: yalnızca çık`)) {
-      try { await api.punchShift('out') } catch { /* çıkış yine yapılır */ }
-    }
-  } else if (!confirm('Çıkış yapılsın mı?')) return
+// Mesai giriş-çıkışı kasadan yapılır (Menü → Mesai).
+function logout() {
+  if (!confirm('Çıkış yapılsın mı?')) return
   auth.logout()
   router.push('/login')
 }
@@ -461,7 +425,7 @@ async function logout() {
 // Masa planı ve açık adisyon 15 sn'de bir tazelenir (başka garson / kasa)
 let poll = null
 onMounted(async () => {
-  await Promise.all([loadFloor(), loadMenu(), loadShift()])
+  await Promise.all([loadFloor(), loadMenu()])
   poll = setInterval(() => {
     if (document.hidden) return
     if (screen.value === 'floor') loadFloor()

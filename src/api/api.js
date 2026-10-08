@@ -45,8 +45,6 @@ export default {
   // Auth
   login:    (d) => api.post('auth/login', d),
   // Personel: mesai ve performans
-  myShift:             ()           => api.get('shifts/me'),
-  punchShift:          (type)       => api.post('shifts/punch', { type, source: 'garson' }),
   getShifts:           (params)     => api.get('shifts', { params }),
   createShift:         (d)          => api.post('shifts', d),
   updateShift:         (id, d)      => api.put(`shifts/${id}`, d),
