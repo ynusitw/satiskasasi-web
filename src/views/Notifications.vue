@@ -85,6 +85,7 @@ const TYPES = {
   LowStock:       { label: 'Kritik stok', cls: 'bg-amber-50 text-warning' },
   FailedLogin:    { label: 'Güvenlik',    cls: 'bg-gray-100 text-primary' },
   Support:        { label: 'Destek',      cls: 'bg-green-50 text-success' },
+  DataReset:      { label: 'Sıfırlama',   cls: 'bg-red-50 text-danger' },
 }
 const typeOf = n => TYPES[n.type] ?? { label: n.type, cls: 'bg-gray-100 text-primary' }
 

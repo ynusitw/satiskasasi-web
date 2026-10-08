@@ -503,6 +503,78 @@
                 </div>
               </section>
 
+              <!-- ── Veriler: satış verilerini sıfırlama talebi ─────────── -->
+              <section v-else-if="activeTab === 'data'">
+                <SectionHeader title="Satış verilerini sıfırla"
+                               desc="Yeni bir döneme temiz başlamak için. Talebiniz destek ekibinin onayıyla uygulanır."/>
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                  <div class="border border-red-100 bg-red-50/60 rounded-xl p-4">
+                    <div class="text-xs font-bold text-red-700 uppercase tracking-wide mb-2">Silinecekler</div>
+                    <ul class="text-xs text-red-900 space-y-1">
+                      <li>Satışlar, fişler, Z raporları</li>
+                      <li>İndirim, ikram ve iptal kayıtları</li>
+                      <li>Masa adisyonları, QR siparişleri, mutfak biletleri</li>
+                      <li>Stok hareketleri ve sayımlar — <b>stoklar 0 olur</b></li>
+                      <li>Cari hareketleri ve faturalar — <b>bakiyeler 0 olur</b></li>
+                      <li>Mesailer, rezervasyonlar, bildirimler</li>
+                    </ul>
+                  </div>
+                  <div class="border border-green-100 bg-green-50/60 rounded-xl p-4">
+                    <div class="text-xs font-bold text-green-700 uppercase tracking-wide mb-2">Kalacaklar</div>
+                    <ul class="text-xs text-green-900 space-y-1">
+                      <li>Ürünler, resimler, kategoriler, porsiyon ve ekler</li>
+                      <li>Reçeteler, hammaddeler, tedarikçiler</li>
+                      <li>QR menü resimleri, masalar, kampanyalar</li>
+                      <li>Cari kartlar (bakiyesiz)</li>
+                      <li>Kullanıcılar, ayarlar, fiş tasarımı, lisanslar</li>
+                    </ul>
+                  </div>
+                </div>
+                <p class="text-xs text-muted mb-5">
+                  Onaylandıktan sonra kasalar bir sonraki bağlantıda kendi eski kayıtlarını da temizler (önce kasa yedeği alınır).
+                  İşlem geri alınamaz; gerekirse silinen kayıtlar 30 gün içinde destek ekibinden istenebilir.
+                </p>
+
+                <div v-if="dataReset.pending" class="border border-blue-100 bg-blue-50/60 rounded-xl p-4 mb-5">
+                  <div class="text-sm font-semibold text-primary">Talebiniz onay bekliyor</div>
+                  <div class="text-xs text-muted mt-1">
+                    {{ dataReset.pending.requestedBy }} · {{ timeAgo(dataReset.pending.createdAt) }} · “{{ dataReset.pending.reason }}”
+                  </div>
+                  <button class="btn-ghost btn-sm mt-2 text-danger" :disabled="dataReset.busy" @click="cancelDataReset">Talebi geri çek</button>
+                </div>
+
+                <div v-else class="border border-gray-200 rounded-xl p-4 mb-5">
+                  <label class="field-label">Neden sıfırlamak istiyorsunuz?</label>
+                  <textarea v-model="dataReset.reason" rows="2" maxlength="500"
+                            placeholder="ör. Deneme amaçlı girilen satışlar; gerçek kullanıma başlıyoruz"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13.5px] bg-white resize-none mb-3"></textarea>
+                  <label class="field-label">Onay için işletme adını yazın: <b>{{ auth.tenantName }}</b></label>
+                  <input v-model="dataReset.confirm" :placeholder="auth.tenantName"
+                         class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white mb-3"/>
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="text-xs" :class="dataReset.error ? 'text-danger' : 'text-success'">{{ dataReset.error || dataReset.sent }}</span>
+                    <button class="btn-danger btn-sm"
+                            :disabled="dataReset.busy || dataReset.reason.trim().length < 5 || !dataReset.confirm.trim()"
+                            @click="createDataReset">Sıfırlama talebi gönder</button>
+                  </div>
+                </div>
+
+                <div v-if="dataReset.history.length">
+                  <div class="text-sm font-semibold text-primary mb-2">Geçmiş talepler</div>
+                  <div class="border border-gray-200 rounded-xl divide-y divide-gray-100">
+                    <div v-for="r in dataReset.history" :key="r.id" class="px-4 py-2.5 text-xs flex items-center justify-between gap-3">
+                      <span class="text-muted truncate">{{ timeAgo(r.createdAt) }} · {{ r.requestedBy }} · “{{ r.reason }}”
+                        <template v-if="r.rejectReason"> — {{ r.rejectReason }}</template></span>
+                      <span class="flex-shrink-0 font-semibold"
+                            :class="{ Completed: 'text-success', Rejected: 'text-danger', Failed: 'text-danger' }[r.status] || 'text-muted'">
+                        {{ { Completed: 'Sıfırlandı', Rejected: 'Reddedildi', Cancelled: 'Geri çekildi', Failed: 'Yapılamadı' }[r.status] || r.status }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
             </div>
           </div>
         </div>
@@ -512,7 +584,7 @@
 </template>
 
 <script setup>
-import { ref, h, watch, reactive } from 'vue'
+import { ref, h, watch, reactive, computed } from 'vue'
 import { useSettingsStore } from '../stores/settings'
 import { useAuthStore }     from '../stores/auth'
 import api                  from '../api/api'
@@ -525,6 +597,38 @@ const settings = useSettingsStore()
 const auth     = useAuthStore()
 
 const activeTab   = ref('ui')
+// ─── Satış verilerini sıfırlama ──────────────────────────────────────────────
+const dataReset = reactive({ pending: null, history: [], reason: '', confirm: '', busy: false, error: '', sent: '' })
+
+async function loadDataReset() {
+  try {
+    const list = (await api.getMyDataResets()).data
+    dataReset.pending = list.find(r => r.status === 'Pending') ?? null
+    dataReset.history = list.filter(r => r.status !== 'Pending')
+  } catch { /* eski API */ }
+}
+
+async function createDataReset() {
+  if (!confirm('Sıfırlama talebi gönderilsin mi? Onaylanınca satış verileri silinir, stoklar ve cari bakiyeleri sıfırlanır.')) return
+  dataReset.busy = true; dataReset.error = ''; dataReset.sent = ''
+  try {
+    await api.createDataReset({ reason: dataReset.reason.trim(), confirmName: dataReset.confirm.trim() })
+    dataReset.reason = ''; dataReset.confirm = ''
+    dataReset.sent = 'Talebiniz iletildi. Sonuç Bildirimler\'de görünecek.'
+    await loadDataReset()
+  } catch (e) {
+    dataReset.error = e.response?.data?.message || 'Gönderilemedi.'
+  } finally { dataReset.busy = false }
+}
+
+async function cancelDataReset() {
+  if (!confirm('Sıfırlama talebi geri çekilsin mi?')) return
+  dataReset.busy = true
+  try { await api.cancelDataReset(dataReset.pending.id); await loadDataReset() }
+  catch (e) { dataReset.error = e.response?.data?.message || 'Geri çekilemedi.' }
+  finally { dataReset.busy = false }
+}
+
 // ─── Destek talepleri ───────────────────────────────────────────────────────
 const support = reactive({ list: [], selected: null, subject: '', message: '', busy: false, error: '', sent: '' })
 
@@ -783,6 +887,7 @@ watch(activeTab, tab => {
   if (tab === 'security'      && !sessions.value.length)      loadSessions()
   if (tab === 'security') loadTwoFactor()
   if (tab === 'support') loadSupport()
+  if (tab === 'data') loadDataReset()
   if (tab === 'notifications' && !failedAttempts.value.length) loadFailedAttempts()
   if (tab === 'notifications') loadNotif()
 })
@@ -825,12 +930,20 @@ const IconPhone = { render: () => h('svg', { fill:'none', stroke:'currentColor',
 )}
 
 // ─── Veri ────────────────────────────────────────────────────────────────────
-const tabs = [
+const IconDatabase = { render: () => h('svg', { fill:'none', stroke:'currentColor', viewBox:'0 0 24 24' },
+  [h('path', { 'stroke-linecap':'round','stroke-linejoin':'round','stroke-width':'2',
+    d:'M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zm0 0v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3'
+  })]
+)}
+
+// "Veriler" (sıfırlama talebi) yalnızca işletme yöneticisine
+const tabs = computed(() => [
   { id: 'ui',            label: 'Görünüm',    icon: IconPalette  },
   { id: 'security',      label: 'Güvenlik',   icon: IconShield   },
   { id: 'notifications', label: 'Bildirimler',icon: IconBell     },
   { id: 'support',       label: 'Destek',     icon: IconLifebuoy },
-]
+  ...(auth.isAdmin && !auth.isSuperAdmin ? [{ id: 'data', label: 'Veriler', icon: IconDatabase }] : []),
+])
 
 const themeOptions = [
   {

@@ -44,6 +44,15 @@ export const API_BASE = api.defaults.baseURL
 export default {
   // Auth
   login:    (d) => api.post('auth/login', d),
+  // Satış verilerini sıfırlama (işletme talep eder, süper yönetici onaylar)
+  getMyDataResets:         ()           => api.get('data-reset'),
+  createDataReset:         (d)          => api.post('data-reset', d),
+  cancelDataReset:         (id)         => api.post(`data-reset/${id}/cancel`),
+  getAllDataResets:        ()           => api.get('data-reset/all'),
+  getDataResetPendingCount: ()          => api.get('data-reset/pending-count'),
+  approveDataReset:        (id)         => api.post(`data-reset/${id}/approve`, null, { timeout: 120000 }),
+  rejectDataReset:         (id, reason) => api.post(`data-reset/${id}/reject`, { reason }),
+
   // Personel: mesai ve performans
   getShifts:           (params)     => api.get('shifts', { params }),
   createShift:         (d)          => api.post('shifts', d),
