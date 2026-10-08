@@ -136,6 +136,7 @@ const cards = computed(() => [
   { type: 'Comp',     label: 'İkram',    total: summary.value.compTotal,     count: summary.value.compCount,     color: 'text-primary' },
   { type: 'Staff',    label: 'Personel', total: summary.value.staffTotal,    count: summary.value.staffCount,    color: 'text-primary' },
   { type: 'Campaign', label: 'Kampanya', total: summary.value.campaignTotal, count: summary.value.campaignCount, color: 'text-primary' },
+  ...(summary.value.loyaltyCount ? [{ type: 'Loyalty', label: 'Sadakat', total: summary.value.loyaltyTotal, count: summary.value.loyaltyCount, color: 'text-primary' }] : []),
   // Liste fiyatının altında satılan satırlar (sunucudaki fiyat doğrulaması).
   // Fiyat güncellemesinden önce çevrimdışı yapılmış satışlar da buraya düşer.
   { type: 'PriceMismatch', label: 'Fiyat Farkı', total: summary.value.priceMismatchTotal,
@@ -168,13 +169,14 @@ async function load() {
   }
 }
 
-const LABELS = { Discount: 'İndirim', Comp: 'İkram', Staff: 'Personel', Campaign: 'Kampanya', PriceMismatch: 'Fiyat Farkı' }
+const LABELS = { Discount: 'İndirim', Comp: 'İkram', Staff: 'Personel', Campaign: 'Kampanya', Loyalty: 'Sadakat', PriceMismatch: 'Fiyat Farkı' }
 const typeLabel = t => LABELS[t] || t
 const badge = t => ({
   Discount: 'bg-amber-100 text-amber-700',
   Comp:     'bg-purple-100 text-purple-700',
   Staff:    'bg-blue-100 text-blue-700',
   Campaign: 'bg-emerald-100 text-emerald-700',
+  Loyalty:  'bg-sky-100 text-sky-700',
   PriceMismatch: 'bg-red-100 text-red-700',
 }[t] || 'bg-gray-100 text-gray-600')
 

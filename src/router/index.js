@@ -52,6 +52,11 @@ const routes = [
     meta: { module: MODULES.STOCK },
   },
   {
+    path: '/loyalty',
+    component: () => import('../views/Loyalty.vue'),
+    meta: { module: MODULES.LOYALTY }
+  },
+  {
     path: '/staff',
     component: () => import('../views/Staff.vue'),
     meta: { module: MODULES.STAFF }

@@ -517,6 +517,7 @@
                       <li>Masa adisyonları, QR siparişleri, mutfak biletleri</li>
                       <li>Stok hareketleri ve sayımlar — <b>stoklar 0 olur</b></li>
                       <li>Cari hareketleri ve faturalar — <b>bakiyeler 0 olur</b></li>
+                      <li>Sadakat puanları ve damgalar (üyelik onayları kalır)</li>
                       <li>Mesailer, rezervasyonlar, bildirimler</li>
                     </ul>
                   </div>

@@ -9,4 +9,5 @@ export const MODULES = Object.freeze({
   KITCHEN: 'kitchen',
   WAITER:  'waiter',
   STAFF:   'staff',
+  LOYALTY: 'loyalty',
 })

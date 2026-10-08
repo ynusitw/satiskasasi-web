@@ -260,6 +260,19 @@ export default {
   createCari:         (d)       => api.post('cari', d),
   updateCari:         (id, d)   => api.put(`cari/${id}`, d),
   deleteCari:         (id)      => api.delete(`cari/${id}`),
+  getCariGroups:      ()        => api.get('cari/groups'),
+  createCariGroup:    (d)       => api.post('cari/groups', d),
+  updateCariGroup:    (id, d)   => api.put(`cari/groups/${id}`, d),
+  deleteCariGroup:    (id)      => api.delete(`cari/groups/${id}`),
+
+  // Sadakat programı
+  getLoyaltyConfig:   ()        => api.get('loyalty/config'),
+  saveLoyaltySettings:(d)       => api.put('loyalty/settings', d),
+  createStampCard:    (d)       => api.post('loyalty/cards', d),
+  updateStampCard:    (id, d)   => api.put(`loyalty/cards/${id}`, d),
+  deleteStampCard:    (id)      => api.delete(`loyalty/cards/${id}`),
+  getLoyaltyCari:     (id)      => api.get(`loyalty/cari/${id}`),
+  adjustLoyalty:      (id, d)   => api.post(`loyalty/cari/${id}/adjust`, d),
   getCariTransactions:(id)      => api.get(`cari/${id}/transactions`),
   // Faturalar (cari ve stoğa işlenir; silinmez, iptal edilir)
   getInvoices:        ()        => api.get('invoices'),

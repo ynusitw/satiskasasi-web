@@ -240,6 +240,7 @@ const menuTopAll = [
   { to: '/modifiers',   label: 'Çeşni & Ekstra'  },
   { to: '/campaigns',   label: 'Kampanyalar'     },
   { to: '/reservations', label: 'Rezervasyonlar', module: MODULES.TABLES },
+  { to: '/loyalty',     label: 'Sadakat',        module: MODULES.LOYALTY },
   { to: '/garson',      label: 'Garson Telefonu', module: MODULES.WAITER },
   { to: '/recipes',     label: 'Reçete Merkezi', module: MODULES.STOCK },
   { to: '/ingredients', label: 'Hammaddeler',    module: MODULES.STOCK },

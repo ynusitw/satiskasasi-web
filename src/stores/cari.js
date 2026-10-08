@@ -12,10 +12,12 @@ export const useCariStore = defineStore('cari', () => {
     ...c,
     unvan: c.name, telefon: c.phone, email: c.email, vergiNo: c.taxNo,
     adres: c.address, riskLimiti: c.riskLimit ?? 0, tip: c.type || 'Müşteri', notlar: c.notes,
+    grupId: c.groupId ?? null, puan: c.loyaltyPoints ?? 0, sadakatOnay: !!c.loyaltyConsentAt, onayTarihi: c.loyaltyConsentAt,
   })
   const toApi = f => ({
     name: (f.unvan || '').trim(), phone: f.telefon, email: f.email, taxNo: f.vergiNo,
     address: f.adres, riskLimit: Number(f.riskLimiti) || 0, type: f.tip, notes: f.notlar,
+    groupId: f.grupId || null, loyaltyConsent: !!f.sadakatOnay,
   })
 
   // ─── API yükle ────────────────────────────────────────────────────────────
