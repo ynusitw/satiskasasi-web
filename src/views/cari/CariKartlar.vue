@@ -101,10 +101,10 @@
 
               <!-- Risk limiti -->
               <td class="px-5 py-4 text-right text-sm hidden lg:table-cell">
-                <span :class="c.bakiye > c.riskLimiti ? 'text-danger font-bold' : 'text-muted'">
-                  {{ fmt(c.riskLimiti) }}
+                <span :class="c.riskLimiti > 0 && c.bakiye > c.riskLimiti ? 'text-danger font-bold' : 'text-muted'">
+                  {{ c.riskLimiti > 0 ? fmt(c.riskLimiti) : 'Sınırsız' }}
                 </span>
-                <div v-if="c.bakiye > c.riskLimiti"
+                <div v-if="c.riskLimiti > 0 && c.bakiye > c.riskLimiti"
                      class="text-xs text-danger mt-0.5">Limit aşıldı</div>
               </td>
 

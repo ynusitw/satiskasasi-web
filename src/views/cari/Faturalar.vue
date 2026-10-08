@@ -16,7 +16,10 @@
     <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Toplam Fatura</div>
-        <div class="text-2xl font-semibold tracking-tight text-primary">{{ store.faturalar.length }}</div>
+        <div class="text-2xl font-semibold tracking-tight text-primary">{{ aktif.length }}</div>
+        <div v-if="faturalar.length > aktif.length" class="text-xs text-muted mt-1">
+          {{ faturalar.length - aktif.length }} iptal
+        </div>
       </div>
       <div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="text-xs text-muted mb-1">Toplam Alış</div>
@@ -57,18 +60,23 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-if="!filtered.length">
+            <tr v-if="loading">
+              <td colspan="8" class="text-center py-12 text-muted">Yükleniyor...</td>
+            </tr>
+            <tr v-else-if="!filtered.length">
               <td colspan="8" class="text-center py-12 text-muted">Fatura bulunamadı</td>
             </tr>
-            <tr v-for="f in filtered" :key="f.id"
-                class="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-              <td class="px-5 py-4">
+            <tr v-for="f in filtered" :key="f.id" @click="openDetail(f)"
+                class="border-t border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+                :class="{ 'opacity-50': f.iptal }">
+              <td class="px-5 py-4 whitespace-nowrap">
                 <span class="text-xs font-bold px-2.5 py-1 rounded-full"
                       :class="f.tip === 'Alış'
                         ? 'bg-red-100 text-red-700'
                         : 'bg-green-100 text-green-700'">
                   {{ f.tip }}
                 </span>
+                <span v-if="f.iptal" class="chip-neutral ml-1">İptal</span>
               </td>
               <td class="px-5 py-4 text-sm font-mono font-semibold">{{ f.no }}</td>
               <td class="px-5 py-4 text-sm font-semibold text-primary">{{ f.cariUnvan }}</td>
@@ -76,8 +84,8 @@
               <td class="px-5 py-4 text-sm text-muted hidden lg:table-cell">{{ f.aciklama }}</td>
               <td class="px-5 py-4 text-sm text-right text-muted hidden lg:table-cell">{{ fmt(f.araToplam) }}</td>
               <td class="px-5 py-4 text-sm text-right text-muted hidden lg:table-cell">{{ fmt(f.kdvToplam) }}</td>
-              <td class="px-5 py-4 text-sm font-semibold text-right"
-                  :class="f.tip === 'Alış' ? 'text-danger' : 'text-success'">
+              <td class="px-5 py-4 text-sm font-semibold text-right whitespace-nowrap"
+                  :class="f.iptal ? 'line-through text-muted' : f.tip === 'Alış' ? 'text-danger' : 'text-success'">
                 {{ fmt(f.genelToplam) }}
               </td>
             </tr>
@@ -284,9 +292,9 @@
                         class="btn-secondary btn-lg">
                   İptal
                 </button>
-                <button @click="save"
+                <button @click="save" :disabled="saving"
                         class="btn-primary btn-lg">
-                  Kaydet
+                  {{ saving ? 'Kaydediliyor...' : 'Kaydet' }}
                 </button>
               </div>
             </div>
@@ -297,6 +305,82 @@
 
     <!-- Risk Limiti Uyarı Modalı -->
     <Teleport to="body">
+      <!-- Fatura detayı -->
+      <div v-if="detail.show" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-4"
+           @click.self="detail.show = false">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div class="px-7 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="modal-title">{{ detail.row?.tip }} Faturası · {{ detail.row?.no }}</h2>
+                <span v-if="detail.row?.iptal" class="chip-danger">İptal edildi</span>
+              </div>
+              <p class="text-xs text-muted mt-1">
+                {{ detail.row?.cariUnvan }} · {{ detail.row?.tarih }}
+                <template v-if="detail.inv?.createdBy"> · kesen {{ detail.inv.createdBy }}</template>
+              </p>
+              <p v-if="detail.row?.iptal" class="text-xs text-danger mt-1">
+                {{ detail.inv?.cancelledBy }} tarafından iptal edildi<template v-if="detail.inv?.cancelReason">: {{ detail.inv.cancelReason }}</template>
+              </p>
+            </div>
+            <button class="btn-secondary btn-sm" @click="detail.show = false">Kapat</button>
+          </div>
+
+          <div class="p-7">
+            <div v-if="detail.loading" class="text-sm text-muted">Yükleniyor...</div>
+            <template v-else>
+              <p v-if="detail.inv?.description" class="text-sm text-muted mb-4">{{ detail.inv.description }}</p>
+              <table class="w-full text-sm mb-5">
+                <thead>
+                  <tr class="text-left text-[11px] text-muted uppercase border-b border-gray-100">
+                    <th class="py-2 font-semibold">Ürün</th>
+                    <th class="py-2 font-semibold text-right">Miktar</th>
+                    <th class="py-2 font-semibold text-right">Birim Fiyat</th>
+                    <th class="py-2 font-semibold text-right">KDV</th>
+                    <th class="py-2 font-semibold text-right">Toplam</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="l in detail.lines" :key="l.id" class="border-b border-gray-50">
+                    <td class="py-2.5 text-primary font-semibold">
+                      {{ l.productName }}
+                      <span v-if="l.stockApplied" class="text-xs text-muted font-normal"> · stoğa işlendi</span>
+                    </td>
+                    <td class="py-2.5 text-right tabular-nums">{{ fmtN(l.quantity) }}</td>
+                    <td class="py-2.5 text-right tabular-nums">{{ fmt(l.unitPrice) }}</td>
+                    <td class="py-2.5 text-right tabular-nums text-muted">%{{ l.vatRate }}</td>
+                    <td class="py-2.5 text-right tabular-nums font-semibold">{{ fmt(l.lineTotal) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="flex justify-end">
+                <div class="bg-gray-50 rounded-xl px-6 py-4 min-w-72 space-y-1.5 text-sm border border-gray-200">
+                  <div class="flex justify-between gap-8"><span class="text-muted">Ara Toplam</span><span class="tabular-nums">{{ fmt(detail.row?.araToplam) }}</span></div>
+                  <div class="flex justify-between gap-8"><span class="text-muted">KDV</span><span class="tabular-nums">{{ fmt(detail.row?.kdvToplam) }}</span></div>
+                  <div class="flex justify-between gap-8 font-bold border-t border-gray-200 pt-2"><span>Genel Toplam</span><span class="tabular-nums">{{ fmt(detail.row?.genelToplam) }}</span></div>
+                </div>
+              </div>
+
+              <div v-if="!detail.row?.iptal && auth.isAdmin" class="mt-6 pt-5 border-t border-gray-100">
+                <div class="text-sm font-semibold text-primary mb-1">Faturayı iptal et</div>
+                <p class="text-xs text-muted mb-3">
+                  Cari hesaptaki {{ detail.row?.tip === 'Satış' ? 'borç' : 'alacak' }} ve stoğa işlenen miktarlar ters kayıtla
+                  geri alınır. Fatura listede "İptal" olarak kalır.
+                </p>
+                <div class="flex gap-2">
+                  <input v-model="detail.reason" placeholder="İptal gerekçesi (isteğe bağlı)"
+                         class="flex-1 px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white"/>
+                  <button class="btn-danger" :disabled="detail.cancelling" @click="cancelInvoice">
+                    {{ detail.cancelling ? 'İptal ediliyor...' : 'İptal Et' }}
+                  </button>
+                </div>
+              </div>
+              <div v-if="detail.error" class="text-sm text-danger mt-3">{{ detail.error }}</div>
+            </template>
+          </div>
+        </div>
+      </div>
+
       <div v-if="riskModal.show"
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-[60] p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
@@ -343,17 +427,44 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
+import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { useCariStore } from '../../stores/cari'
+import { useAuthStore } from '../../stores/auth'
 import api from '../../api/api'
 
 const store = useCariStore()
+const auth  = useAuthStore()
+
+// ─── Faturalar (sunucuda) ────────────────────────────────────────────────────
+const faturalar = ref([])
+const loading   = ref(true)
+const saving    = ref(false)
+
+const toRow = i => ({
+  id: i.id, tip: i.type === 'Purchase' ? 'Alış' : 'Satış', no: i.no,
+  cariId: i.cariId, cariUnvan: i.cariName,
+  tarih: new Date(i.date).toLocaleDateString('tr-TR'),
+  aciklama: i.description, araToplam: i.subtotal, kdvToplam: i.vatTotal, genelToplam: i.total,
+  iptal: i.isCancelled,
+})
+
+async function loadFaturalar() {
+  try {
+    faturalar.value = (await api.getInvoices()).data.map(toRow)
+  } catch (e) {
+    console.error('[Faturalar] liste alınamadı', e)
+  } finally {
+    loading.value = false
+  }
+}
+const aktif = computed(() => faturalar.value.filter(f => !f.iptal))
 
 const today   = new Date().toISOString().split('T')[0]
 const urunler = ref([])
 
 onMounted(async () => {
   store.fetchCariler()
+  loadFaturalar()
   try {
     const res = await api.getProducts()
     urunler.value = Array.isArray(res.data) ? res.data : []
@@ -387,15 +498,15 @@ const kdvToplam   = computed(() => kalemler.value.reduce((s, k) => s + kalemKdvT
 const genelToplam = computed(() => araToplam.value + kdvToplam.value)
 
 // ─── Liste toplamları ────────────────────────────────────────────────────────
-const toplamAlis  = computed(() => store.faturalar.filter(f => f.tip === 'Alış') .reduce((s, f) => s + f.genelToplam, 0))
-const toplamSatis = computed(() => store.faturalar.filter(f => f.tip === 'Satış').reduce((s, f) => s + f.genelToplam, 0))
+const toplamAlis  = computed(() => aktif.value.filter(f => f.tip === 'Alış') .reduce((s, f) => s + f.genelToplam, 0))
+const toplamSatis = computed(() => aktif.value.filter(f => f.tip === 'Satış').reduce((s, f) => s + f.genelToplam, 0))
 
 // ─── Filtre ─────────────────────────────────────────────────────────────────
 const filtered = computed(() => {
   const q = search.value.toLowerCase()
-  return store.faturalar.filter(f => {
+  return faturalar.value.filter(f => {
     const matchTip = !filterTip.value || f.tip === filterTip.value
-    const matchQ   = !q || f.no.toLowerCase().includes(q) || f.cariUnvan.toLowerCase().includes(q)
+    const matchQ   = !q || f.no.toLowerCase().includes(q) || (f.cariUnvan || '').toLowerCase().includes(q)
     return matchTip && matchQ
   })
 })
@@ -431,7 +542,19 @@ function openCreate() {
   kalemler.value = []
   modal.show     = true
   error.value    = ''
+  suggestNo()
 }
+
+// Sıradaki fatura numarası (SAT-0001 / ALS-0001); elle değiştirilebilir.
+let suggestedNo = ''
+async function suggestNo() {
+  try {
+    const { data } = await api.getNextInvoiceNo(form.tip === 'Alış' ? 'Purchase' : 'Sale')
+    if (!form.no || form.no === suggestedNo) form.no = data.no
+    suggestedNo = data.no
+  } catch { /* öneri isteğe bağlı */ }
+}
+watch(() => form.tip, () => { if (modal.show) suggestNo() })
 
 // ─── Kaydetme ───────────────────────────────────────────────────────────────
 function save() {
@@ -468,15 +591,63 @@ function onaylaVeKaydet() {
   kaydet()
 }
 
-function kaydet() {
-  store.faturaEkle({
-    ...form,
-    cariUnvan:   secilenCari.value?.unvan ?? '',
-    kalemler:    kalemler.value.map(k => ({ ...k })),
-    araToplam:   araToplam.value,
-    kdvToplam:   kdvToplam.value,
-    genelToplam: genelToplam.value,
-  })
-  modal.show = false
+// Tutarlar sunucuda yeniden hesaplanır; kayıt cari hesaba ve stoğa işlenir.
+async function kaydet() {
+  saving.value = true
+  error.value = ''
+  try {
+    await api.createInvoice({
+      type: form.tip === 'Alış' ? 'Purchase' : 'Sale',
+      no: form.no.trim(),
+      date: form.tarih,
+      cariId: form.cariId,
+      description: form.aciklama,
+      lines: kalemler.value.map(k => ({
+        productId: k.urunId, productName: k.urunAdi,
+        quantity: Number(k.miktar) || 0, unitPrice: Number(k.birimFiyat) || 0, vatRate: Number(k.kdv) || 0,
+      })),
+    })
+    modal.show = false
+    await Promise.all([loadFaturalar(), store.fetchCariler()])
+  } catch (e) {
+    error.value = e.response?.data?.message || 'Fatura kaydedilemedi.'
+  } finally {
+    saving.value = false
+  }
+}
+
+// ─── Detay ve iptal ──────────────────────────────────────────────────────────
+const detail = reactive({ show: false, loading: false, row: null, inv: null, lines: [], reason: '', cancelling: false, error: '' })
+
+async function openDetail(row) {
+  Object.assign(detail, { show: true, loading: true, row, inv: null, lines: [], reason: '', error: '' })
+  try {
+    const { data } = await api.getInvoice(row.id)
+    detail.inv = data.invoice
+    detail.lines = data.lines
+  } catch (e) {
+    detail.error = e.response?.data?.message || 'Fatura açılamadı.'
+  } finally {
+    detail.loading = false
+  }
+}
+
+async function cancelInvoice() {
+  if (!confirm(`${detail.row.no} numaralı fatura iptal edilsin mi? Cari hesap ve stok hareketleri geri alınır.`)) return
+  detail.cancelling = true
+  detail.error = ''
+  try {
+    const { data } = await api.cancelInvoice(detail.row.id, { reason: detail.reason })
+    const row = toRow(data)
+    detail.row = row
+    detail.inv = data
+    const idx = faturalar.value.findIndex(f => f.id === row.id)
+    if (idx !== -1) faturalar.value[idx] = row
+    store.fetchCariler()
+  } catch (e) {
+    detail.error = e.response?.data?.message || 'İptal edilemedi.'
+  } finally {
+    detail.cancelling = false
+  }
 }
 </script>

@@ -206,6 +206,13 @@ export default {
   updateCari:         (id, d)   => api.put(`cari/${id}`, d),
   deleteCari:         (id)      => api.delete(`cari/${id}`),
   getCariTransactions:(id)      => api.get(`cari/${id}/transactions`),
+  // Faturalar (cari ve stoğa işlenir; silinmez, iptal edilir)
+  getInvoices:        ()        => api.get('invoices'),
+  getInvoice:         (id)      => api.get(`invoices/${id}`),
+  getNextInvoiceNo:   (type)    => api.get('invoices/next-no', { params: { type } }),
+  createInvoice:      (d)       => api.post('invoices', d),
+  cancelInvoice:      (id, d)   => api.post(`invoices/${id}/cancel`, d),
+
   // Tahsilat (amount > 0 bakiyeyi düşürür) ya da tediye (amount < 0)
   addCariTransaction: (id, d)   => api.post(`cari/${id}/payment`, d),
 
