@@ -44,6 +44,23 @@ export const API_BASE = api.defaults.baseURL
 export default {
   // Auth
   login:    (d) => api.post('auth/login', d),
+  // Garson telefonu
+  waiterFloor: ()          => api.get('waiter/floor'),
+  waiterMenu:  ()          => api.get('waiter/menu'),
+  waiterTable: (id)        => api.get(`waiter/table/${id}`),
+  waiterAdd:   (id, d)     => api.post(`waiter/table/${id}/add`, d),
+
+  // Toplu stok sayımı
+  getStockCounts:        ()          => api.get('stock-counts'),
+  getStockCount:         (id)        => api.get(`stock-counts/${id}`),
+  createStockCount:      (d)         => api.post('stock-counts', d),
+  saveStockCountLines:   (id, lines) => api.put(`stock-counts/${id}/lines`, lines),
+  completeStockCount:    (id)        => api.post(`stock-counts/${id}/complete`),
+  deleteStockCount:      (id)        => api.delete(`stock-counts/${id}`),
+
+  // Sunucu durumu (süper yönetici)
+  getSystemStatus:     ()      => api.get('system/status'),
+
   // Destek talepleri (müşteri ↔ süper yönetici)
   getSupportTickets:   ()      => api.get('support'),
   getSupportTicket:    (id)    => api.get(`support/${id}`),

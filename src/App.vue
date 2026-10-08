@@ -217,7 +217,8 @@ watch(() => route.path, path => {
 }, { immediate: true })
 
 // Herkese açık tam sayfa ekranlar (QR menü, mutfak ekranı): panel iskeleti yok
-const isMenuRoute      = computed(() => route.path.startsWith('/menu/') || route.path.startsWith('/mutfak/'))
+const isMenuRoute      = computed(() => route.path.startsWith('/menu/') || route.path.startsWith('/mutfak/')
+                                     || route.path === '/garson')
 
 const lisansSubMenu = [
   { to: '/superadmin/lisans/aktif',      label: 'Aktif Lisanslar'      },
@@ -230,8 +231,10 @@ const menuTopAll = [
   { to: '/products',    label: 'Ürünler'         },
   { to: '/modifiers',   label: 'Çeşni & Ekstra'  },
   { to: '/campaigns',   label: 'Kampanyalar'     },
+  { to: '/garson',      label: 'Garson Telefonu', module: MODULES.WAITER },
   { to: '/recipes',     label: 'Reçete Merkezi', module: MODULES.STOCK },
   { to: '/ingredients', label: 'Hammaddeler',    module: MODULES.STOCK },
+  { to: '/stock-count', label: 'Stok Sayımı',    module: MODULES.STOCK },
   { to: '/purchasing',  label: 'Sipariş Önerisi', module: MODULES.STOCK },
 ]
 

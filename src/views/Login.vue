@@ -105,6 +105,12 @@ const challenge = ref('')
 const code = ref('')
 const codeInput = ref(null)
 
+// Giriş sonrası dönülecek sayfa: yalnızca uygulama içi yol (dış adrese yönlendirme olmasın)
+function nextPath() {
+  const n = router.currentRoute.value.query.next
+  return typeof n === 'string' && n.startsWith('/') && !n.startsWith('//') ? n : '/'
+}
+
 async function handleLogin() {
   loading.value = true; error.value = ''
   try {
@@ -116,7 +122,7 @@ async function handleLogin() {
       codeInput.value?.focus()
       return
     }
-    router.push('/')
+    router.push(nextPath())
   }
   catch (e) { error.value = e.response?.data?.message || e.message || 'Bağlantı hatası.' }
   finally { loading.value = false }
@@ -124,7 +130,7 @@ async function handleLogin() {
 
 async function handleCode() {
   loading.value = true; error.value = ''
-  try { await auth.verifyTwoFactor(challenge.value, code.value.trim()); router.push('/') }
+  try { await auth.verifyTwoFactor(challenge.value, code.value.trim()); router.push(nextPath()) }
   catch (e) {
     error.value = e.response?.data?.message || 'Doğrulanamadı.'
     // Süre doldu / çok deneme: baştan giriş

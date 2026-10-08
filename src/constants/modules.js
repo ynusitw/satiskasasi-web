@@ -7,4 +7,5 @@ export const MODULES = Object.freeze({
   STOCK:   'stock',
   CARI:    'cari',
   KITCHEN: 'kitchen',
+  WAITER:  'waiter',
 })

@@ -25,6 +25,8 @@
                 color="bg-red-50 text-red-600"/>
     </div>
 
+    <ServerStatusCard/>
+
     <!-- Tablo -->
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-4">
@@ -228,6 +230,7 @@ import { ref, computed, onMounted, reactive } from 'vue'
 import api      from '../api/api'
 import StatCard from '../components/StatCard.vue'
 import ModulePicker from '../components/ModulePicker.vue'
+import ServerStatusCard from '../components/ServerStatusCard.vue'
 
 const tenants = ref([])
 const loading = ref(true)

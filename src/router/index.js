@@ -52,6 +52,18 @@ const routes = [
     meta: { module: MODULES.STOCK },
   },
   {
+    // Garson telefonu: yönetici kabuğu olmadan, telefona göre tam ekran
+    path: '/garson',
+    component: () => import('../views/Waiter.vue'),
+    meta: { module: MODULES.WAITER }
+  },
+  {
+    // Toplu hammadde sayımı ve fark raporu
+    path: '/stock-count',
+    component: () => import('../views/StockCount.vue'),
+    meta: { module: MODULES.STOCK }
+  },
+  {
     // Tüketim hızına göre tedarikçi bazlı sipariş listesi
     path: '/purchasing',
     component: () => import('../views/PurchaseSuggestions.vue'),
@@ -143,7 +155,9 @@ router.beforeEach(async (to) => {
   const token       = localStorage.getItem('token')
   const isSuperAdmin= localStorage.getItem('isSuperAdmin') === 'true'
 
-  if (!to.meta.public && !token) return '/login'
+  // Giriş sonrası istenen sayfaya dönülür (ör. garson telefonda /garson açar)
+  if (!to.meta.public && !token)
+    return to.path === '/' ? '/login' : { path: '/login', query: { next: to.fullPath } }
   if (to.meta.superAdminOnly && !isSuperAdmin) return '/'
 
   // Lisans modülü: adres çubuğundan doğrudan girilse de sayfa açılmaz.
