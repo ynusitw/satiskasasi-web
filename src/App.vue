@@ -282,6 +282,7 @@ const showCari               = computed(() => allowed({ module: MODULES.CARI }))
 
 const menuBottom = [
   { to: '/users', label: 'Kullanıcılar' },
+  { to: '/staff', label: 'Personel', module: MODULES.STAFF },
 ]
 
 // Kenar menüsü bölümleri: tek şablon hem müşteri hem süper admin menüsünü çizer.
@@ -309,7 +310,7 @@ const navSections = computed(() => {
     ] },
     { title: 'Yönetim', items: [
       { key: 'kasa', label: 'Kasa Yapılandırma', prefix: '/settings', children: visibleKasaYapiSubMenu.value },
-      ...menuBottom,
+      ...menuBottom.filter(allowed),
     ] },
   ]
   return sections.filter(sec => sec.items.length)

@@ -44,6 +44,15 @@ export const API_BASE = api.defaults.baseURL
 export default {
   // Auth
   login:    (d) => api.post('auth/login', d),
+  // Personel: mesai ve performans
+  myShift:             ()           => api.get('shifts/me'),
+  punchShift:          (type)       => api.post('shifts/punch', { type, source: 'garson' }),
+  getShifts:           (params)     => api.get('shifts', { params }),
+  createShift:         (d)          => api.post('shifts', d),
+  updateShift:         (id, d)      => api.put(`shifts/${id}`, d),
+  deleteShift:         (id)         => api.delete(`shifts/${id}`),
+  getStaffPerformance: (params)     => api.get('shifts/performance', { params }),
+
   // Rezervasyonlar
   getReservations:      (date)      => api.get('reservations', { params: { date } }),
   createReservation:    (d)         => api.post('reservations', d),

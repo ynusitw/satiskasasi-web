@@ -52,6 +52,11 @@ const routes = [
     meta: { module: MODULES.STOCK },
   },
   {
+    path: '/staff',
+    component: () => import('../views/Staff.vue'),
+    meta: { module: MODULES.STAFF }
+  },
+  {
     path: '/reservations',
     component: () => import('../views/Reservations.vue'),
     meta: { module: MODULES.TABLES }
