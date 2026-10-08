@@ -12,7 +12,7 @@ api.interceptors.request.use(config => {
   // Vue admin panelinden hiç kullanılmaz — burada hariç tutulmalarına gerek
   // yok (ve "licenses/request" alt dizesi "licenses/requests" (süper admin,
   // token gerekli) ile çakışıp yanlışlıkla onu da token'sız bırakıyordu).
-  const isAuthEndpoint = config.url?.includes('auth/login')
+  const isAuthEndpoint = config.url?.includes('auth/login') || config.url?.includes('auth/2fa/verify')
   if (token && !isAuthEndpoint) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -20,7 +20,7 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   res => res,
   err => {
-    const isLoginEndpoint = err.config?.url?.includes('auth/login')
+    const isLoginEndpoint = err.config?.url?.includes('auth/login') || err.config?.url?.includes('auth/2fa/verify')
     if (err.response?.status === 401 && !isLoginEndpoint) {
       localStorage.clear()
       window.location.href = '/login'
@@ -44,6 +44,21 @@ export const API_BASE = api.defaults.baseURL
 export default {
   // Auth
   login:    (d) => api.post('auth/login', d),
+  // Destek talepleri (müşteri ↔ süper yönetici)
+  getSupportTickets:   ()      => api.get('support'),
+  getSupportTicket:    (id)    => api.get(`support/${id}`),
+  createSupportTicket: (d)     => api.post('support', d),
+  replySupport:        (id, d) => api.post(`support/${id}/reply`, d),
+  closeSupport:        (id)    => api.post(`support/${id}/close`),
+  getSupportOpenCount: ()      => api.get('support/open-count'),
+
+  // İki adımlı doğrulama
+  verifyTwoFactor:  (d)  => api.post('auth/2fa/verify', d),
+  getTwoFactor:     ()   => api.get('auth/2fa/status'),
+  setupTwoFactor:   ()   => api.post('auth/2fa/setup'),
+  enableTwoFactor:  (d)  => api.post('auth/2fa/enable', d),
+  disableTwoFactor: (d)  => api.post('auth/2fa/disable', d),
+  resetTwoFactor:   (id) => api.post(`auth/2fa/reset/${id}`),
 
   // Tenant
   register:          (d)  => api.post('tenants/register', d),

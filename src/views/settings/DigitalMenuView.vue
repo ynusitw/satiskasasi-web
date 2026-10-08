@@ -287,7 +287,7 @@
             <tbody>
               <tr v-for="o in qrHistory" :key="o.id" class="border-b border-gray-50 last:border-0 align-top">
                 <td class="px-3 py-2.5 whitespace-nowrap text-muted">{{ fmtTime(o.createdAt) }}</td>
-                <td class="px-3 py-2.5 whitespace-nowrap font-semibold text-primary">
+                <td class="px-3 py-2.5 min-w-[140px] max-w-[220px] font-semibold text-primary">
                   {{ o.tableName }}
                   <div v-if="o.customerName" class="text-xs font-normal text-muted">{{ o.customerName }}</div>
                 </td>
@@ -295,7 +295,7 @@
                   {{ o.items.map(i => `${i.quantity} × ${i.productName}${i.variantName ? ` (${i.variantName})` : ''}`).join(', ') }}
                   <div v-if="o.note" class="text-xs mt-0.5">Not: {{ o.note }}</div>
                 </td>
-                <td class="px-3 py-2.5 whitespace-nowrap">
+                <td class="px-3 py-2.5 min-w-[140px] max-w-[220px]">
                   <span :class="statusChip(o.status)">{{ statusLabel(o.status) }}</span>
                   <div v-if="o.decidedBy || o.rejectReason" class="text-xs text-muted mt-1">
                     {{ [o.decidedBy, o.rejectReason].filter(Boolean).join(' · ') }}

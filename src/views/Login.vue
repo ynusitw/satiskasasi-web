@@ -39,7 +39,33 @@
         <h1 class="text-[26px] font-semibold text-primary">Giriş yapın</h1>
         <p class="text-muted text-[14px] mt-1.5 mb-8">Yönetim paneline erişmek için bilgilerinizi girin.</p>
 
-        <form @submit.prevent="handleLogin" class="space-y-4">
+        <!-- İkinci adım: doğrulama kodu -->
+        <form v-if="challenge" @submit.prevent="handleCode" class="space-y-4">
+          <div class="px-3.5 py-3 rounded-lg bg-blue-50 text-[13px] text-primary border border-blue-100">
+            Hesabınızda iki adımlı doğrulama açık. Doğrulama uygulamasındaki 6 haneli kodu girin.
+          </div>
+          <div>
+            <label class="block text-[13px] font-medium text-primary mb-1.5">Doğrulama kodu</label>
+            <input v-model="code" ref="codeInput" inputmode="numeric" autocomplete="one-time-code"
+                   placeholder="000000" maxlength="9"
+                   class="w-full h-11 px-3.5 rounded-lg border border-gray-200 bg-white text-[18px] tracking-[0.3em] text-center" required/>
+            <p class="text-xs text-muted mt-1.5">Telefonunuz yanınızda değilse kurtarma kodlarınızdan birini (XXXX-XXXX) girebilirsiniz.</p>
+          </div>
+          <div v-if="error"
+               class="px-3.5 py-2.5 rounded-lg bg-red-50 text-danger text-[13px] border border-red-100">
+            {{ error }}
+          </div>
+          <button type="submit" :disabled="loading"
+                  class="w-full h-11 rounded-lg bg-accent text-white text-[14px] font-semibold
+                         hover:bg-blue-600 disabled:opacity-60">
+            {{ loading ? 'Doğrulanıyor...' : 'Doğrula ve giriş yap' }}
+          </button>
+          <button type="button" @click="cancelCode" class="w-full text-[13px] text-muted hover:text-primary">
+            Geri dön
+          </button>
+        </form>
+
+        <form v-else @submit.prevent="handleLogin" class="space-y-4">
           <div>
             <label class="block text-[13px] font-medium text-primary mb-1.5">Kullanıcı adı</label>
             <input v-model="form.username" type="text" autocomplete="username" autofocus
@@ -67,7 +93,7 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 const auth = useAuthStore()
@@ -75,10 +101,42 @@ const router = useRouter()
 const form = reactive({ username: '', password: '' })
 const loading = ref(false)
 const error = ref('')
+const challenge = ref('')
+const code = ref('')
+const codeInput = ref(null)
+
 async function handleLogin() {
   loading.value = true; error.value = ''
-  try { await auth.login(form.username, form.password); router.push('/') }
+  try {
+    const r = await auth.login(form.username, form.password)
+    if (r.requires2fa) {
+      challenge.value = r.challenge
+      code.value = ''
+      await nextTick()
+      codeInput.value?.focus()
+      return
+    }
+    router.push('/')
+  }
   catch (e) { error.value = e.response?.data?.message || e.message || 'Bağlantı hatası.' }
   finally { loading.value = false }
+}
+
+async function handleCode() {
+  loading.value = true; error.value = ''
+  try { await auth.verifyTwoFactor(challenge.value, code.value.trim()); router.push('/') }
+  catch (e) {
+    error.value = e.response?.data?.message || 'Doğrulanamadı.'
+    // Süre doldu / çok deneme: baştan giriş
+    if (e.response?.data?.code === 'challenge_expired') { challenge.value = ''; form.password = '' }
+  }
+  finally { loading.value = false }
+}
+
+function cancelCode() {
+  challenge.value = ''
+  code.value = ''
+  error.value = ''
+  form.password = ''
 }
 </script>

@@ -51,6 +51,7 @@
               <span :class="u.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'" class="text-xs font-bold px-3 py-1 rounded-full">
                 {{ u.isActive ? 'Aktif' : 'Pasif' }}
               </span>
+              <span v-if="u.twoFactorEnabled" class="chip-success ml-1" title="İki adımlı doğrulama açık">2FA</span>
             </td>
             <td class="px-6 py-4 text-xs text-muted">
               {{ [u.canTakePayment && 'Ödeme', u.canAccessMenu && 'Menü', u.canClearCart && 'Sepet', u.canAccessCashZReport && 'Rapor'].filter(Boolean).join(', ') }}
@@ -58,6 +59,8 @@
             <td class="px-6 py-4">
               <div class="flex gap-2 justify-end">
                 <button @click="openEdit(u)" class="chip-accent">Düzenle</button>
+                <button v-if="u.twoFactorEnabled" @click="resetTwoFactor(u)" class="chip-neutral"
+                        title="Telefonunu kaybeden kullanıcı için: 2FA kapatılır, yeniden kurabilir">2FA Sıfırla</button>
                 <button @click="deleteUser(u)" class="chip-danger">Sil</button>
               </div>
             </td>
@@ -192,6 +195,11 @@ async function saveStaff() {
   finally { staffSaving.value = false }
 }
 
+async function resetTwoFactor(u) {
+  if (!confirm(`"${u.username}" kullanıcısının iki adımlı doğrulaması kapatılsın mı? Bir sonraki girişte yalnızca şifre istenir; kullanıcı ayarlardan yeniden açabilir.`)) return
+  try { await api.resetTwoFactor(u.id); await load() }
+  catch (e) { alert(e.response?.data?.message || 'Sıfırlanamadı.') }
+}
 async function deleteUser(u) { if (!confirm(`"${u.username}" silinsin mi?`)) return; await api.deleteUser(u.id); await load() }
 onMounted(() => { load(); loadStaff() })
 </script>

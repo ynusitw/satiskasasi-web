@@ -123,6 +123,11 @@ const routes = [
   // Lisansın tamamı tek sayfada: aktif / bekleyen / reddedilen sekmeleri.
   { path: '/superadmin/lisans', redirect: '/superadmin/lisans/aktif' },
   {
+    path: '/superadmin/destek',
+    component: () => import('../views/SupportCenter.vue'),
+    meta: { superAdminOnly: true }
+  },
+  {
     path: '/superadmin/lisans/:tab(aktif|bekleyen|reddedilen)',
     component: () => import('../views/licenses/LicenseCenter.vue'),
     meta: { superAdminOnly: true }

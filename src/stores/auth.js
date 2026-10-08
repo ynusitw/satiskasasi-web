@@ -15,9 +15,21 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isLoggedIn  = computed(() => !!token.value)
 
+  // İki adımlı doğrulama açıksa sunucu oturum yerine { requires2fa, challenge } döner;
+  // giriş ekranı kodu sorup verifyTwoFactor ile tamamlar.
   async function login(u, p) {
     const res = await api.login({ username: u, password: p })
-    const d   = res.data
+    if (res.data?.requires2fa) return { requires2fa: true, challenge: res.data.challenge }
+    applySession(res.data)
+    return { requires2fa: false }
+  }
+
+  async function verifyTwoFactor(challenge, code) {
+    const res = await api.verifyTwoFactor({ challenge, code })
+    applySession(res.data)
+  }
+
+  function applySession(d) {
 
     token.value        = d.token
     username.value     = d.username
@@ -50,7 +62,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token, username, isAdmin, isSuperAdmin,
+    token, verifyTwoFactor, username, isAdmin, isSuperAdmin,
     tenantId, tenantName, tenantPlan, tenantExpires,
     isLoggedIn, login, logout
   }

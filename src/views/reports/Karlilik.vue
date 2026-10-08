@@ -68,11 +68,11 @@
           <thead class="bg-gray-50">
             <tr>
               <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Ürün</th>
-              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Adet</th>
-              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Ciro</th>
-              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Birim Maliyet</th>
-              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Maliyet</th>
-              <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Kâr</th>
+              <th class="text-right whitespace-nowrap px-4 py-3 text-[11px] font-semibold text-muted uppercase">Adet</th>
+              <th class="text-right whitespace-nowrap px-4 py-3 text-[11px] font-semibold text-muted uppercase">Ciro</th>
+              <th class="text-right whitespace-nowrap px-4 py-3 text-[11px] font-semibold text-muted uppercase">Birim Maliyet</th>
+              <th class="text-right whitespace-nowrap px-4 py-3 text-[11px] font-semibold text-muted uppercase">Maliyet</th>
+              <th class="text-right whitespace-nowrap px-4 py-3 text-[11px] font-semibold text-muted uppercase">Kâr</th>
               <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase w-40">Marj</th>
             </tr>
           </thead>
@@ -82,30 +82,30 @@
             </tr>
             <tr v-for="r in rows" :key="r.productName + (r.variantName || '')"
                 class="border-t border-gray-50 hover:bg-gray-50/60">
-              <td class="px-4 py-3">
+              <td class="px-4 py-3 min-w-[240px]">
                 <div class="font-semibold text-primary">{{ r.productName }}</div>
                 <div v-if="r.variantName" class="text-xs text-muted">{{ r.variantName }}</div>
               </td>
-              <td class="px-4 py-3 text-right text-muted">{{ num(r.quantity) }}</td>
-              <td class="px-4 py-3 text-right font-semibold text-primary">{{ money(r.revenue) }}</td>
-              <td class="px-4 py-3 text-right text-muted">
+              <td class="px-4 py-3 whitespace-nowrap text-right text-muted">{{ num(r.quantity) }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-right font-semibold text-primary">{{ money(r.revenue) }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-right text-muted">
                 {{ r.unitCost != null ? money(r.unitCost) : '—' }}
               </td>
-              <td class="px-4 py-3 text-right text-muted">
+              <td class="px-4 py-3 whitespace-nowrap text-right text-muted">
                 {{ r.cost != null ? money(r.cost) : '—' }}
               </td>
-              <td class="px-4 py-3 text-right font-semibold"
+              <td class="px-4 py-3 whitespace-nowrap text-right font-semibold"
                   :class="r.profit == null ? 'text-muted' : r.profit >= 0 ? 'text-success' : 'text-danger'">
                 {{ r.profit != null ? money(r.profit) : 'maliyet tanımsız' }}
               </td>
-              <td class="px-4 py-3">
+              <td class="px-4 py-3 min-w-[150px]">
                 <div v-if="r.margin != null" class="flex items-center gap-2">
                   <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div class="h-full rounded-full"
                          :class="r.margin >= 50 ? 'bg-green-500' : r.margin >= 20 ? 'bg-amber-500' : 'bg-red-500'"
                          :style="{ width: Math.max(0, Math.min(100, r.margin)) + '%' }"/>
                   </div>
-                  <span class="text-xs font-semibold w-12 text-right"
+                  <span class="text-xs font-semibold w-14 text-right"
                         :class="r.margin < 0 ? 'text-danger' : 'text-primary'">{{ pct(r.margin) }}</span>
                 </div>
                 <span v-else class="text-xs text-muted">—</span>
@@ -146,7 +146,8 @@ function money(v) {
 }
 // Türkçe yüzde: "%59,7"
 function pct(v) {
-  return '%' + new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 }).format(v ?? 0)
+  const s = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 }).format(Math.abs(v ?? 0))
+  return (v < 0 ? '-%' : '%') + s
 }
 function num(v) {
   return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 3 }).format(v ?? 0)

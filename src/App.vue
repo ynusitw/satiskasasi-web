@@ -34,10 +34,10 @@
             <RouterLink v-if="!item.children" :to="item.to"
                         class="nav-item" :class="isExact(item.to) ? 'nav-item-active' : ''">
               <span class="flex-1">{{ item.label }}</span>
-              <span v-if="item.badge && notificationsStore.unread"
+              <span v-if="badgeOf(item)"
                     class="min-w-[20px] h-5 px-1.5 rounded-full bg-accent text-white text-[11px] font-semibold
                            flex items-center justify-center">
-                {{ notificationsStore.unread > 99 ? '99+' : notificationsStore.unread }}
+                {{ badgeOf(item) > 99 ? '99+' : badgeOf(item) }}
               </span>
             </RouterLink>
 
@@ -143,6 +143,7 @@ import { useModulesStore }      from './stores/modules'
 import { useNotificationsStore } from './stores/notifications'
 import { MODULES }              from './constants/modules'
 import SettingsModal            from './components/SettingsModal.vue'
+import api                      from './api/api'
 
 const auth     = useAuthStore()
 const router   = useRouter()
@@ -153,11 +154,19 @@ _settings.init()
 const modulesStore = useModulesStore()
 const notificationsStore = useNotificationsStore()
 
-// Okunmamış bildirim rozeti dakikada bir tazelenir (süper yöneticide bildirim yok).
+// Okunmamış bildirim rozeti dakikada bir tazelenir. Süper yöneticide bildirim
+// yok; onun rozeti yanıt bekleyen destek talepleri.
 let notifTimer = null
+const supportOpen = ref(0)
 function pollNotifications() {
   if (auth.isLoggedIn && !auth.isSuperAdmin) notificationsStore.refresh()
+  if (auth.isLoggedIn && auth.isSuperAdmin)
+    api.getSupportOpenCount().then(r => (supportOpen.value = r.data.count)).catch(() => {})
 }
+const badgeOf = item =>
+  item.badge === 'notifications' ? notificationsStore.unread
+  : item.badge === 'support' ? supportOpen.value
+  : 0
 
 // Sayfa yenilendiğinde modül listesi localStorage'dan anında gelir (menü boş
 // görünmesin); ardından sunucudan tazelenir ki yöneticinin yaptığı
@@ -281,13 +290,14 @@ const navSections = computed(() => {
         { to: '/superadmin/gelir',    label: 'Gelir Analizi'    },
         { to: '/superadmin/paketler', label: 'Paket Yönetimi'   },
         { key: 'lisans', label: 'Lisans', prefix: '/superadmin/lisans', children: lisansSubMenu },
+        { to: '/superadmin/destek',   label: 'Destek Talepleri', badge: 'support' },
       ],
     }]
   }
 
   const [home, ...catalog] = menuTop.value
   const sections = [
-    { title: 'Genel', items: [home, { to: '/notifications', label: 'Bildirimler', badge: true }] },
+    { title: 'Genel', items: [home, { to: '/notifications', label: 'Bildirimler', badge: 'notifications' }] },
     { title: 'Katalog', items: catalog },
     { title: 'İşlemler', items: [
       ...(showCari.value ? [{ key: 'cari', label: 'Cari İşlemler', prefix: '/cari', children: cariSubMenu }] : []),

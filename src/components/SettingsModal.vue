@@ -191,16 +191,58 @@
                       </p>
                     </div>
                     <div class="flex-shrink-0">
-                      <button @click="show2FAInfo = !show2FAInfo"
-                              class="btn-secondary">
-                        {{ show2FAInfo ? 'Kapat' : 'Yapılandır' }}
+                      <span v-if="tfa.enabled" class="chip-success">Açık</span>
+                      <button v-else-if="!tfa.setup" @click="startTwoFactor" :disabled="tfa.busy" class="btn-primary btn-sm">
+                        Etkinleştir
                       </button>
                     </div>
                   </div>
-                  <div v-if="show2FAInfo"
-                       class="mt-3 p-3 bg-amber-50 rounded-lg text-xs text-amber-800">
-                    <strong>Yapım aşamasında:</strong> 2FA kurulumu bir sonraki sürümde aktif olacaktır.
+
+                  <!-- Kurulum: QR + ilk kod -->
+                  <div v-if="tfa.setup && !tfa.recoveryCodes" class="mt-4 flex gap-5 flex-wrap">
+                    <img v-if="tfa.qr" :src="tfa.qr" alt="QR kod" width="168" height="168" class="rounded-lg border border-gray-100 bg-white"/>
+                    <div class="flex-1 min-w-[220px]">
+                      <ol class="text-xs text-muted space-y-1 list-decimal pl-4 mb-3">
+                        <li>Telefonunuzda Google Authenticator, Microsoft Authenticator gibi bir uygulama açın.</li>
+                        <li>QR kodu okutun (okutamazsanız anahtarı elle girin).</li>
+                        <li>Uygulamanın gösterdiği 6 haneli kodu yazın.</li>
+                      </ol>
+                      <div class="text-[11px] text-muted mb-1">Anahtar</div>
+                      <div class="font-mono text-[12.5px] bg-gray-50 rounded-lg px-2.5 py-1.5 mb-3 select-all break-all">{{ tfa.secret }}</div>
+                      <div class="flex gap-2">
+                        <input v-model="tfa.code" inputmode="numeric" maxlength="6" placeholder="000000"
+                               class="w-32 px-3 h-9 border border-gray-200 rounded-lg text-[14px] tracking-widest text-center bg-white"/>
+                        <button class="btn-primary btn-sm" :disabled="tfa.busy" @click="confirmTwoFactor">Doğrula ve aç</button>
+                        <button class="btn-ghost btn-sm" @click="tfa.setup = false">Vazgeç</button>
+                      </div>
+                    </div>
                   </div>
+
+                  <!-- Kurtarma kodları (bir kez gösterilir) -->
+                  <div v-if="tfa.recoveryCodes" class="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-sm font-semibold text-amber-900 mb-1">Kurtarma kodlarınızı saklayın</div>
+                    <p class="text-xs text-amber-800 mb-3">
+                      Telefonunuza erişemezseniz bu kodlarla giriş yapabilirsiniz; her biri bir kez kullanılır.
+                      Bu kodlar bir daha gösterilmez.
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[13px] mb-3">
+                      <div v-for="c in tfa.recoveryCodes" :key="c" class="bg-white rounded-md px-2 py-1 text-center">{{ c }}</div>
+                    </div>
+                    <div class="flex gap-2">
+                      <button class="btn-secondary btn-sm" @click="copyRecovery">{{ tfa.copied ? 'Kopyalandı' : 'Kopyala' }}</button>
+                      <button class="btn-primary btn-sm" @click="tfa.recoveryCodes = null; tfa.setup = false">Kaydettim</button>
+                    </div>
+                  </div>
+
+                  <!-- Açıkken: kapatma -->
+                  <div v-if="tfa.enabled && !tfa.recoveryCodes" class="mt-3 flex items-center gap-2 flex-wrap">
+                    <span class="text-xs text-muted">{{ tfa.recoveryCodesLeft }} kurtarma kodu kaldı.</span>
+                    <span class="flex-1"></span>
+                    <input v-model="tfa.code" inputmode="numeric" maxlength="9" placeholder="Kod"
+                           class="w-28 px-3 h-8 border border-gray-200 rounded-lg text-[13px] text-center bg-white"/>
+                    <button class="btn-danger btn-sm" :disabled="tfa.busy" @click="disableTwoFactor">Kapat</button>
+                  </div>
+                  <div v-if="tfa.error" class="text-xs text-danger mt-2">{{ tfa.error }}</div>
                 </div>
               </section>
 
@@ -391,81 +433,72 @@
 
               <!-- ══════════════ DESTEK ══════════════ -->
               <section v-else-if="activeTab === 'support'">
-                <SectionHeader title="Destek ve Bakım"
-                               desc="Sistem logları, destek talebi ve sürüm notları."/>
+                <SectionHeader title="Destek"
+                               desc="Soru ve sorunlarınızı buradan iletin. Yanıt geldiğinde Bildirimler'de görünür."/>
 
-                <!-- Aksiyon kartları -->
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                  <button @click="downloadLogs"
-                          class="flex flex-col items-start gap-2 p-4 rounded-xl border-2
-                                 border-gray-200 hover:border-accent hover:bg-accent/5
-                                 transition-all text-left group">
-                    <div class="w-10 h-10 rounded-xl bg-accent/10 group-hover:bg-accent/20
-                                flex items-center justify-center transition-colors">
-                      <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <div class="text-sm font-bold text-primary">Sistem Loglarını İndir</div>
-                      <div class="text-xs text-muted mt-0.5">JSON formatında uygulama durumu</div>
-                    </div>
-                  </button>
-
-                  <button @click="openSupportTicket"
-                          class="flex flex-col items-start gap-2 p-4 rounded-xl border-2
-                                 border-gray-200 hover:border-success hover:bg-success/5
-                                 transition-all text-left group">
-                    <div class="w-10 h-10 rounded-xl bg-success/10 group-hover:bg-success/20
-                                flex items-center justify-center transition-colors">
-                      <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172
-                                 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9
-                                 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <div class="text-sm font-bold text-primary">Destek Bileti Oluştur</div>
-                      <div class="text-xs text-muted mt-0.5">Teknik ekiple iletişime geçin</div>
-                    </div>
-                  </button>
+                <!-- Açık yazışma -->
+                <div v-if="support.selected" class="border border-gray-200 rounded-xl p-4 mb-6 h-[460px] flex flex-col">
+                  <button class="text-xs font-bold text-accent hover:underline self-start mb-3"
+                          @click="support.selected = null; loadSupport()">Taleplerime dön</button>
+                  <SupportThread :ticket-id="support.selected" @changed="loadSupport"/>
                 </div>
 
-                <!-- Changelog -->
-                <div>
-                  <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
-                    <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0
-                               00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    Sürüm Notları (Changelog)
-                  </h4>
-                  <div class="space-y-3">
-                    <div v-for="entry in changelog" :key="entry.version"
-                         class="relative pl-5 pb-3 border-l-2 border-gray-200 last:pb-0">
-                      <div class="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-white border-2"
-                           :class="entry.latest ? 'border-accent' : 'border-gray-300'"/>
-                      <div class="flex items-center gap-2 mb-1">
-                        <span class="text-xs font-bold font-mono"
-                              :class="entry.latest ? 'text-accent' : 'text-primary'">
-                          {{ entry.version }}
-                        </span>
-                        <span v-if="entry.latest"
-                              class="text-xs px-1.5 py-0.5 rounded bg-accent/15 text-accent font-bold">
-                          Güncel
-                        </span>
-                        <span class="text-xs text-muted">{{ entry.date }}</span>
-                      </div>
-                      <ul class="space-y-0.5">
-                        <li v-for="note in entry.notes" :key="note"
-                            class="text-xs text-muted flex gap-1.5">
-                          <span class="text-accent flex-shrink-0">+</span>{{ note }}
-                        </li>
-                      </ul>
+                <template v-else>
+                  <!-- Yeni talep -->
+                  <div class="border border-gray-200 rounded-xl p-4 mb-5">
+                    <div class="text-sm font-semibold text-primary mb-3">Yeni destek talebi</div>
+                    <input v-model="support.subject" maxlength="150" placeholder="Konu (ör. Fiş yazıcı basmıyor)"
+                           class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white mb-2"/>
+                    <textarea v-model="support.message" rows="4" maxlength="4000"
+                              placeholder="Sorunu ve ne zaman olduğunu yazın. Hata mesajı varsa ekleyin."
+                              class="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13.5px] bg-white resize-none mb-2"></textarea>
+                    <div class="flex items-center justify-between gap-3">
+                      <span class="text-xs" :class="support.error ? 'text-danger' : 'text-success'">
+                        {{ support.error || support.sent }}
+                      </span>
+                      <button class="btn-primary btn-sm"
+                              :disabled="support.busy || !support.subject.trim() || !support.message.trim()"
+                              @click="createSupport">Gönder</button>
                     </div>
+                  </div>
+
+                  <!-- Taleplerim -->
+                  <div class="text-sm font-semibold text-primary mb-2">Taleplerim</div>
+                  <div class="border border-gray-200 rounded-xl divide-y divide-gray-100 mb-6">
+                    <div v-if="!support.list.length" class="text-sm text-muted text-center py-5">Henüz talep yok.</div>
+                    <button v-for="t in support.list" :key="t.id" @click="support.selected = t.id"
+                            class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between gap-3">
+                      <div class="min-w-0">
+                        <div class="text-sm font-semibold text-primary truncate">{{ t.subject }}</div>
+                        <div class="text-xs text-muted">#{{ t.id }} · {{ timeAgo(t.updatedAt) }}</div>
+                      </div>
+                      <span class="flex-shrink-0"
+                            :class="{ Open: 'chip-accent', Answered: 'chip-success', Closed: 'chip-neutral' }[t.status]">
+                        {{ { Open: 'Yanıt bekliyor', Answered: 'Yanıtlandı', Closed: 'Kapalı' }[t.status] }}
+                      </span>
+                    </button>
+                  </div>
+                </template>
+
+                <!-- Yenilikler -->
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-bold text-primary">Son yenilikler</h4>
+                  <button class="text-xs font-bold text-muted hover:text-primary" @click="downloadLogs"
+                          title="Destek ekibinin sorunu incelemesi için tarayıcıdaki uygulama durumunu indirir">
+                    Sistem bilgisini indir
+                  </button>
+                </div>
+                <div class="space-y-3">
+                  <div v-for="entry in changelog" :key="entry.date"
+                       class="relative pl-5 pb-3 border-l-2 border-gray-200 last:pb-0">
+                    <div class="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-white border-2"
+                         :class="entry.latest ? 'border-accent' : 'border-gray-300'"/>
+                    <div class="text-xs font-bold mb-1" :class="entry.latest ? 'text-accent' : 'text-primary'">{{ entry.date }}</div>
+                    <ul class="space-y-0.5">
+                      <li v-for="note in entry.notes" :key="note" class="text-xs text-muted flex gap-1.5">
+                        <span class="text-accent flex-shrink-0">+</span>{{ note }}
+                      </li>
+                    </ul>
                   </div>
                 </div>
               </section>
@@ -483,6 +516,7 @@ import { ref, h, watch, reactive } from 'vue'
 import { useSettingsStore } from '../stores/settings'
 import { useAuthStore }     from '../stores/auth'
 import api                  from '../api/api'
+import SupportThread        from './SupportThread.vue'
 
 const props = defineProps({ open: Boolean })
 defineEmits(['update:open'])
@@ -491,7 +525,84 @@ const settings = useSettingsStore()
 const auth     = useAuthStore()
 
 const activeTab   = ref('ui')
-const show2FAInfo = ref(false)
+// ─── Destek talepleri ───────────────────────────────────────────────────────
+const support = reactive({ list: [], selected: null, subject: '', message: '', busy: false, error: '', sent: '' })
+
+async function loadSupport() {
+  try { support.list = (await api.getSupportTickets()).data } catch { /* eski API */ }
+}
+
+async function createSupport() {
+  support.busy = true; support.error = ''; support.sent = ''
+  try {
+    const { data } = await api.createSupportTicket({ subject: support.subject.trim(), message: support.message.trim() })
+    support.subject = ''; support.message = ''
+    support.sent = `Talebiniz alındı (#${data.id}). Yanıt Bildirimler'de görünecek.`
+    await loadSupport()
+  } catch (e) {
+    support.error = e.response?.data?.message || 'Gönderilemedi.'
+  } finally { support.busy = false }
+}
+
+// ─── İki adımlı doğrulama ───────────────────────────────────────────────────
+const tfa = reactive({ enabled: false, recoveryCodesLeft: 0, setup: false, secret: '', qr: '',
+                      code: '', recoveryCodes: null, busy: false, error: '', copied: false })
+
+async function loadTwoFactor() {
+  try {
+    const { data } = await api.getTwoFactor()
+    tfa.enabled = data.enabled
+    tfa.recoveryCodesLeft = data.recoveryCodesLeft
+  } catch { /* eski API */ }
+}
+
+async function startTwoFactor() {
+  tfa.busy = true; tfa.error = ''
+  try {
+    const { data } = await api.setupTwoFactor()
+    tfa.secret = data.secret
+    // QR tarayıcıda üretilir: gizli anahtar dış bir servise gönderilmez.
+    const QRCode = (await import('qrcode')).default
+    tfa.qr = await QRCode.toDataURL(data.otpauthUri, { width: 336, margin: 1 })
+    tfa.code = ''
+    tfa.setup = true
+  } catch (e) {
+    tfa.error = e.response?.data?.message || 'Kurulum başlatılamadı.'
+  } finally { tfa.busy = false }
+}
+
+async function confirmTwoFactor() {
+  tfa.busy = true; tfa.error = ''
+  try {
+    const { data } = await api.enableTwoFactor({ code: tfa.code })
+    tfa.recoveryCodes = data.recoveryCodes
+    tfa.enabled = true
+    tfa.recoveryCodesLeft = data.recoveryCodes.length
+    tfa.code = ''
+  } catch (e) {
+    tfa.error = e.response?.data?.message || 'Kod doğrulanamadı.'
+  } finally { tfa.busy = false }
+}
+
+async function disableTwoFactor() {
+  if (!tfa.code.trim()) { tfa.error = 'Kapatmak için uygulamadaki kodu ya da bir kurtarma kodunu girin.'; return }
+  tfa.busy = true; tfa.error = ''
+  try {
+    await api.disableTwoFactor({ code: tfa.code.trim() })
+    tfa.enabled = false
+    tfa.code = ''
+  } catch (e) {
+    tfa.error = e.response?.data?.message || 'Kapatılamadı.'
+  } finally { tfa.busy = false }
+}
+
+async function copyRecovery() {
+  try {
+    await navigator.clipboard.writeText(tfa.recoveryCodes.join('\n'))
+    tfa.copied = true
+    setTimeout(() => (tfa.copied = false), 2000)
+  } catch { /* pano izni yok */ }
+}
 
 // ─── Güvenlik: aktif oturumlar ───────────────────────────────────────────────
 const sessions        = ref([])
@@ -663,12 +774,15 @@ async function testNotif() {
 watch(() => props.open, open => {
   if (open) {
     loadSessions()
+    loadTwoFactor()
     loadFailedAttempts()
   }
 })
 
 watch(activeTab, tab => {
   if (tab === 'security'      && !sessions.value.length)      loadSessions()
+  if (tab === 'security') loadTwoFactor()
+  if (tab === 'support') loadSupport()
   if (tab === 'notifications' && !failedAttempts.value.length) loadFailedAttempts()
   if (tab === 'notifications') loadNotif()
 })
@@ -736,42 +850,20 @@ const themeOptions = [
 ]
 
 const changelog = [
-  {
-    version: 'v1.5.0', date: '05 Ağu 2026', latest: true,
-    notes: [
-      'Kasa Yapılandırma menüsü (6 alt sekme) eklendi',
-      'Sistem Ayarları pop-up paneli eklendi',
-      'Tema seçimi (Açık / Koyu / Sistem) desteği',
-    ],
-  },
-  {
-    version: 'v1.4.0', date: '04 Ağu 2026', latest: false,
-    notes: [
-      'Günlük Ciro\'ya kasiyer ve müşteri detayı',
-      'Satış detayında ürün tablosu genişletildi',
-    ],
-  },
-  {
-    version: 'v1.3.0', date: '03 Ağu 2026', latest: false,
-    notes: [
-      'Cari verilerinde localStorage kalıcılığı',
-      'Cari modülü canlı bakiye hesaplama',
-    ],
-  },
-  {
-    version: 'v1.2.0', date: '02 Ağu 2026', latest: false,
-    notes: [
-      'Ürün görseli yükleme (192×192 canvas crop)',
-      'Fatura kalemleri (ERP tarzı satır ekleme)',
-    ],
-  },
-  {
-    version: 'v1.0.0', date: '01 Ağu 2026', latest: false,
-    notes: [
-      'Cari Kartlar, Faturalar, Kasa İşlemleri, Ekstre',
-      'Günlük Ciro, Z-Listesi, Kasa Defteri raporları',
-    ],
-  },
+  { date: 'Ekim 2026', latest: true, notes: [
+    'Faturalar sunucuya kaydediliyor; cari hesaba ve stoğa işleniyor, iptal edilebiliyor',
+    'Kasa carileri panelle bağlandı; açık hesap borçları ve tahsilatlar tek yerde',
+    'Açık hesap ödeme türü ve parçalı ödemede açık hesap payı',
+    'Kampanyalar: saatlik indirim, X al Y öde, sepet indirimi',
+    'Sipariş önerisi: tüketim hızına göre tedarikçi bazlı alım listesi',
+    'Mutfak ekranı ve kasada "sipariş hazır" bildirimi',
+    'İki adımlı doğrulama ve panel içi destek talepleri',
+  ] },
+  { date: 'Eylül 2026', latest: false, notes: [
+    'QR menüden masaya sipariş',
+    'Kasa sayımı ve e-posta bildirimleri',
+    'Yeni panel ve kasa tasarımı',
+  ] },
 ]
 
 // ─── Aksiyonlar ──────────────────────────────────────────────────────────────
