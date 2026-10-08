@@ -4,7 +4,8 @@
       <div>
         <h1 class="page-title">Stok Sayımı</h1>
         <p class="page-subtitle">
-          Tüm hammaddeleri tek listede sayın; fark stoklara işlenir ve kaç ₺ tuttuğu raporlanır.
+          Hammaddeleri ve doğrudan satılan ürünleri (kola, su...) tek listede sayın; fark stoklara işlenir
+          ve kaç ₺ tuttuğu raporlanır.
         </p>
       </div>
       <div class="flex gap-2">
@@ -57,10 +58,15 @@
 
       <!-- Araç çubuğu -->
       <div class="flex flex-wrap items-center gap-2 mb-3">
-        <input v-model="search" placeholder="Hammadde ara..."
+        <input v-model="search" placeholder="Ara..."
                class="px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white w-64"/>
         <button v-for="f in FILTERS" :key="f.key" @click="filter = f.key"
                 :class="filter === f.key ? 'chip-accent' : 'chip-neutral'">{{ f.label }}</button>
+        <span v-if="hasProducts" class="w-px h-5 bg-gray-200 mx-1"></span>
+        <template v-if="hasProducts">
+          <button v-for="k in KINDS" :key="k.key" @click="kind = k.key"
+                  :class="kind === k.key ? 'chip-accent' : 'chip-neutral'">{{ k.label }}</button>
+        </template>
         <div class="flex-1"></div>
         <span v-if="isDraft" class="text-xs" :class="saveState === 'error' ? 'text-danger' : 'text-muted'">
           {{ { idle: '', dirty: 'Kaydedilmedi', saving: 'Kaydediliyor...', saved: 'Kaydedildi', error: 'Kaydedilemedi' }[saveState] }}
@@ -77,7 +83,7 @@
           <table class="w-full text-sm">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left px-4 py-3 text-[11px] font-semibold text-muted uppercase">Hammadde</th>
+                <th class="text-left px-4 py-3 text-[11px] font-semibold text-muted uppercase">Kalem</th>
                 <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase whitespace-nowrap">
                   {{ isDraft ? 'Sistemde' : 'Beklenen' }}
                 </th>
@@ -89,7 +95,10 @@
             <tbody>
               <tr v-for="l in shown" :key="l.id" class="border-t border-gray-50">
                 <td class="px-4 py-2.5 min-w-[200px]">
-                  <div class="font-semibold text-primary">{{ l.ingredientName }}</div>
+                  <div class="font-semibold text-primary">
+                    {{ l.ingredientName }}
+                    <span v-if="l.kind === 'product'" class="ml-1 align-middle text-[10.5px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-muted">Ürün</span>
+                  </div>
                 </td>
                 <td class="px-4 py-2.5 text-right text-muted whitespace-nowrap">
                   {{ l.expected != null ? qty(l.expected) + ' ' + l.unit : '—' }}
@@ -112,7 +121,9 @@
                   {{ diff(l) == null ? '' : signed(qty, diff(l)) + ' ' + l.unit }}
                 </td>
                 <td class="px-4 py-2.5 text-right font-semibold whitespace-nowrap" :class="tone(diffValue(l))">
-                  {{ diffValue(l) == null ? '' : signedMoney(diffValue(l)) }}
+                  <template v-if="diffValue(l) != null">{{ signedMoney(diffValue(l)) }}</template>
+                  <span v-else-if="diff(l) && l.costPerUnit == null" class="text-xs font-normal text-muted"
+                        title="Bu ürünün alış faturası yok; farkın ₺ karşılığı hesaplanamıyor">maliyet yok</span>
                 </td>
               </tr>
               <tr v-if="!shown.length">
@@ -125,6 +136,8 @@
           <template v-if="isDraft">
             Boş bırakılan kalemler sayılmamış sayılır ve stoğuna dokunulmaz. "Sistemde" sütunu canlıdır:
             sayım sürerken satış olursa güncellenir. Tamamlayınca stok, sayılan miktara eşitlenir.
+            Reçeteli ürünler listede yoktur (stokları hammaddeden düşer). Ürün farkının ₺ karşılığı
+            son alış faturasındaki fiyatla hesaplanır.
           </template>
           <template v-else>
             Beklenen miktar ve maliyet, sayımın tamamlandığı andaki değerlerdir.
@@ -193,6 +206,14 @@ const filter = ref('all')
 const saveState = ref('idle')
 const inputs = reactive({})
 
+const kind = ref('all')
+const KINDS = [
+  { key: 'all', label: 'Hepsi' },
+  { key: 'ingredient', label: 'Hammadde' },
+  { key: 'product', label: 'Ürün' },
+]
+const hasProducts = computed(() => current.value?.lines.some(l => l.kind === 'product'))
+
 const FILTERS = [
   { key: 'all', label: 'Tümü' },
   { key: 'todo', label: 'Sayılmayan' },
@@ -226,7 +247,7 @@ const diff = l => {
 }
 const diffValue = l => {
   const d = diff(l)
-  return d == null ? null : Math.round(d * (l.costPerUnit ?? 0) * 100) / 100
+  return d == null || l.costPerUnit == null ? null : Math.round(d * l.costPerUnit * 100) / 100
 }
 
 const countedCount = computed(() => current.value?.lines.filter(l => countedOf(l) != null).length ?? 0)
@@ -236,8 +257,8 @@ const totals = computed(() => {
   for (const l of current.value?.lines ?? []) {
     const v = diffValue(l), d = diff(l)
     if (d == null) continue
-    if (d < 0) { t.short += v; t.shortCount++ } else if (d > 0) { t.over += v; t.overCount++ }
-    t.net += v
+    if (d < 0) { t.short += v ?? 0; t.shortCount++ } else if (d > 0) { t.over += v ?? 0; t.overCount++ }
+    t.net += v ?? 0
   }
   return t
 })
@@ -246,6 +267,7 @@ const shown = computed(() => {
   const q = search.value.trim().toLocaleLowerCase('tr-TR')
   return (current.value?.lines ?? []).filter(l => {
     if (q && !l.ingredientName.toLocaleLowerCase('tr-TR').includes(q)) return false
+    if (kind.value !== 'all' && l.kind !== kind.value) return false
     if (filter.value === 'todo') return countedOf(l) == null
     if (filter.value === 'diff') return (diff(l) ?? 0) !== 0
     return true
@@ -271,6 +293,7 @@ async function open(id) {
     current.value = data
     search.value = ''
     filter.value = 'all'
+    kind.value = 'all'
     saveState.value = 'idle'
   } catch (e) {
     error.value = e.response?.data?.message || 'Sayım açılamadı.'
@@ -385,7 +408,12 @@ async function deleteDraft() {
 // Kör sayım kağıdı: sistemdeki miktar yazılmaz, sayan kişi etkilenmesin
 function printSheet() {
   const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
-  const rows = current.value.lines.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(l.ingredientName)}</td><td>${esc(l.unit)}</td><td></td></tr>`).join('')
+  let n = 0
+  const block = (title, lines) => !lines.length ? '' :
+    `<tr class="sec"><td colspan="4">${title}</td></tr>` +
+    lines.map(l => `<tr><td>${++n}</td><td>${esc(l.ingredientName)}</td><td>${esc(l.unit)}</td><td></td></tr>`).join('')
+  const rows = block('Hammaddeler', current.value.lines.filter(l => l.kind !== 'product'))
+             + block('Ürünler', current.value.lines.filter(l => l.kind === 'product'))
   const w = window.open('', '_blank')
   if (!w) { alert('Açılır pencere engellendi. Tarayıcıda bu site için açılır pencerelere izin verin.'); return }
   w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${esc(current.value.name)}</title>
@@ -397,6 +425,7 @@ function printSheet() {
       th { background: #F1F5F9; font-size: 8.5pt; text-transform: uppercase; }
       td:first-child { width: 8mm; color: #64748B; } td:nth-child(3) { width: 18mm; } td:last-child { width: 40mm; }
       tr { break-inside: avoid; }
+      tr.sec td { background: #F8FAFC; font-weight: 700; font-size: 9pt; text-transform: uppercase; color: #475569; }
     </style></head><body>
     <h1>${esc(current.value.name)}</h1>
     <div class="sub">Sayan: ____________________ &nbsp;&nbsp; Tarih/saat: ____________________</div>
