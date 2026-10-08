@@ -168,14 +168,19 @@ function bakiyeLabel(b) {
   return 'Sıfır'
 }
 
-function save() {
+async function save() {
   if (!form.cariId)      { error.value = 'Cari seçimi zorunludur.'; return }
   if (form.tutar <= 0)   { error.value = 'Tutar sıfırdan büyük olmalıdır.'; return }
 
   const no       = form.makbuzNo || `MKB-${String(store.kasaIslemleri.length + 1).padStart(3, '0')}`
-  const cariUnvan = secilenCari.value?.unvan ?? ''
+  const cariUnvan = secilenCari.value?.unvan ?? secilenCari.value?.name ?? ''
 
-  store.kasaIslemEkle({ ...form, makbuzNo: no, cariUnvan })
+  try {
+    await store.kasaIslemEkle({ ...form, makbuzNo: no, cariUnvan })
+  } catch (e) {
+    error.value = e.response?.data?.message || 'İşlem kaydedilemedi.'
+    return
+  }
 
   Object.assign(form, { cariId: '', makbuzNo: '', tutar: 0, aciklama: '' })
   error.value = ''

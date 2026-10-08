@@ -206,7 +206,8 @@ export default {
   updateCari:         (id, d)   => api.put(`cari/${id}`, d),
   deleteCari:         (id)      => api.delete(`cari/${id}`),
   getCariTransactions:(id)      => api.get(`cari/${id}/transactions`),
-  addCariTransaction: (id, d)   => api.post(`cari/${id}/transactions`, d),
+  // Tahsilat (amount > 0 bakiyeyi düşürür) ya da tediye (amount < 0)
+  addCariTransaction: (id, d)   => api.post(`cari/${id}/payment`, d),
 
   // Bölümler
   // ── Hızlı Notlar (sipariş satırı kısayolları) ──────────────────────

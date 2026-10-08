@@ -18,59 +18,57 @@ export const useCariStore = defineStore('cari', () => {
     }
   }
 
-  // ─── Hareket hesaplama ────────────────────────────────────────────────────
-  function hareketlerByCari(cariId) {
-    const events = []
+  // ─── Hareketler: sunucudaki cari hesap kayıtları ─────────────────────────
+  // Kasadaki açık hesap satışları, kasadan devreden bakiye ve paneldeki
+  // tahsilat / tediye burada. Bakiye: artı = müşterinin borcu.
+  const islemler = ref({})   // cariId → hareket listesi
 
-    faturalar.value
-      .filter(f => f.cariId === cariId)
-      .forEach(f => events.push({
-        id:       `f-${f.id}`,
-        tarih:    f.tarih,
-        belgeNo:  f.no,
-        tip:      f.tip === 'Satış' ? 'Satış Faturası' : 'Alış Faturası',
-        aciklama: f.aciklama,
-        borc:     f.genelToplam,
-        alacak:   0,
+  function tipOf(t) {
+    const d = t.description || ''
+    if (t.saleId) return 'Açık Hesap Satışı'
+    if (d.startsWith('Kasadan devreden')) return 'Devir'
+    if (d.startsWith('Tediye')) return 'Tediye'
+    return t.amount > 0 ? 'Borç' : 'Tahsilat'
+  }
+
+  async function loadHareketler(cariId) {
+    if (!cariId) return
+    const res = await api.getCariTransactions(cariId)
+    const list = (res.data?.transactions ?? [])
+      .map(t => ({
+        id:       `t-${t.id}`,
+        date:     t.date,
+        tarih:    new Date(t.date).toLocaleDateString('tr-TR'),
+        belgeNo:  t.saleId ? `Satış #${t.saleId}` : '',
+        tip:      tipOf(t),
+        aciklama: t.description,
+        borc:     t.amount > 0 ? t.amount : 0,
+        alacak:   t.amount < 0 ? -t.amount : 0,
       }))
-
-    kasaIslemleri.value
-      .filter(k => k.cariId === cariId)
-      .forEach(k => events.push({
-        id:       `k-${k.id}`,
-        tarih:    k.tarih,
-        belgeNo:  k.makbuzNo,
-        tip:      k.tip,
-        aciklama: k.aciklama,
-        borc:     0,
-        alacak:   k.tutar,
-      }))
-
-    events.sort((a, b) => a.tarih.localeCompare(b.tarih))
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
 
     let running = 0
-    events.forEach(e => {
-      running = running + e.borc - e.alacak
-      e.kalanBakiye = running
-    })
+    list.forEach(e => { running += e.borc - e.alacak; e.kalanBakiye = running })
+    islemler.value = { ...islemler.value, [cariId]: list }
+  }
 
-    return events
+  function hareketlerByCari(cariId) {
+    return islemler.value[cariId] ?? []
   }
 
   function bakiyeByCari(cariId) {
-    const h = hareketlerByCari(cariId)
-    return h.length ? h[h.length - 1].kalanBakiye : 0
+    return cariler.value.find(c => c.id === cariId)?.balance ?? 0
   }
 
   function sonIslemByCari(cariId) {
-    const h = hareketlerByCari(cariId)
-    return h.length ? h[h.length - 1] : null
+    const h = islemler.value[cariId]
+    return h?.length ? h[h.length - 1] : null
   }
 
   const carilerWithBakiye = computed(() =>
     cariler.value.map(c => ({
       ...c,
-      bakiye:   bakiyeByCari(c.id),
+      bakiye:   c.balance ?? 0,
       sonIslem: sonIslemByCari(c.id),
     }))
   )
@@ -88,7 +86,7 @@ export const useCariStore = defineStore('cari', () => {
   async function cariGuncelle(guncellenen) {
     await api.updateCari(guncellenen.id, guncellenen)
     const idx = cariler.value.findIndex(c => c.id === guncellenen.id)
-    if (idx !== -1) cariler.value[idx] = { ...guncellenen }
+    if (idx !== -1) cariler.value[idx] = { ...cariler.value[idx], ...guncellenen }
   }
 
   async function cariSil(id) {
@@ -103,8 +101,17 @@ export const useCariStore = defineStore('cari', () => {
     faturalar.value.unshift({ ...fatura, id: Date.now() })
   }
 
-  function kasaIslemEkle(islem) {
+  // Tahsilat bakiyeyi düşürür, tediye (müşteriye ödeme) artırır; sunucuya yazılır.
+  async function kasaIslemEkle(islem) {
+    const tutar = Number(islem.tutar) || 0
+    const not = [islem.aciklama, islem.makbuzNo, islem.odeme].filter(Boolean).join(' · ')
+    await api.addCariTransaction(islem.cariId, {
+      amount: islem.tip === 'Tahsilat' ? tutar : -tutar,
+      description: `${islem.tip}${not ? ': ' + not : ''}`,
+    })
     kasaIslemleri.value.unshift({ ...islem, id: Date.now() })
+    await fetchCariler()
+    if (islemler.value[islem.cariId]) await loadHareketler(islem.cariId)
   }
 
   return {
@@ -114,6 +121,7 @@ export const useCariStore = defineStore('cari', () => {
     carilerWithBakiye,
     sonKasaIslemleri,
     hareketlerByCari,
+    loadHareketler,
     bakiyeByCari,
     fetchCariler,
     faturaEkle,

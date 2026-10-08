@@ -165,7 +165,9 @@ const secilenCari = computed(() =>
   store.carilerWithBakiye.find(c => c.id === secilenCariId.value) || null
 )
 
-// Canlı hareket listesi (store'daki fatura ve kasa değişince otomatik güncellenir)
+// Seçilen carinin hareketleri sunucudan yüklenir (açık hesap satışları, devir, tahsilat)
+watch(secilenCariId, id => { if (id) store.loadHareketler(id) }, { immediate: true })
+
 const hareketler = computed(() =>
   secilenCariId.value ? store.hareketlerByCari(secilenCariId.value) : []
 )
