@@ -44,6 +44,13 @@ export const API_BASE = api.defaults.baseURL
 export default {
   // Auth
   login:    (d) => api.post('auth/login', d),
+  // Rezervasyonlar
+  getReservations:      (date)      => api.get('reservations', { params: { date } }),
+  createReservation:    (d)         => api.post('reservations', d),
+  updateReservation:    (id, d)     => api.put(`reservations/${id}`, d),
+  setReservationStatus: (id, status) => api.post(`reservations/${id}/status`, { status }),
+  deleteReservation:    (id)        => api.delete(`reservations/${id}`),
+
   // Garson telefonu
   waiterFloor: ()          => api.get('waiter/floor'),
   waiterMenu:  ()          => api.get('waiter/menu'),

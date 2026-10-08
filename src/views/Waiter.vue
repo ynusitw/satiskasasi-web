@@ -39,6 +39,10 @@
               {{ money(t.total) }}<br>{{ since(t.openedAt) }}
             </div>
             <div v-else class="text-[11.5px] text-muted mt-1">Boş</div>
+            <div v-if="t.reservation" class="text-[11px] font-semibold mt-1 leading-tight rounded-md px-1.5 py-0.5 w-fit max-w-full truncate"
+                 :class="t.occupied ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-700'">
+              {{ clock(t.reservation.startsAt) }} · {{ t.reservation.customerName }} ({{ t.reservation.guestCount }})
+            </div>
             <div v-if="cartFor(t.id)" class="text-[11px] font-bold mt-1" :class="t.occupied ? 'text-white' : 'text-accent'">
               {{ cartFor(t.id) }} ürün gönderilmedi
             </div>

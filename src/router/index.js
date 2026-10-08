@@ -52,6 +52,11 @@ const routes = [
     meta: { module: MODULES.STOCK },
   },
   {
+    path: '/reservations',
+    component: () => import('../views/Reservations.vue'),
+    meta: { module: MODULES.TABLES }
+  },
+  {
     // Garson telefonu: yönetici kabuğu olmadan, telefona göre tam ekran
     path: '/garson',
     component: () => import('../views/Waiter.vue'),
