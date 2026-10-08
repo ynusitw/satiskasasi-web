@@ -199,6 +199,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../utils/dialog'
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import api from '../api/api'
 
@@ -302,7 +303,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!confirm(`${form.userName} için bu mesai kaydı silinsin mi?`)) return
+  if (!await uiConfirm(`${form.userName} için bu mesai kaydı silinsin mi?`)) return
   form.busy = true
   try {
     await api.deleteShift(form.id)

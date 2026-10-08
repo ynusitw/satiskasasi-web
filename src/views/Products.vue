@@ -811,6 +811,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../utils/dialog'
 import { ref, computed, onMounted, reactive } from 'vue'
 import { read, utils, writeFileXLSX } from 'xlsx'
 import api from '../api/api'
@@ -916,13 +917,13 @@ async function deleteCat(cat) {
   const msg = count > 0
     ? `"${cat.name}" grubunu silmek üzeresiniz.\n${count} ürün bu gruba bağlı — ürünler kategorisiz kalacak.\n\nDevam edilsin mi?`
     : `"${cat.name}" grubu silinsin mi?`
-  if (!confirm(msg)) return
+  if (!await uiConfirm(msg)) return
   try {
     await api.deleteCategory(cat.id)
     if (selectedCategoryId.value === cat.id) selectedCategoryId.value = null
     await load()
   } catch (e) {
-    alert(e.response?.data?.message || e.response?.data?.title || 'Grup silinemedi.')
+    await uiAlert(e.response?.data?.message || e.response?.data?.title || 'Grup silinemedi.')
   }
 }
 
@@ -1196,9 +1197,9 @@ async function save() {
 }
 
 async function deleteProduct(p) {
-  if (!confirm(`"${p.name}" silinsin mi?`)) return
+  if (!await uiConfirm(`"${p.name}" silinsin mi?`)) return
   try { await api.deleteProduct(p.id); await load() }
-  catch { alert('Ürün silinemedi.') }
+  catch { await uiAlert('Ürün silinemedi.') }
 }
 
 // ── Hızlı Fotoğraf Modal ─────────────────────────────────────────────────
@@ -1372,7 +1373,7 @@ async function exportExcel() {
   if (exporting.value) return
   const list = filtered.value
   if (!list.length) {
-    alert('Aktarılacak ürün yok.')
+    await uiAlert('Aktarılacak ürün yok.')
     return
   }
 
@@ -1488,7 +1489,7 @@ async function exportExcel() {
     URL.revokeObjectURL(url)
 
     if (exportLowRes.value.length) {
-      alert(
+      await uiAlert(
         `${exportLowRes.value.length} ürünün fotoğrafı ${LARGE_SIZE} pikselin altında. ` +
         'Aktarım kayıpsız, ama bu fotoğraflar menüde bulanık görünür — eski ' +
         'sürümle yüklenmiş olabilirler:\n\n' +
@@ -1500,7 +1501,7 @@ async function exportExcel() {
     }
   } catch (e) {
     console.error('[Products] Excel dışa aktarma hatası:', e)
-    alert('Excel dosyası oluşturulamadı.')
+    await uiAlert('Excel dosyası oluşturulamadı.')
   } finally {
     exporting.value = false
     exportProgress.value = ''
@@ -1608,7 +1609,7 @@ async function onImportFile(e) {
   try {
     ({ rows, images, files } = await readPackage(file))
   } catch (err) {
-    alert(err.message || 'Dosya okunamadı.')
+    await uiAlert(err.message || 'Dosya okunamadı.')
     return
   }
 
@@ -1629,7 +1630,7 @@ async function onImportFile(e) {
     .filter(r => r.cells[1]?.toString().trim())
 
   if (!dataRows.length) {
-    alert('Excel dosyasında işlenecek ürün bulunamadı.')
+    await uiAlert('Excel dosyasında işlenecek ürün bulunamadı.')
     return
   }
 

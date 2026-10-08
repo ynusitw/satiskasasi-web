@@ -66,6 +66,7 @@
   .btn-secondary { @apply btn bg-white text-primary shadow-sm hover:bg-gray-50; }
   .btn-ghost     { @apply btn text-muted hover:text-primary hover:bg-gray-100; }
   .btn-danger    { @apply btn bg-white text-danger shadow-sm hover:bg-red-50; }
+  .btn-danger-solid { @apply btn bg-danger text-white shadow-sm hover:bg-red-700; }
   .btn-dark      { @apply btn bg-primary text-white shadow-sm hover:bg-primary/90; }
   .btn-success   { @apply btn bg-success text-white shadow-sm hover:bg-emerald-700; }
   .btn-solid-danger { @apply btn bg-danger text-white shadow-sm hover:bg-red-700; }

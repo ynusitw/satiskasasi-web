@@ -202,6 +202,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../utils/dialog'
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api/api'
@@ -416,8 +417,8 @@ function flash(msg) {
 }
 
 // Mesai giriş-çıkışı kasadan yapılır (Menü → Mesai).
-function logout() {
-  if (!confirm('Çıkış yapılsın mı?')) return
+async function logout() {
+  if (!await uiConfirm('Çıkış yapılsın mı?')) return
   auth.logout()
   router.push('/login')
 }

@@ -174,6 +174,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../utils/dialog'
 import { ref, reactive, onMounted } from 'vue'
 import api from '../api/api'
 
@@ -303,13 +304,13 @@ async function save() {
 }
 
 async function remove(g) {
-  if (!confirm(`"${g.name}" grubu silinsin mi?` +
+  if (!await uiConfirm(`"${g.name}" grubu silinsin mi?` +
       (g.productCount ? `\n\n${g.productCount} üründeki bağı da kalkar.` : ''))) return
   try {
     await api.deleteModifierGroup(g.id)
     await load()
   } catch (e) {
-    alert(e.response?.data?.message || 'Silinemedi.')
+    await uiAlert(e.response?.data?.message || 'Silinemedi.')
   }
 }
 </script>

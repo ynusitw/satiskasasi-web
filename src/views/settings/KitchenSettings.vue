@@ -162,6 +162,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../../utils/dialog'
 import { ref, reactive, onMounted } from 'vue'
 import api from '../../api/api'
 import { useAuthStore } from '../../stores/auth'
@@ -231,7 +232,7 @@ async function saveName(s) {
 }
 
 async function regenerate(s) {
-  if (!confirm(`${s.name} için yeni bağlantı üretilsin mi?\n\nAçık olan mutfak ekranı çalışmayı bırakır; yeni bağlantıyı o cihazda yeniden açmanız gerekir.`)) return
+  if (!await uiConfirm(`${s.name} için yeni bağlantı üretilsin mi?\n\nAçık olan mutfak ekranı çalışmayı bırakır; yeni bağlantıyı o cihazda yeniden açmanız gerekir.`)) return
   try {
     s.token = (await api.regenerateKitchenToken(s.id)).data.token
   } catch (e) {
@@ -240,7 +241,7 @@ async function regenerate(s) {
 }
 
 async function remove(s) {
-  if (!confirm(`${s.name} istasyonu silinsin mi?\n\nBu istasyona bağlı kategoriler "Mutfağa gitmez" olur ve ekran bağlantısı çalışmayı bırakır. Geçmiş siparişler raporlarda kalır.`)) return
+  if (!await uiConfirm(`${s.name} istasyonu silinsin mi?\n\nBu istasyona bağlı kategoriler "Mutfağa gitmez" olur ve ekran bağlantısı çalışmayı bırakır. Geçmiş siparişler raporlarda kalır.`)) return
   try {
     await api.deleteKitchenStation(s.id)
     await Promise.all([loadStations(), loadCategories()])

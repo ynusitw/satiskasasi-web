@@ -132,6 +132,9 @@
       </RouterView>
     </main>
   </div>
+
+  <!-- Uygulama içi onay / uyarı pencereleri (utils/dialog.js) -->
+  <AppDialog/>
 </template>
 
 <script setup>
@@ -143,6 +146,7 @@ import { useModulesStore }      from './stores/modules'
 import { useNotificationsStore } from './stores/notifications'
 import { MODULES }              from './constants/modules'
 import SettingsModal            from './components/SettingsModal.vue'
+import AppDialog                from './components/AppDialog.vue'
 import api                      from './api/api'
 
 const auth     = useAuthStore()

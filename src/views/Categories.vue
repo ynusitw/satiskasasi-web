@@ -65,6 +65,7 @@
   </div>
 </template>
 <script setup>
+import { uiAlert, uiConfirm } from '../utils/dialog'
 import { ref, onMounted, reactive } from 'vue'
 import api from '../api/api'
 const categories = ref([]); const loading = ref(true); const saving = ref(false); const error = ref('')
@@ -89,8 +90,8 @@ async function save() {
   catch (e) { error.value = e.response?.data?.message || e.response?.data?.title || e.message || 'Hata oluştu.' } finally { saving.value = false }
 }
 async function deleteCategory(c) {
-  if (!confirm(`"${c.name}" silinsin mi?`)) return
-  try { await api.deleteCategory(c.id); await load() } catch { alert('Bu kategoride ürün var, silinemez.') }
+  if (!await uiConfirm(`"${c.name}" silinsin mi?`)) return
+  try { await api.deleteCategory(c.id); await load() } catch { await uiAlert('Bu kategoride ürün var, silinemez.') }
 }
 onMounted(load)
 </script>

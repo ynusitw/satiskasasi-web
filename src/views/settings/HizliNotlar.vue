@@ -103,6 +103,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../../utils/dialog'
 import { ref, computed, onMounted } from 'vue'
 import api from '../../api/api'
 
@@ -155,7 +156,7 @@ async function save(note) {
 }
 
 async function remove(note) {
-  if (!confirm(`"${note.text}" silinsin mi?\n\nDaha önce yazılmış sipariş notları etkilenmez.`)) return
+  if (!await uiConfirm(`"${note.text}" silinsin mi?\n\nDaha önce yazılmış sipariş notları etkilenmez.`)) return
   try {
     await api.deleteQuickNote(note.id)
     notes.value = notes.value.filter(n => n.id !== note.id)

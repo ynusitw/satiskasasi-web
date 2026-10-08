@@ -291,6 +291,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../utils/dialog'
 import { ref, reactive, computed, onMounted } from 'vue'
 import api from '../api/api'
 import { useAuthStore } from '../stores/auth'
@@ -497,7 +498,7 @@ async function saveSupplier(id) {
   } catch (e) { sup.error = e.response?.data?.message || 'Kaydedilemedi.' }
 }
 async function deleteSupplier(s) {
-  if (!confirm(`${s.name} silinsin mi? Bağlı kalemler "tedarikçisiz" olur.`)) return
+  if (!await uiConfirm(`${s.name} silinsin mi? Bağlı kalemler "tedarikçisiz" olur.`)) return
   try {
     await api.deleteSupplier(s.id)
     await load()

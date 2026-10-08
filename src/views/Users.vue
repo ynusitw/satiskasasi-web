@@ -146,6 +146,7 @@
   </div>
 </template>
 <script setup>
+import { uiAlert, uiConfirm } from '../utils/dialog'
 import { ref, onMounted, reactive } from 'vue'
 import api from '../api/api'
 const users = ref([]); const loading = ref(true); const saving = ref(false); const error = ref('')
@@ -191,15 +192,15 @@ async function saveStaff() {
   try {
     await api.saveStaffSettings({ staffDiscountPercent: v })
     staffSaved.value = true; setTimeout(() => { staffSaved.value = false }, 2500)
-  } catch (e) { alert(e.response?.data?.message || 'Kaydedilemedi.') }
+  } catch (e) { await uiAlert(e.response?.data?.message || 'Kaydedilemedi.') }
   finally { staffSaving.value = false }
 }
 
 async function resetTwoFactor(u) {
-  if (!confirm(`"${u.username}" kullanıcısının iki adımlı doğrulaması kapatılsın mı? Bir sonraki girişte yalnızca şifre istenir; kullanıcı ayarlardan yeniden açabilir.`)) return
+  if (!await uiConfirm(`"${u.username}" kullanıcısının iki adımlı doğrulaması kapatılsın mı? Bir sonraki girişte yalnızca şifre istenir; kullanıcı ayarlardan yeniden açabilir.`)) return
   try { await api.resetTwoFactor(u.id); await load() }
-  catch (e) { alert(e.response?.data?.message || 'Sıfırlanamadı.') }
+  catch (e) { await uiAlert(e.response?.data?.message || 'Sıfırlanamadı.') }
 }
-async function deleteUser(u) { if (!confirm(`"${u.username}" silinsin mi?`)) return; await api.deleteUser(u.id); await load() }
+async function deleteUser(u) { if (!await uiConfirm(`"${u.username}" silinsin mi?`)) return; await api.deleteUser(u.id); await load() }
 onMounted(() => { load(); loadStaff() })
 </script>

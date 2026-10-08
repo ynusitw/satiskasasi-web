@@ -138,6 +138,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../utils/dialog'
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import api from '../api/api'
 
@@ -268,7 +269,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!confirm(`${form.customerName} rezervasyonu silinsin mi? (Gelmediyse "Gelmedi" işaretlemek kayıt için daha iyidir.)`)) return
+  if (!await uiConfirm(`${form.customerName} rezervasyonu silinsin mi? (Gelmediyse "Gelmedi" işaretlemek kayıt için daha iyidir.)`)) return
   form.busy = true
   try {
     await api.deleteReservation(form.id)

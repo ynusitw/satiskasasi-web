@@ -192,6 +192,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm, uiPrompt } from '../utils/dialog'
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import api from '../api/api'
@@ -307,7 +308,8 @@ async function closeCurrent() {
 }
 
 async function startCount() {
-  const name = prompt('Sayım adı', `Sayım ${new Date().toLocaleDateString('tr-TR')}`)
+  const name = await uiPrompt('Sayımı daha sonra listede bu adla bulursunuz.', `Sayım ${new Date().toLocaleDateString('tr-TR')}`,
+    { title: 'Yeni sayım', confirmText: 'Başlat' })
   if (name === null) return
   busy.value = true
   error.value = ''
@@ -373,7 +375,7 @@ async function complete() {
   const msg = `Sayım tamamlansın mı?\n\n${countedCount.value} kalemin stoğu sayılan miktara eşitlenecek.`
     + (todo ? `\n${todo} kalem sayılmadı; onlara dokunulmayacak.` : '')
     + `\nNet fark: ${signedMoney(totals.value.net)}\n\nBu işlem geri alınamaz.`
-  if (!confirm(msg)) return
+  if (!await uiConfirm(msg)) return
   busy.value = true
   error.value = ''
   try {
@@ -390,7 +392,7 @@ async function complete() {
 }
 
 async function deleteDraft() {
-  if (!confirm(`"${current.value.name}" silinsin mi? Girilen miktarlar kaybolur; stoklar değişmez.`)) return
+  if (!await uiConfirm(`"${current.value.name}" silinsin mi? Girilen miktarlar kaybolur; stoklar değişmez.`)) return
   busy.value = true
   try {
     clearTimeout(timer)
@@ -415,7 +417,7 @@ function printSheet() {
   const rows = block('Hammaddeler', current.value.lines.filter(l => l.kind !== 'product'))
              + block('Ürünler', current.value.lines.filter(l => l.kind === 'product'))
   const w = window.open('', '_blank')
-  if (!w) { alert('Açılır pencere engellendi. Tarayıcıda bu site için açılır pencerelere izin verin.'); return }
+  if (!w) { uiAlert('Açılır pencere engellendi. Tarayıcıda bu site için açılır pencerelere izin verin.'); return }
   w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${esc(current.value.name)}</title>
     <style>
       body { font-family: Inter, Arial, sans-serif; margin: 12mm; color: #0F172A; font-size: 10.5pt; }

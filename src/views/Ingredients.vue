@@ -227,6 +227,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../utils/dialog'
 import { ref, reactive, computed, onMounted } from 'vue'
 import api from '../api/api'
 
@@ -327,12 +328,12 @@ async function save() {
 }
 
 async function remove(i) {
-  if (!confirm(`${i.name} silinsin mi?`)) return
+  if (!await uiConfirm(`${i.name} silinsin mi?`)) return
   try {
     await api.deleteIngredient(i.id)
     await load()
   } catch (e) {
-    alert(e.response?.data?.message || 'Silinemedi.')
+    await uiAlert(e.response?.data?.message || 'Silinemedi.')
   }
 }
 

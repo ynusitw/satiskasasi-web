@@ -275,6 +275,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../utils/dialog'
 import { ref, reactive, computed, onMounted } from 'vue'
 import api from '../api/api'
 
@@ -375,8 +376,8 @@ async function load() {
 onMounted(load)
 
 // ── Ürün seçimi ──────────────────────────────────────────────────────────
-function selectProduct(p) {
-  if (dirty.value && !confirm('Kaydedilmemiş reçete değişikliği var. Yine de geçilsin mi?')) return
+async function selectProduct(p) {
+  if (dirty.value && !await uiConfirm('Kaydedilmemiş reçete değişikliği var. Yine de geçilsin mi?')) return
 
   selected.value = p
   ingredientSearch.value = ''
@@ -420,9 +421,9 @@ const scopePrice = computed(() => {
 const baseRecipe = computed(() =>
   (selected.value?.recipe || []).filter(r => r.variantId == null))
 
-function setScope(id) {
+async function setScope(id) {
   if (scope.value === id) return
-  if (dirty.value && !confirm('Kaydedilmemiş değişiklik var. Yine de geçilsin mi?')) return
+  if (dirty.value && !await uiConfirm('Kaydedilmemiş değişiklik var. Yine de geçilsin mi?')) return
   scope.value = id
   dirty.value = false
   copyFactor.value = 1

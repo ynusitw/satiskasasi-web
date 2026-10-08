@@ -289,6 +289,7 @@
 </template>
 
 <script setup>
+import { uiConfirm, uiPrompt } from '../../utils/dialog'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../../api/api'
@@ -424,8 +425,9 @@ async function approve() {
 }
 
 async function reject(r) {
-  const note = prompt('Ret sebebi (opsiyonel):') || ''
-  if (!confirm('Bu başvuru reddedilsin mi?')) return
+  const note = await uiPrompt('Ret sebebi (isteğe bağlı):', '', { title: 'Başvuruyu reddet', multiline: true, confirmText: 'Devam' })
+  if (note == null) return
+  if (!await uiConfirm('Bu başvuru reddedilsin mi?')) return
   await api.rejectLicense(r.id, { note })
   await load()
 }
@@ -466,12 +468,12 @@ async function saveModules() {
 // Gönderilmemiş kayıt varsa iptal etmek veri kaybı demek: iptal edilen kasa
 // bir daha giriş yapamaz, dolayısıyla o kayıtları hiç gönderemez.
 async function revoke(l) {
-  if (l.pendingCount > 0 && !confirm(
+  if (l.pendingCount > 0 && !await uiConfirm(
       `DİKKAT: Bu kasada gönderilmemiş ${l.pendingCount} kayıt var (satış / Z raporu).\n\n` +
       'Lisans iptal edilirse kasa giriş yapamaz ve bu kayıtlar sunucuya hiç ulaşmaz.\n\n' +
       'Yine de devam edilsin mi?')) return
 
-  if (!confirm(`${l.tenantName} — bu cihazın lisansı iptal edilsin mi?`)) return
+  if (!await uiConfirm(`${l.tenantName} — bu cihazın lisansı iptal edilsin mi?`)) return
   await api.revokeLicense(l.id)
   await load()
 }

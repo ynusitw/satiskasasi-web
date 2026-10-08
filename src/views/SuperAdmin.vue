@@ -226,6 +226,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../utils/dialog'
 import { ref, computed, onMounted, reactive } from 'vue'
 import api      from '../api/api'
 import StatCard from '../components/StatCard.vue'
@@ -289,12 +290,12 @@ const expiredCount = computed(() => tenants.value.filter(t =>
   isExpired(t.expiresAt)).length)
 
 async function deleteTenant(t) {
-  if (!confirm(`"${t.businessName}" müşterisi ve tüm verileri kalıcı olarak silinecek. Emin misiniz?`)) return
+  if (!await uiConfirm(`"${t.businessName}" müşterisi ve tüm verileri kalıcı olarak silinecek. Emin misiniz?`)) return
   try {
     await api.deleteTenant(t.id)
     await load()
   } catch (e) {
-    alert(e.response?.data?.message || 'Silinemedi.')
+    await uiAlert(e.response?.data?.message || 'Silinemedi.')
   }
 }
 

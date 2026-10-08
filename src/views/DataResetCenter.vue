@@ -44,6 +44,7 @@
 </template>
 
 <script setup>
+import { uiPrompt } from '../utils/dialog'
 import { ref, onMounted } from 'vue'
 import api from '../api/api'
 
@@ -73,7 +74,9 @@ async function load() {
 }
 
 async function approve(r) {
-  const typed = prompt(`${r.tenantName} işletmesinin satış verileri SİLİNECEK; stoklar ve cari bakiyeleri sıfırlanacak.\n\nOnaylamak için işletme adını yazın:`)
+  const typed = await uiPrompt(
+    `${r.tenantName} işletmesinin satış verileri silinecek; ürün/hammadde stokları ve cari bakiyeleri sıfırlanacak. Bu işlem geri alınamaz.`,
+    '', { title: 'Sıfırlamayı onayla', requireText: r.tenantName, placeholder: r.tenantName, confirmText: 'Onayla ve sıfırla', danger: true })
   if (typed == null) return
   if (typed.trim().toLocaleLowerCase('tr-TR') !== r.tenantName.trim().toLocaleLowerCase('tr-TR')) {
     error.value = 'İşletme adı eşleşmedi; işlem yapılmadı.'
@@ -92,7 +95,8 @@ async function approve(r) {
 }
 
 async function reject(r) {
-  const reason = prompt('Red gerekçesi (işletmeye gösterilir):', '')
+  const reason = await uiPrompt('Gerekçe işletmeye bildirim olarak gösterilir.', '',
+    { title: `${r.tenantName} — talebi reddet`, placeholder: 'ör. Önce Z raporu alın', multiline: true, confirmText: 'Reddet', danger: true })
   if (reason == null) return
   busy.value = true
   try {

@@ -242,6 +242,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../utils/dialog'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { usePlansStore } from '../stores/plans'
 import api              from '../api/api'
@@ -311,11 +312,11 @@ async function save() {
 
 async function deletePlan(plan) {
   if (subscriberCount(plan.id) > 0) return
-  if (!confirm(`"${plan.name}" paketini silmek istediğinize emin misiniz?`)) return
+  if (!await uiConfirm(`"${plan.name}" paketini silmek istediğinize emin misiniz?`)) return
   try {
     await store.sil(plan.dbId)
   } catch (e) {
-    alert(e.response?.data?.message || 'Silinirken hata oluştu.')
+    await uiAlert(e.response?.data?.message || 'Silinirken hata oluştu.')
   }
 }
 

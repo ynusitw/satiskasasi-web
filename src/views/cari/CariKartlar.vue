@@ -219,6 +219,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../../utils/dialog'
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCariStore } from '../../stores/cari'
@@ -282,11 +283,11 @@ async function save() {
 }
 
 async function deleteCari(c) {
-  if (!confirm(`"${c.unvan}" ve tüm işlem geçmişi silinsin mi?`)) return
+  if (!await uiConfirm(`"${c.unvan}" ve tüm işlem geçmişi silinsin mi?`)) return
   try {
     await store.cariSil(c.id)
   } catch {
-    alert('Silme işlemi başarısız.')
+    await uiAlert('Silme işlemi başarısız.')
   }
 }
 

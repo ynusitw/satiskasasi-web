@@ -182,6 +182,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../utils/dialog'
 import { ref, computed, onMounted, reactive } from 'vue'
 import api from '../api/api'
 
@@ -263,9 +264,9 @@ async function saveCari() {
 }
 
 async function deleteCari(c) {
-  if (!confirm(`"${c.name}" silinsin mi?`)) return
+  if (!await uiConfirm(`"${c.name}" silinsin mi?`)) return
   try { await api.deleteCari(c.id); await load() }
-  catch (e) { alert(e.response?.data?.message || 'Silinemedi.') }
+  catch (e) { await uiAlert(e.response?.data?.message || 'Silinemedi.') }
 }
 
 async function openDetail(c) {
@@ -279,7 +280,7 @@ async function openDetail(c) {
 
 async function addTransaction() {
   const amt = parseFloat(txForm.amount)
-  if (!amt || amt <= 0) { alert('Geçerli bir tutar girin.'); return }
+  if (!amt || amt <= 0) { await uiAlert('Geçerli bir tutar girin.'); return }
   const signed = txForm.type === 'tahsilat' ? -amt : amt
   txSaving.value = true
   try {
@@ -293,7 +294,7 @@ async function addTransaction() {
     transactions.value = (await api.getCariTransactions(detailModal.cari.id)).data
     await load()
   } catch (e) {
-    alert(e.response?.data?.message || 'Hata oluştu.')
+    await uiAlert(e.response?.data?.message || 'Hata oluştu.')
   } finally {
     txSaving.value = false
   }

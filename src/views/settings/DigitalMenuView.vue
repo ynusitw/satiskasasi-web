@@ -312,6 +312,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../../utils/dialog'
 import { ref, computed, reactive, onMounted } from 'vue'
 import api from '../../api/api'
 import { useAuthStore } from '../../stores/auth'
@@ -478,7 +479,7 @@ function blobToDataUrl(blob) {
 async function exportCategoryImages() {
   const withImage = categories.value.filter(c => c.menuImageBase64)
   if (!withImage.length) {
-    alert('Dışa aktarılacak kategori görseli yok.')
+    await uiAlert('Dışa aktarılacak kategori görseli yok.')
     return
   }
 
@@ -508,7 +509,7 @@ async function exportCategoryImages() {
     URL.revokeObjectURL(url)
   } catch (e) {
     console.error('[DigitalMenu] Kategori görselleri dışa aktarılamadı:', e)
-    alert('Dosya oluşturulamadı.')
+    await uiAlert('Dosya oluşturulamadı.')
   } finally {
     imgBusy.value = false
   }
@@ -563,7 +564,7 @@ async function importCategoryImages(e) {
     }
 
     const missing = categories.value.filter(c => !byName[normalizeName(c.name)]).length
-    alert(
+    await uiAlert(
       `${applied} kategori görseli yüklendi.` +
       (kept ? `\n${kept} kategoride görsel zaten vardı (üzerine yazılmadı).` : '') +
       (missing ? `\n${missing} kategori pakette bulunamadı (adı farklı olabilir).` : '') +
@@ -571,7 +572,7 @@ async function importCategoryImages(e) {
     )
   } catch (err) {
     console.error('[DigitalMenu] Kategori görselleri içe aktarılamadı:', err)
-    alert('Paket okunamadı. Dışa aktarma ile oluşturulmuş bir .zip dosyası seçin.')
+    await uiAlert('Paket okunamadı. Dışa aktarma ile oluşturulmuş bir .zip dosyası seçin.')
   } finally {
     imgBusy.value = false
   }
@@ -630,11 +631,11 @@ async function toggleQrOrdering() {
 }
 
 async function regenerateToken(t) {
-  if (t.token && !confirm(`${t.name} için yeni kod üretilsin mi?\n\nMasadaki eski QR kodu artık sipariş almaz; yenisini yazdırıp masaya koymanız gerekir.`)) return
+  if (t.token && !await uiConfirm(`${t.name} için yeni kod üretilsin mi?\n\nMasadaki eski QR kodu artık sipariş almaz; yenisini yazdırıp masaya koymanız gerekir.`)) return
   try {
     t.token = (await api.regenerateQrToken(t.id)).data.token
   } catch (e) {
-    alert(e.response?.data?.message || 'Kod yenilenemedi.')
+    await uiAlert(e.response?.data?.message || 'Kod yenilenemedi.')
   }
 }
 
@@ -647,7 +648,7 @@ function printTableQrs() {
       <div class="hint">Menüyü görmek ve sipariş vermek için okutun</div>
     </div>`).join('')
   const w = window.open('', '_blank')
-  if (!w) { alert('Açılır pencere engellendi. Tarayıcıda bu site için açılır pencerelere izin verin.'); return }
+  if (!w) { uiAlert('Açılır pencere engellendi. Tarayıcıda bu site için açılır pencerelere izin verin.'); return }
   w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8">
     <title>Masa QR Kodları</title>
     <style>

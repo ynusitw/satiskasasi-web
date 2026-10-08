@@ -413,6 +413,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../../utils/dialog'
 import { reactive, ref, computed, onMounted, nextTick } from 'vue'
 import api from '../../api/api'
 
@@ -482,7 +483,7 @@ async function toggleIptalAciklama() {
     await api.saveCancellationSettings({ requireCancelReason: newVal })
   } catch (e) {
     iptalAciklamaZorunlu.value = !newVal
-    alert(e.response?.status === 403 ? 'Bu ayarı yalnızca yönetici değiştirebilir.' : 'Ayar kaydedilemedi.')
+    await uiAlert(e.response?.status === 403 ? 'Bu ayarı yalnızca yönetici değiştirebilir.' : 'Ayar kaydedilemedi.')
   }
 }
 
@@ -536,12 +537,12 @@ async function silBolum(bolum) {
   const uyari = bolum.masalar.length > 0
     ? `"${bolum.ad}" bölümünü ve içindeki ${bolum.masalar.length} masayı silmek istediğinize emin misiniz?`
     : `"${bolum.ad}" bölümünü silmek istediğinize emin misiniz?`
-  if (!confirm(uyari)) return
+  if (!await uiConfirm(uyari)) return
   try {
     await api.deleteSection(bolum.id)
     bolumler.value = bolumler.value.filter(b => b.id !== bolum.id)
   } catch {
-    alert('Bölüm silinemedi.')
+    await uiAlert('Bölüm silinemedi.')
   }
 }
 
@@ -589,13 +590,13 @@ async function saveMasa() {
 }
 
 async function silMasa(bolumId, masa) {
-  if (!confirm(`"${masa.ad}" masasını silmek istediğinize emin misiniz?`)) return
+  if (!await uiConfirm(`"${masa.ad}" masasını silmek istediğinize emin misiniz?`)) return
   try {
     await api.deleteTable(masa.id)
     const b = bolumler.value.find(b => b.id === bolumId)
     if (b) b.masalar = b.masalar.filter(m => m.id !== masa.id)
   } catch {
-    alert('Masa silinemedi.')
+    await uiAlert('Masa silinemedi.')
   }
 }
 

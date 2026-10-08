@@ -550,7 +550,8 @@
                             placeholder="ör. Deneme amaçlı girilen satışlar; gerçek kullanıma başlıyoruz"
                             class="w-full px-3 py-2 border border-gray-200 rounded-lg text-[13.5px] bg-white resize-none mb-3"></textarea>
                   <label class="field-label">Onay için işletme adını yazın: <b>{{ auth.tenantName }}</b></label>
-                  <input v-model="dataReset.confirm" :placeholder="auth.tenantName"
+                  <input v-model="dataReset.confirm" :placeholder="auth.tenantName" name="sk-confirm-business"
+                         autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other"
                          class="w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white mb-3"/>
                   <div class="flex items-center justify-between gap-3">
                     <span class="text-xs" :class="dataReset.error ? 'text-danger' : 'text-success'">{{ dataReset.error || dataReset.sent }}</span>
@@ -584,6 +585,7 @@
 </template>
 
 <script setup>
+import { uiAlert, uiConfirm } from '../utils/dialog'
 import { ref, h, watch, reactive, computed } from 'vue'
 import { useSettingsStore } from '../stores/settings'
 import { useAuthStore }     from '../stores/auth'
@@ -609,7 +611,7 @@ async function loadDataReset() {
 }
 
 async function createDataReset() {
-  if (!confirm('Sıfırlama talebi gönderilsin mi? Onaylanınca satış verileri silinir, stoklar ve cari bakiyeleri sıfırlanır.')) return
+  if (!await uiConfirm('Sıfırlama talebi gönderilsin mi? Onaylanınca satış verileri silinir, stoklar ve cari bakiyeleri sıfırlanır.')) return
   dataReset.busy = true; dataReset.error = ''; dataReset.sent = ''
   try {
     await api.createDataReset({ reason: dataReset.reason.trim(), confirmName: dataReset.confirm.trim() })
@@ -622,7 +624,7 @@ async function createDataReset() {
 }
 
 async function cancelDataReset() {
-  if (!confirm('Sıfırlama talebi geri çekilsin mi?')) return
+  if (!await uiConfirm('Sıfırlama talebi geri çekilsin mi?')) return
   dataReset.busy = true
   try { await api.cancelDataReset(dataReset.pending.id); await loadDataReset() }
   catch (e) { dataReset.error = e.response?.data?.message || 'Geri çekilemedi.' }
@@ -849,7 +851,7 @@ async function saveSmtp() {
 }
 
 async function removeSmtp() {
-  if (!confirm('Kendi e-posta sunucunuz kaldırılsın mı? Kayıtlı şifre silinir.')) return
+  if (!await uiConfirm('Kendi e-posta sunucunuz kaldırılsın mı? Kayıtlı şifre silinir.')) return
   try {
     await api.deleteSmtpSettings()
     await loadNotif()
@@ -1005,13 +1007,13 @@ function fmtDate(dateStr) {
 }
 
 async function logoutAll() {
-  if (!confirm('Diğer tüm cihazlardaki oturumları kapatmak istediğinize emin misiniz?')) return
+  if (!await uiConfirm('Diğer tüm cihazlardaki oturumları kapatmak istediğinize emin misiniz?')) return
   revoking.value = true
   try {
     await api.revokeAllSessions()
     await loadSessions()
   } catch {
-    alert('İşlem sırasında hata oluştu.')
+    await uiAlert('İşlem sırasında hata oluştu.')
   } finally {
     revoking.value = false
   }

@@ -427,6 +427,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../../utils/dialog'
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { useCariStore } from '../../stores/cari'
 import { useAuthStore } from '../../stores/auth'
@@ -633,7 +634,7 @@ async function openDetail(row) {
 }
 
 async function cancelInvoice() {
-  if (!confirm(`${detail.row.no} numaralı fatura iptal edilsin mi? Cari hesap ve stok hareketleri geri alınır.`)) return
+  if (!await uiConfirm(`${detail.row.no} numaralı fatura iptal edilsin mi? Cari hesap ve stok hareketleri geri alınır.`)) return
   detail.cancelling = true
   detail.error = ''
   try {

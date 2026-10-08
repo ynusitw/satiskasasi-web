@@ -43,6 +43,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../utils/dialog'
 import { ref, watch, nextTick } from 'vue'
 import api from '../api/api'
 
@@ -97,7 +98,7 @@ async function send() {
 }
 
 async function close() {
-  if (!confirm('Talep kapatılsın mı?')) return
+  if (!await uiConfirm('Talep kapatılsın mı?')) return
   busy.value = true
   try {
     await api.closeSupport(props.ticketId)

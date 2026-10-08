@@ -179,6 +179,7 @@
 </template>
 
 <script setup>
+import { uiConfirm } from '../utils/dialog'
 import { ref, reactive, computed, onMounted } from 'vue'
 import api from '../api/api'
 import { useAuthStore } from '../stores/auth'
@@ -303,7 +304,7 @@ async function toggle(c) {
   } catch (e) { error.value = e.response?.data?.message || 'Değiştirilemedi.' }
 }
 async function remove(c) {
-  if (!confirm(`"${c.name}" kampanyası silinsin mi? Geçmiş satışlardaki indirim kayıtları raporda kalır.`)) return
+  if (!await uiConfirm(`"${c.name}" kampanyası silinsin mi? Geçmiş satışlardaki indirim kayıtları raporda kalır.`)) return
   try {
     await api.deleteCampaign(c.id)
     await load()
