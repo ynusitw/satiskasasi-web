@@ -72,7 +72,10 @@
 
                   <td class="px-5 py-3.5 text-sm text-muted font-mono">#{{ s.id }}</td>
 
-                  <td class="px-5 py-3.5 text-sm font-semibold">{{ time(s.saleDate) }}</td>
+                  <td class="px-5 py-3.5 text-sm font-semibold whitespace-nowrap">
+                    {{ time(s.saleDate) }}
+                    <span v-if="s.orderType === 'Delivery'" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-orange-100 text-orange-700">Paket</span>
+                  </td>
 
                   <!-- Kasiyer adı — API'den gelebilecek alan adlarını dene -->
                   <td class="px-5 py-3.5 text-sm">
@@ -122,6 +125,12 @@
                           </svg>
                           <span class="text-muted text-xs">Kasiyer:</span>
                           <span class="font-semibold text-primary">{{ kasiyerAdi(s) }}</span>
+                        </div>
+                        <!-- Paket servis -->
+                        <div v-if="s.orderType === 'Delivery'" class="flex items-center gap-1.5">
+                          <span class="text-muted text-xs">Paket:</span>
+                          <span class="font-semibold text-primary">{{ s.deliveryInfo }}</span>
+                          <span v-if="s.courierName" class="text-muted text-xs">· kurye {{ s.courierName }}</span>
                         </div>
                         <!-- Müşteri (varsa) -->
                         <div v-if="musteriAdi(s)" class="flex items-center gap-1.5">
