@@ -97,10 +97,13 @@
                   </td>
 
                   <td class="px-5 py-3.5 text-sm hidden md:table-cell">
-                    <span class="px-2 py-0.5 rounded-full text-xs font-bold"
-                          :class="odemeClass(s.paymentMethod)">
-                      {{ s.paymentMethod }}
-                    </span>
+                    <div class="flex flex-wrap gap-1">
+                      <span v-for="p in payParts(s)" :key="p.method"
+                            class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap"
+                            :class="odemeClass(p.method)">
+                        {{ p.label }}
+                      </span>
+                    </div>
                   </td>
 
                   <td class="px-5 py-3.5 text-sm font-semibold text-right text-primary">
@@ -163,7 +166,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                           </svg>
-                          {{ s.paymentMethod }}
+                          <span v-for="(p, i) in payParts(s)" :key="p.method">
+                            {{ i ? ' · ' : '' }}{{ payParts(s).length > 1 ? `${p.label} ${fmt(p.amount)}` : p.label }}
+                          </span>
                         </div>
                         <div class="ml-auto font-bold text-success text-base">
                           {{ fmt(s.total) }}
@@ -304,12 +309,35 @@ function saleItems(s) {
   return s.items ?? []
 }
 
+// Fişin ödeme yöntemleri ("Karma" yerine kullanılan her yöntem, tutarıyla).
+// Sunucudaki SalePayments kuralıyla aynı: parçalıda nakit/kart payı ayrı
+// alanlarda; açık hesap payı openAccountAmount (eski veresiye kaydında tamamı).
+const METHOD_LABELS = { Nakit: 'Nakit', KrediKarti: 'Kredi Kartı', AcikHesap: 'Açık Hesap' }
+function payParts(s) {
+  const total = s.total ?? 0
+  const open  = s.openAccountAmount ?? 0
+  let cash = 0, card = 0
+  if (open < total - 0.005) {
+    if (s.isSplitPayment) { cash = s.cashAmount ?? 0; card = s.cardAmount ?? 0 }
+    else if (s.paymentMethod === 'Nakit') cash = total
+    else if (s.paymentMethod === 'KrediKarti') card = total
+  }
+  const parts = [['Nakit', cash], ['KrediKarti', card], ['AcikHesap', open]]
+    .filter(([, a]) => a > 0.005)
+    .map(([method, amount]) => ({ method, label: METHOD_LABELS[method], amount }))
+  // Tutarsız (ör. tam ikram) fişte kayıtlı yöntem; "Karma" hiç yazılmaz
+  if (!parts.length) {
+    const m = s.paymentMethod === 'Karma' ? 'Nakit' : s.paymentMethod
+    parts.push({ method: m, label: METHOD_LABELS[m] ?? m ?? '—', amount: total })
+  }
+  return parts
+}
+
 // Ödeme yöntemi badge rengi
 function odemeClass(method) {
-  const m = (method ?? '').toLowerCase()
-  if (m.includes('nakit') || m.includes('cash'))   return 'bg-green-100 text-green-700'
-  if (m.includes('kart')  || m.includes('card'))   return 'bg-blue-100 text-blue-700'
-  if (m.includes('havale')|| m.includes('transfer')) return 'bg-purple-100 text-purple-700'
+  if (method === 'Nakit')      return 'bg-green-100 text-green-700'
+  if (method === 'KrediKarti') return 'bg-blue-100 text-blue-700'
+  if (method === 'AcikHesap')  return 'bg-amber-100 text-amber-700'
   return 'bg-gray-100 text-gray-600'
 }
 
