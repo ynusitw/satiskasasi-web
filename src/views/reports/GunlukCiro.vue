@@ -5,10 +5,18 @@
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
         <h1 class="page-title">Günlük Ciro</h1>
-        <p class="page-subtitle">{{ selectedDate }} tarihine ait satış özeti</p>
+        <p class="page-subtitle">{{ subtitle }}</p>
       </div>
-      <input v-model="selectedDate" type="date"
-             class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
+      <div class="flex items-center gap-2 flex-wrap">
+        <select v-model="scope"
+                class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white min-w-[230px]">
+          <option value="current">Açık dönem (Z alınmadı)</option>
+          <option v-for="z in zReports" :key="z.id" :value="z.id">Z · {{ dateTime(z.reportDate) }}</option>
+          <option value="date">Tarihe göre…</option>
+        </select>
+        <input v-if="scope === 'date'" v-model="selectedDate" type="date"
+               class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
+      </div>
     </div>
 
     <div v-if="loading" class="text-center py-16 text-muted">Yükleniyor...</div>
@@ -73,7 +81,7 @@
                   <td class="px-5 py-3.5 text-sm text-muted font-mono">#{{ s.id }}</td>
 
                   <td class="px-5 py-3.5 text-sm font-semibold whitespace-nowrap">
-                    {{ time(s.saleDate) }}
+                    {{ saleTime(s.saleDate) }}
                     <span v-if="s.orderType === 'Delivery'" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-orange-100 text-orange-700">Paket</span>
                   </td>
 
@@ -231,7 +239,9 @@
       </div>
 
       <div v-else class="bg-white rounded-2xl shadow-sm p-12 text-center text-muted">
-        Bu tarihte satış kaydı bulunamadı.
+        {{ scope === 'date' ? 'Bu tarihte satış kaydı bulunamadı.'
+           : scope === 'current' ? 'Son Z raporundan bu yana satış yok.'
+           : 'Bu Z raporunda satış yok.' }}
       </div>
 
     </template>
@@ -239,14 +249,31 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import api from '../../api/api'
 
-const today        = new Date().toISOString().split('T')[0]
+// Yerel tarih (toISOString UTC verir; gece 00-03 arası dünü gösterirdi)
+const now          = new Date()
+const today        = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+// Kapsam: 'current' = açık Z dönemi (kasadaki X raporu), sayı = o Z raporu, 'date' = takvim günü
+const scope        = ref('current')
+const zReports     = ref([])
 const selectedDate = ref(today)
 const report       = ref(null)
 const loading      = ref(false)
 const expandedId   = ref(null)
+
+const subtitle = computed(() => {
+  const r = report.value
+  if (scope.value === 'date') return `${selectedDate.value} tarihine ait satış özeti`
+  if (scope.value === 'current')
+    return r?.periodStart
+      ? `Son Z raporundan (${dateTime(r.periodStart)}) bu yana · kasadaki X raporuyla aynı`
+      : 'Henüz Z raporu alınmadı · kasadaki X raporuyla aynı'
+  return r?.periodEnd
+    ? `${r.periodStart ? dateTime(r.periodStart) : 'İlk satış'} – ${dateTime(r.periodEnd)} arası Z dönemi`
+    : 'Z raporu dönemi'
+})
 
 // ─── Format yardımcıları ─────────────────────────────────────────────────────
 function fmt(v) {
@@ -254,6 +281,15 @@ function fmt(v) {
 }
 function time(d) {
   return new Date(d).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+}
+function dateTime(d) {
+  return new Date(d).toLocaleString('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+// Z dönemi gece yarısını geçebilir: bugünden farklı günün satışında tarih de yazılır
+function saleTime(d) {
+  if (scope.value === 'date') return time(d)
+  const x = new Date(d)
+  return x.toDateString() === new Date().toDateString() ? time(d) : dateTime(d)
 }
 
 function kasiyerAdi(s) {
@@ -287,7 +323,9 @@ async function load() {
   loading.value  = true
   expandedId.value = null
   try {
-    report.value = (await api.getDailyReport(selectedDate.value)).data
+    report.value = (scope.value === 'date'
+      ? await api.getDailyReport(selectedDate.value)
+      : await api.getPeriodReport(scope.value === 'current' ? null : scope.value)).data
   } catch {
     report.value = null
   } finally {
@@ -295,6 +333,9 @@ async function load() {
   }
 }
 
-watch(selectedDate, load)
-onMounted(load)
+watch([scope, selectedDate], load)
+onMounted(() => {
+  load()
+  api.getZReports().then(r => (zReports.value = Array.isArray(r.data) ? r.data.slice(0, 60) : [])).catch(() => {})
+})
 </script>

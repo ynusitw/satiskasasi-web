@@ -353,7 +353,6 @@ const dailySales = computed(() => {
 })
 
 async function openDetail(zRow) {
-  const dateStr = zRow.reportDate?.slice(0, 10) ?? ''
   modal.open      = true
   modal.loading   = true
   modal.error     = ''
@@ -362,7 +361,8 @@ async function openDetail(zRow) {
   modal.dateLabel = fmtDate(zRow.reportDate)
 
   try {
-    const res = await api.getDailyReport(dateStr)
+    // Z'nin kendi satışları (tarihe göre değil: gece yarısını geçen dönemde kayardı)
+    const res = await api.getPeriodReport(zRow.id)
     modal.data = res.data
   } catch (e) {
     console.error('[ZListesi] getDailyReport hatası:', e?.response?.status, e?.response?.data ?? e?.message)

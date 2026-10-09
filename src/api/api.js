@@ -326,4 +326,6 @@ export default {
   takeZReport:    ()     => api.post('reports/zreport'),
   getZReports:    ()     => api.get('reports/zreports'),
   getDailyReport: (date) => api.get(`reports/daily?date=${date}`),
+  // Z dönemi: zReportId yoksa açık dönem (kasadaki X raporuyla aynı satışlar)
+  getPeriodReport: (zReportId) => api.get('reports/daily', { params: zReportId ? { zReportId } : { period: 'current' } }),
 }
