@@ -83,6 +83,8 @@
                   <td class="px-5 py-3.5 text-sm font-semibold whitespace-nowrap">
                     {{ saleTime(s.saleDate) }}
                     <span v-if="s.orderType === 'Delivery'" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-orange-100 text-orange-700">Paket</span>
+                    <span v-if="s.orderType === 'Staff'" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-purple-100 text-purple-700"
+                          title="Personel satışı: ciroya dahil değil">Personel</span>
                   </td>
 
                   <!-- Kasiyer adı — API'den gelebilecek alan adlarını dene -->

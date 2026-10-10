@@ -1,7 +1,8 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://driving-gladly-outcome.ngrok-free.dev/api/',
+  // Yerel test ortamı: `npm run dev:test` (.env.test) yerel test API'sine bağlanır
+  baseURL: import.meta.env.VITE_API_BASE || 'https://driving-gladly-outcome.ngrok-free.dev/api/',
   timeout: 10000,
   headers: { 'ngrok-skip-browser-warning': 'true' }
 })
