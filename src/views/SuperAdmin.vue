@@ -130,7 +130,7 @@
                    class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.username" placeholder="Kullanıcı adı *"
                    class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
-            <input v-model="createForm.password" type="text" placeholder="Şifre *"
+            <input v-model="createForm.password" type="text" inputmode="numeric" maxlength="12" placeholder="Şifre * (4-12 rakam)"
                    class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             <input v-model="createForm.email" placeholder="E-posta"
                    class="px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
@@ -259,6 +259,10 @@ function openCreate() {
 async function createTenant() {
   if (!createForm.businessName || !createForm.username || !createForm.password) {
     error.value = 'İşletme adı, kullanıcı adı ve şifre zorunlu.'
+    return
+  }
+  if (!/^\d{4,12}$/.test(createForm.password)) {
+    error.value = 'Şifre 4-12 haneli ve yalnızca rakam olmalı (kasada rakamla girilir).'
     return
   }
   saving.value = true

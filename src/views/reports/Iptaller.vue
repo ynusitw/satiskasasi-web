@@ -69,6 +69,7 @@
               <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Adet</th>
               <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tutar</th>
               <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Kasiyer</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Onaylayan</th>
               <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Sebep</th>
             </tr>
           </thead>
@@ -89,10 +90,11 @@
               <td class="px-4 py-3 text-right text-muted">{{ num(r.quantity) }}</td>
               <td class="px-4 py-3 text-right font-semibold text-danger">{{ money(r.amount) }}</td>
               <td class="px-4 py-3 text-muted">{{ r.cashierName || '—' }}</td>
+              <td class="px-4 py-3 text-muted">{{ r.approvedBy || '—' }}</td>
               <td class="px-4 py-3 text-muted">{{ r.reason || '—' }}</td>
             </tr>
             <tr v-if="!loading && !filtered.length">
-              <td colspan="8" class="text-center py-12 text-muted">Bu aralıkta iptal yok</td>
+              <td colspan="9" class="text-center py-12 text-muted">Bu aralıkta iptal yok</td>
             </tr>
           </tbody>
         </table>

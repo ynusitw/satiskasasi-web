@@ -78,8 +78,10 @@
               <input v-model="form.username" class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div>
-              <label class="field-label">Şifre *</label>
-              <input v-model="form.password" type="password" class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
+              <label class="field-label">Şifre * <span class="font-normal text-gray-400">— 4-12 hane, yalnızca rakam (kasada rakamla girilir)</span></label>
+              <input v-model="form.password" type="password" inputmode="numeric" maxlength="12" autocomplete="new-password"
+                     :placeholder="modal.editing ? 'Değiştirmek için yenisini yazın' : ''"
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
@@ -175,6 +177,8 @@ function payload() {
 }
 async function save() {
   if (!form.username.trim()) { error.value = 'Kullanıcı adı zorunludur.'; return }
+  const pw = form.password || ''
+  if ((pw || !modal.editing) && !/^\d{4,12}$/.test(pw)) { error.value = 'Şifre 4-12 haneli ve yalnızca rakam olmalı (kasada rakamla girilir).'; return }
   const pin = (form.managerPin || '').trim()
   if (pin && !/^\d{4,8}$/.test(pin)) { error.value = "PIN 4-8 haneli ve yalnızca rakam olmalı."; return }
   saving.value = true; error.value = ''

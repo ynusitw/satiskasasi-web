@@ -51,6 +51,13 @@
             <option v-for="m in [3, 6, 12, 18, 24]" :key="m" :value="m">Son alışverişten {{ m }} ay sonra silinir</option>
           </select>
         </div>
+        <label class="flex items-center justify-between gap-3 cursor-pointer mt-4">
+          <div>
+            <div class="text-[13.5px] font-semibold">Paket siparişler de kazandırsın</div>
+            <div class="text-xs text-muted mt-0.5">Açıksa paket siparişin tutarı, siparişi veren müşterinin carisine puan / damga olarak yazılır.</div>
+          </div>
+          <input v-model="s.deliveryEarns" type="checkbox" class="w-5 h-5 accent-accent"/>
+        </label>
       </div>
     </div>
     <div class="flex items-center justify-end gap-3 mb-8">
@@ -141,7 +148,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import api from '../api/api'
 import { uiConfirm, uiAlert } from '../utils/dialog'
 
-const s = reactive({ pointsEnabled: false, earnPercent: 5, minRedeem: 0, stampsEnabled: false, expiryMonths: 12 })
+const s = reactive({ pointsEnabled: false, earnPercent: 5, minRedeem: 0, stampsEnabled: false, expiryMonths: 12, deliveryEarns: false })
 const cards = ref([])
 const products = ref([])
 const categories = ref([])
@@ -156,7 +163,7 @@ async function load() {
     const { data } = await api.getLoyaltyConfig()
     Object.assign(s, {
       pointsEnabled: data.pointsEnabled, earnPercent: data.earnPercent, minRedeem: data.minRedeem,
-      stampsEnabled: data.stampsEnabled, expiryMonths: data.expiryMonths,
+      stampsEnabled: data.stampsEnabled, expiryMonths: data.expiryMonths, deliveryEarns: !!data.deliveryEarns,
     })
     cards.value = data.cards
   } catch (e) {

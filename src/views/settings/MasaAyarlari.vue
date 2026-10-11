@@ -84,6 +84,35 @@
       </div>
     </div>
 
+    <!-- ── İptalde yönetici PIN'i ──────────────────────────────────────── -->
+    <div v-if="aktif" class="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2 border-gray-100">
+      <div class="font-bold text-primary">İptalde Yönetici PIN'i</div>
+      <p class="text-sm text-muted mt-0.5 max-w-lg">
+        PIN'li seçilirse kasa, işlemi yapmadan önce yönetici PIN'i ister; onaylayan
+        yöneticinin adı İptaller raporuna yazılır. PIN'siz seçilirse kasiyer doğrudan yapar.
+      </p>
+      <div v-for="row in pinSatirlari" :key="row.key"
+           class="flex items-center justify-between gap-6 mt-4 pt-4 border-t border-gray-100">
+        <div>
+          <div class="font-semibold text-[14px]">{{ row.label }}</div>
+          <div class="text-xs text-muted mt-0.5">{{ row.hint }}</div>
+        </div>
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <span class="text-xs font-bold px-2.5 py-1 rounded-full"
+                :class="pinAyari[row.key] ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'">
+            {{ pinAyari[row.key] ? "PIN'li" : "PIN'siz" }}
+          </span>
+          <button @click="togglePin(row.key)"
+                  class="relative inline-flex h-7 items-center rounded-full transition-colors duration-300"
+                  style="width:3.25rem"
+                  :class="pinAyari[row.key] ? 'bg-accent' : 'bg-gray-300'">
+            <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300"
+                  :class="pinAyari[row.key] ? 'translate-x-7' : 'translate-x-1'"/>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ── İçerik (sadece aktifken) ───────────────────────────────────── -->
     <Transition name="slide-down">
       <div v-if="aktif">
@@ -470,21 +499,43 @@ async function toggleAktif() {
 // ── İptal açıklaması zorunluluğu ─────────────────────────────────────────────
 const iptalAciklamaZorunlu = ref(false)
 
+// Kalem silme / masa iptalinde yönetici PIN'i (kasa ayarı)
+const pinAyari = reactive({ itemCancelRequiresPin: false, tableCancelRequiresPin: false })
+const pinSatirlari = [
+  { key: 'itemCancelRequiresPin', label: 'Masadaki ürünü silme', hint: 'Adisyondan tek kalem silinirken' },
+  { key: 'tableCancelRequiresPin', label: 'Masayı iptal etme', hint: 'Masadaki siparişin tamamı iptal edilirken' },
+]
+
 async function loadIptalAyari() {
   try {
-    iptalAciklamaZorunlu.value = (await api.getCancellationSettings()).data?.requireCancelReason ?? false
+    const d = (await api.getCancellationSettings()).data ?? {}
+    iptalAciklamaZorunlu.value = d.requireCancelReason ?? false
+    pinAyari.itemCancelRequiresPin = d.itemCancelRequiresPin ?? false
+    pinAyari.tableCancelRequiresPin = d.tableCancelRequiresPin ?? false
   } catch { /* uç yoksa kapalı kalır */ }
 }
 
-async function toggleIptalAciklama() {
-  const newVal = !iptalAciklamaZorunlu.value
-  iptalAciklamaZorunlu.value = newVal   // optimistic update
+function iptalAyariGovdesi() {
+  return { requireCancelReason: iptalAciklamaZorunlu.value, ...pinAyari }
+}
+
+async function kaydetIptalAyari(geriAl) {
   try {
-    await api.saveCancellationSettings({ requireCancelReason: newVal })
+    await api.saveCancellationSettings(iptalAyariGovdesi())
   } catch (e) {
-    iptalAciklamaZorunlu.value = !newVal
+    geriAl()
     await uiAlert(e.response?.status === 403 ? 'Bu ayarı yalnızca yönetici değiştirebilir.' : 'Ayar kaydedilemedi.')
   }
+}
+
+async function toggleIptalAciklama() {
+  iptalAciklamaZorunlu.value = !iptalAciklamaZorunlu.value   // optimistic update
+  await kaydetIptalAyari(() => { iptalAciklamaZorunlu.value = !iptalAciklamaZorunlu.value })
+}
+
+async function togglePin(key) {
+  pinAyari[key] = !pinAyari[key]
+  await kaydetIptalAyari(() => { pinAyari[key] = !pinAyari[key] })
 }
 
 function toplamMasa() {
