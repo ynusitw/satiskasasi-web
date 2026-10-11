@@ -160,7 +160,7 @@ const routes = [
     meta: { superAdminOnly: true }
   },
   {
-    path: '/superadmin/lisans/:tab(aktif|bekleyen|reddedilen)',
+    path: '/superadmin/lisans/:tab(aktif|bekleyen|reddedilen|iptal)',
     component: () => import('../views/licenses/LicenseCenter.vue'),
     meta: { superAdminOnly: true }
   },

@@ -232,6 +232,7 @@ const lisansSubMenu = [
   { to: '/superadmin/lisans/aktif',      label: 'Aktif Lisanslar'      },
   { to: '/superadmin/lisans/bekleyen',   label: 'Bekleyen Lisanslar'   },
   { to: '/superadmin/lisans/reddedilen', label: 'Reddedilen Lisanslar' },
+  { to: '/superadmin/lisans/iptal',      label: 'İptal Edilen Lisanslar' },
 ]
 
 const menuTopAll = [

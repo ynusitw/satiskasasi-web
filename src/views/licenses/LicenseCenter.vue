@@ -38,16 +38,17 @@
       Yükleniyor...
     </div>
 
-    <!-- ── AKTİF LİSANSLAR ─────────────────────────────────────────── -->
-    <div v-else-if="tab === 'aktif'" class="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div class="px-6 py-3 border-b border-gray-100 flex items-center justify-between">
+    <!-- ── AKTİF / İPTAL EDİLEN LİSANSLAR ──────────────────────────── -->
+    <!-- Her cihazın bir firmada tek lisans kaydı var: aktif ya da iptal. -->
+    <div v-else-if="tab === 'aktif' || tab === 'iptal'" class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-6 py-3 border-b border-gray-100">
         <span class="text-sm font-semibold text-primary">
-          Verilen lisanslar <span class="text-muted font-normal">({{ activeList.length }})</span>
+          {{ tab === 'iptal' ? 'İptal edilen lisanslar' : 'Verilen lisanslar' }}
+          <span class="text-muted font-normal">({{ activeList.length }})</span>
         </span>
-        <label class="flex items-center gap-2 text-xs text-muted cursor-pointer">
-          <input type="checkbox" v-model="showRevoked" class="w-4 h-4"/>
-          İptal edilenleri de göster
-        </label>
+        <p v-if="tab === 'iptal'" class="text-xs text-muted mt-0.5">
+          Kasa yeniden başvurursa Bekleyen Lisanslar'a düşer; onaylanınca aynı kayıt yeniden aktif olur.
+        </p>
       </div>
 
       <div class="overflow-x-auto">
@@ -103,7 +104,9 @@
               </td>
             </tr>
             <tr v-if="!activeList.length">
-              <td colspan="7" class="text-center py-12 text-muted">Henüz lisans verilmemiş</td>
+              <td colspan="7" class="text-center py-12 text-muted">
+                {{ tab === 'iptal' ? 'İptal edilmiş lisans yok' : 'Aktif lisans yok' }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -300,7 +303,7 @@ import ModulePicker from '../../components/ModulePicker.vue'
 const route = useRoute()
 const tab = computed(() => {
   const t = route.path.split('/').pop()
-  return ['aktif', 'bekleyen', 'reddedilen'].includes(t) ? t : 'aktif'
+  return ['aktif', 'bekleyen', 'reddedilen', 'iptal'].includes(t) ? t : 'aktif'
 })
 
 const licenses = ref([])
@@ -312,16 +315,16 @@ const loading  = ref(true)
 const saving   = ref(false)
 const error     = ref('')
 const loadError = ref('')
-const showRevoked = ref(false)
 
 const tabs = computed(() => [
   { key: 'aktif',      label: 'Aktif Lisanslar',      to: '/superadmin/lisans/aktif',      count: licenses.value.filter(l => l.isActive).length },
   { key: 'bekleyen',   label: 'Bekleyen Lisanslar',   to: '/superadmin/lisans/bekleyen',   count: pending.value.length },
   { key: 'reddedilen', label: 'Reddedilen Lisanslar', to: '/superadmin/lisans/reddedilen', count: rejected.value.length },
+  { key: 'iptal',      label: 'İptal Edilen Lisanslar', to: '/superadmin/lisans/iptal',      count: licenses.value.filter(l => !l.isActive).length },
 ])
 
 const activeList = computed(() =>
-  showRevoked.value ? licenses.value : licenses.value.filter(l => l.isActive))
+  licenses.value.filter(l => tab.value === 'iptal' ? !l.isActive : l.isActive))
 
 const requestList = computed(() => tab.value === 'bekleyen' ? pending.value : rejected.value)
 
