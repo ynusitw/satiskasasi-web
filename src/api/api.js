@@ -231,6 +231,7 @@ export default {
 
   // Dashboard
   dashboard: () => api.get('reports/dashboard'),
+  getLiveStatus: () => api.get('reports/live'),
   // Pano satış trendi: range=period (Z dönemi) | week | month | year
   getTrend: (range) => api.get('reports/trend', { params: { range } }),
 

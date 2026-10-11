@@ -68,6 +68,9 @@
         </div>
       </div>
 
+      <!-- ── Şu an: masalar, mutfak, kasalar, mesai, rezervasyon ─────────── -->
+      <LiveStatus ref="liveRef"/>
+
       <!-- ── Grafik + En çok satılanlar ───────────────────────────────── -->
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
@@ -159,6 +162,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import api from '../api/api'
+import LiveStatus from '../components/LiveStatus.vue'
 
 // ── Sabitler ─────────────────────────────────────────────────────────────
 // Grafik renkleri — açıklama noktaları ve seriler aynı rengi kullanır.
@@ -169,6 +173,7 @@ const MONTHS = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl',
 
 // ── State ─────────────────────────────────────────────────────────────────
 const data         = ref(null)
+const liveRef      = ref(null)
 const loading      = ref(true)
 // Pano kartlarıyla aynı dönem açılışta seçili olsun.
 const activeFilter = ref('period')
@@ -375,6 +380,7 @@ async function load() {
   loading.value = true
   // Yenile'de trend de tazelensin.
   trendCache.value = {}
+  liveRef.value?.load()
   try {
     data.value = (await api.dashboard()).data
     await loadTrend(activeFilter.value)
