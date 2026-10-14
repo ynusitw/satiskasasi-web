@@ -43,6 +43,7 @@
           </div>
         </div>
 
+        <RouterLink to="/toplu-fiyat" class="btn-secondary">Toplu Fiyat</RouterLink>
         <button @click="openPhotoModal" class="btn-secondary">Hızlı Fotoğraf</button>
         <button @click="openExistingProductModal()" class="btn-primary">Yeni Ürün</button>
       </div>
@@ -595,6 +596,18 @@
               <input v-model="form.barcode"
                      class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] font-mono h-10 bg-white"/>
             </div>
+            <!-- Terazi: tartılı ürün kg fiyatıyla satılır; terazi kodu etiket barkodunu ürüne bağlar -->
+            <div class="flex items-center gap-4 flex-wrap">
+              <label class="flex items-center gap-2 text-[13.5px] font-medium text-primary cursor-pointer">
+                <input type="checkbox" v-model="form.isWeighed" class="w-4 h-4"/>
+                Tartılı ürün (kg ile satılır)
+              </label>
+              <div v-if="form.isWeighed || form.scaleCode" class="flex items-center gap-2">
+                <label class="text-[12.5px] text-muted">Terazi kodu (PLU)</label>
+                <input v-model="form.scaleCode" inputmode="numeric" maxlength="6" placeholder="ör. 12"
+                       class="w-24 px-3 border border-gray-200 rounded-lg text-[13.5px] font-mono h-9 bg-white"/>
+              </div>
+            </div>
             <div>
               <label class="field-label">Kategori</label>
               <select v-model="form.categoryId"
@@ -605,7 +618,7 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="field-label">Fiyat (₺) *</label>
+                <label class="field-label">Fiyat (₺{{ form.isWeighed ? ' / kg' : '' }}) *</label>
                 <input v-model.number="form.price" type="number" step="0.01" min="0"
                        class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
@@ -857,6 +870,7 @@ const form   = reactive({
   id: 0, name: '', barcode: '', categoryId: null,
   price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
   isActive: true, imageBase64: '', imageLargeBase64: null, description: '', allergens: '',
+  isWeighed: false, scaleCode: null,
     variants: [],
     isCombo: false, modifierGroupIds: [], comboComponents: [], recipe: [],
 })
@@ -1078,6 +1092,7 @@ function openCreate() {
     id: 0, name: '', barcode: '', categoryId: selectedCategoryId.value,
     price: 0, vatRate: 0, currentStock: 0, minimumStock: 0,
     isActive: true, imageBase64: '', imageLargeBase64: null, description: '', allergens: '',
+    isWeighed: false, scaleCode: null,
     variants: [],
     isCombo: false, modifierGroupIds: [], comboComponents: [], recipe: [],
   })
@@ -1172,6 +1187,7 @@ const recipeCost = computed(() => {
 async function save() {
   if (!form.name.trim()) { error.value = 'Ürün adı zorunludur.'; return }
   if (form.price < 0)   { error.value = 'Fiyat geçersiz.'; return }
+  if (form.scaleCode && !/^\d{1,6}$/.test(String(form.scaleCode).trim())) { error.value = 'Terazi kodu en fazla 6 haneli ve yalnızca rakam olmalı.'; return }
 
   const others = products.value.filter(p => p.id !== form.id)
   if (others.some(p => p.name.trim().toLowerCase() === form.name.trim().toLowerCase()))

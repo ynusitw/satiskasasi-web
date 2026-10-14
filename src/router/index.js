@@ -28,6 +28,10 @@ const routes = [
     component: () => import('../views/Products.vue'),
   },
   {
+    path: '/toplu-fiyat',
+    component: () => import('../views/BulkPrice.vue'),
+  },
+  {
     path: '/categories',
     component: () => import('../views/Categories.vue'),
   },
@@ -118,6 +122,7 @@ const routes = [
   { path: '/settings/yazici-ayarlari', redirect: '/settings/receipt' },
   { path: '/settings/musteri-ekrani',  component: () => import('../views/settings/MusteriEkrani.vue') },
   { path: '/settings/terminal',        component: () => import('../views/settings/TerminalAyarlari.vue') },
+  { path: '/settings/terazi',          component: () => import('../views/settings/TeraziAyarlari.vue') },
   {
     path: '/subscription',
     component: () => import('../views/Subscription.vue'),

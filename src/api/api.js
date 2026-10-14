@@ -239,6 +239,16 @@ export default {
   getProducts:    ()       => api.get('products'),
   // Pasifler dahil — yalnızca ürün yönetim ekranı kullanır
   getProductsAll: ()       => api.get('products?includeInactive=true'),
+  getProductsLite: ()      => api.get('products?withImages=false'),
+  getScaleSettings:  ()     => api.get('settings/scale'),
+  saveScaleSettings: (data) => api.put('settings/scale', data),
+
+  // Toplu fiyat değişikliği
+  getPriceChanges:    ()     => api.get('price-changes'),
+  getPriceChange:     (id)   => api.get(`price-changes/${id}`),
+  createPriceChange:  (data) => api.post('price-changes', data),
+  cancelPriceChange:  (id)   => api.post(`price-changes/${id}/cancel`),
+  revertPriceChange:  (id)   => api.post(`price-changes/${id}/revert`),
   // Web menüde kullanılan büyük fotoğraf; liste yanıtında yalnızca küçüğü var.
   getProductLargeImage: (id) => api.get(`products/${id}/image`, { params: { size: 'large' } }),
   createProduct:  (d)      => api.post('products', d),

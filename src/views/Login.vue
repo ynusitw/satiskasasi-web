@@ -10,8 +10,8 @@
                   bg-[size:44px_44px]"/>
 
       <div class="relative flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-[14px] font-bold">SK</div>
-        <span class="text-[16px] font-semibold tracking-tight">SatışKasası</span>
+        <div class="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-[14px] font-bold">YP</div>
+        <span class="text-[16px] font-semibold tracking-tight">YenPOS</span>
       </div>
 
       <div class="relative max-w-md">
@@ -24,7 +24,7 @@
       </div>
 
       <div class="relative text-[12.5px] text-white/40">
-        © {{ new Date().getFullYear() }} SatışKasası
+        © {{ new Date().getFullYear() }} YenPOS
       </div>
     </div>
 
@@ -32,8 +32,8 @@
     <div class="flex items-center justify-center p-6 sm:p-12 bg-white">
       <div class="w-full max-w-[360px]">
         <div class="lg:hidden flex items-center gap-3 mb-10">
-          <div class="w-9 h-9 rounded-lg bg-accent text-white flex items-center justify-center text-[14px] font-bold">SK</div>
-          <span class="text-[16px] font-semibold tracking-tight text-primary">SatışKasası</span>
+          <div class="w-9 h-9 rounded-lg bg-accent text-white flex items-center justify-center text-[14px] font-bold">YP</div>
+          <span class="text-[16px] font-semibold tracking-tight text-primary">YenPOS</span>
         </div>
 
         <h1 class="text-[26px] font-semibold text-primary">Giriş yapın</h1>

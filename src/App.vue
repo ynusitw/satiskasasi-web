@@ -12,10 +12,10 @@
       <div class="h-16 px-5 flex items-center gap-3 border-b border-white/[0.06] flex-shrink-0">
         <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center
                     text-[13px] font-bold tracking-tight shadow-[0_0_0_1px_rgba(255,255,255,0.12)_inset]">
-          SK
+          YP
         </div>
         <div class="min-w-0 leading-tight">
-          <div class="text-[14px] font-semibold tracking-tight">SatışKasası</div>
+          <div class="text-[14px] font-semibold tracking-tight">YenPOS</div>
           <div class="text-[12px] text-white/45 truncate">
             {{ auth.isSuperAdmin ? 'Süper Admin' : auth.tenantName }}
           </div>
@@ -238,6 +238,7 @@ const lisansSubMenu = [
 const menuTopAll = [
   { to: '/',            label: 'Genel Bakış'     },
   { to: '/products',    label: 'Ürünler'         },
+  { to: '/toplu-fiyat', label: 'Toplu Fiyat'     },
   { to: '/modifiers',   label: 'Çeşni & Ekstra'  },
   { to: '/campaigns',   label: 'Kampanyalar'     },
   { to: '/reservations', label: 'Rezervasyonlar', module: MODULES.TABLES },
@@ -276,6 +277,7 @@ const kasaYapiSubMenu = [
   { to: '/settings/receipt',         label: 'Fiş & Yazıcı Ayarları' },
   { to: '/settings/musteri-ekrani',  label: 'Müşteri Ekranı Ayarı'  },
   { to: '/settings/terminal',        label: 'Terminal Ayarları'      },
+  { to: '/settings/terazi',          label: 'Terazi'                 },
 ]
 
 // ── Lisans modülüne göre menü ────────────────────────────────────────────

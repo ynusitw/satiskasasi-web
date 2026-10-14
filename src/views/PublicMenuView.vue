@@ -162,7 +162,7 @@
       </div>
 
       <footer class="text-center text-xs text-inkmuted/70 py-6 border-t border-black/5">
-        Dijital menü · SatışKasası ile oluşturuldu
+        Dijital menü · YenPOS ile oluşturuldu
       </footer>
 
       <Transition name="fade">
