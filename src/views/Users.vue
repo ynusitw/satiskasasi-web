@@ -82,6 +82,7 @@
               <input v-model="form.password" type="password" inputmode="numeric" maxlength="12" autocomplete="new-password"
                      :placeholder="modal.editing ? 'Değiştirmek için yenisini yazın' : ''"
                      class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
+              <p class="text-[11.5px] text-gray-400 mt-1">Kasada kullanıcı seçilmez, girilen şifre kullanıcıyı belirler: her kullanıcının şifresi farklı olmalı.</p>
             </div>
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
