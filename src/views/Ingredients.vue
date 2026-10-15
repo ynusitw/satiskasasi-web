@@ -274,7 +274,7 @@ function dateTime(d) {
   })
 }
 function typeLabel(t) {
-  return { Sale: 'Satış', Purchase: 'Giriş', Waste: 'Fire', Adjustment: 'Sayım' }[t] || t
+  return { Sale: 'Satış', Purchase: 'Giriş', Waste: 'Fire', Adjustment: 'Sayım', Return: 'İade' }[t] || t
 }
 
 async function load() {

@@ -182,7 +182,7 @@ function dateTime(d) {
   return new Date(d).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 function moveLabel(t) {
-  return { Sale: 'Satış', Purchase: 'Giriş', Waste: 'Fire', Adjustment: 'Sayım', In: 'Giriş', Out: 'Çıkış' }[t] || t
+  return { Sale: 'Satış', Purchase: 'Giriş', Waste: 'Fire', Adjustment: 'Sayım', In: 'Giriş', Out: 'Çıkış', Return: 'İade' }[t] || t
 }
 
 // Reçeteli / menü üründe ürünün kendi stoğu tutulmuyor.

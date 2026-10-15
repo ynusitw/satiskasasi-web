@@ -85,6 +85,17 @@
                     <span v-if="s.orderType === 'Delivery'" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-orange-100 text-orange-700">Paket</span>
                     <span v-if="s.orderType === 'Staff'" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-purple-100 text-purple-700"
                           title="Personel satışı: ciroya dahil değil">Personel</span>
+                    <!-- Kasa fiş listesinden: iade fişi / iptal ya da iade görmüş fiş -->
+                    <span v-if="s.orderType === 'Refund'" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-red-100 text-red-700"
+                          :title="`#${s.refundOfSaleId} fişinin ${s.refundKind === 'Cancel' ? 'iptali' : 'iadesi'}`">
+                      {{ s.refundKind === 'Cancel' ? 'İptal' : 'İade' }} #{{ s.refundOfSaleId }}
+                    </span>
+                    <span v-else-if="s.cancelled" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-red-100 text-red-700">İptal edildi</span>
+                    <span v-else-if="s.refundedTotal > 0" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-amber-100 text-amber-700">
+                      İade {{ fmt(s.refundedTotal) }}
+                    </span>
+                    <span v-if="s.paymentChangedAt" class="ml-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-blue-100 text-blue-700"
+                          :title="s.paymentChangeNote">Ödeme değişti</span>
                   </td>
 
                   <!-- Kasiyer adı — API'den gelebilecek alan adlarını dene -->
@@ -108,7 +119,8 @@
                     </div>
                   </td>
 
-                  <td class="px-5 py-3.5 text-sm font-semibold text-right text-primary">
+                  <td class="px-5 py-3.5 text-sm font-semibold text-right"
+                      :class="[s.total < 0 ? 'text-danger' : 'text-primary', s.cancelled ? 'line-through opacity-60' : '']">
                     {{ fmt(s.total) }}
                   </td>
 
@@ -172,9 +184,14 @@
                             {{ i ? ' · ' : '' }}{{ payParts(s).length > 1 ? `${p.label} ${fmt(p.amount)}` : p.label }}
                           </span>
                         </div>
-                        <div class="ml-auto font-bold text-success text-base">
+                        <div class="ml-auto font-bold text-base" :class="s.total < 0 ? 'text-danger' : 'text-success'">
                           {{ fmt(s.total) }}
                         </div>
+                      </div>
+
+                      <!-- İptal / iade / ödeme değişikliği notu -->
+                      <div v-if="saleNotes(s).length" class="mb-3 px-3 py-2 rounded-lg text-[13px] bg-white border border-blue-100 space-y-0.5">
+                        <div v-for="(n, i) in saleNotes(s)" :key="i">{{ n }}</div>
                       </div>
 
                       <!-- Ürün listesi -->
@@ -195,6 +212,9 @@
                                   class="border-t border-gray-50">
                                 <td class="px-4 py-2.5 font-medium">
                                   {{ item.productName ?? item.name ?? item.urunAdi ?? '—' }}
+                                  <span v-if="item.refundedQuantity > 0" class="ml-1 text-[11.5px] font-semibold text-danger">
+                                    ({{ item.refundedQuantity }} iade)
+                                  </span>
                                 </td>
                                 <td class="px-4 py-2.5 text-right text-muted">
                                   {{ item.quantity ?? item.miktar ?? 1 }}
@@ -319,13 +339,14 @@ function payParts(s) {
   const total = s.total ?? 0
   const open  = s.openAccountAmount ?? 0
   let cash = 0, card = 0
-  if (open < total - 0.005) {
+  // İade fişinde tutarlar eksi: karşılaştırma mutlak değerle
+  if (Math.abs(open) < Math.abs(total) - 0.005) {
     if (s.isSplitPayment) { cash = s.cashAmount ?? 0; card = s.cardAmount ?? 0 }
     else if (s.paymentMethod === 'Nakit') cash = total
     else if (s.paymentMethod === 'KrediKarti') card = total
   }
   const parts = [['Nakit', cash], ['KrediKarti', card], ['AcikHesap', open]]
-    .filter(([, a]) => a > 0.005)
+    .filter(([, a]) => Math.abs(a) > 0.005)
     .map(([method, amount]) => ({ method, label: METHOD_LABELS[method], amount }))
   // Tutarsız (ör. tam ikram) fişte kayıtlı yöntem; "Karma" hiç yazılmaz
   if (!parts.length) {
@@ -333,6 +354,21 @@ function payParts(s) {
     parts.push({ method: m, label: METHOD_LABELS[m] ?? m ?? '—', amount: total })
   }
   return parts
+}
+
+// Kasa fiş listesinden yapılan iptal / iade / ödeme değişikliği açıklaması
+function saleNotes(s) {
+  const notes = []
+  if (s.orderType === 'Refund') {
+    notes.push(`#${s.refundOfSaleId} numaralı fişin ${s.refundKind === 'Cancel' ? 'iptali' : 'ürün iadesi'}.`)
+    if (s.refundReason) notes.push(`Neden: ${s.refundReason}`)
+    if (s.refundApprovedBy) notes.push(`Onaylayan: ${s.refundApprovedBy}`)
+  } else {
+    if (s.cancelled) notes.push('Bu fiş iptal edildi; tutarı iptal fişiyle kasadan düşüldü.')
+    else if (s.refundedTotal > 0) notes.push(`Bu fişten ${fmt(s.refundedTotal)} iade yapıldı.`)
+    if (s.paymentChangedAt) notes.push(`Ödeme değiştirildi (${s.paymentChangedBy}): ${s.paymentChangeNote}`)
+  }
+  return notes
 }
 
 // Ödeme yöntemi badge rengi

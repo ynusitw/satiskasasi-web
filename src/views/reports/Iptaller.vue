@@ -11,7 +11,7 @@
     <div v-if="error" class="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{{ error }}</div>
 
     <!-- Özet: kartlara tıklayınca liste o türe süzülür -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
       <button v-for="c in cards" :key="c.type ?? 'all'" @click="type = c.type"
               class="text-left bg-white rounded-2xl shadow-sm p-5 border-2 transition-colors"
               :class="type === c.type ? 'border-accent' : 'border-transparent hover:border-gray-200'">
@@ -64,7 +64,7 @@
             <tr>
               <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tarih</th>
               <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tür</th>
-              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Masa</th>
+              <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Masa / Fiş</th>
               <th class="text-left  px-4 py-3 text-[11px] font-semibold text-muted uppercase">Ürün</th>
               <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Adet</th>
               <th class="text-right px-4 py-3 text-[11px] font-semibold text-muted uppercase">Tutar</th>
@@ -77,12 +77,11 @@
             <tr v-for="r in filtered" :key="r.id" class="border-t border-gray-50">
               <td class="px-4 py-3 text-muted whitespace-nowrap">{{ dateTime(r.createdAt) }}</td>
               <td class="px-4 py-3">
-                <span class="text-xs font-bold px-2.5 py-1 rounded-full"
-                      :class="r.type === 'OrderCancel' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'">
-                  {{ r.type === 'OrderCancel' ? 'Masa iptali' : 'Kalem silme' }}
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full" :class="TYPE_CLASS[r.type] || 'bg-amber-100 text-amber-700'">
+                  {{ TYPE_LABEL[r.type] || 'Kalem silme' }}
                 </span>
               </td>
-              <td class="px-4 py-3 text-muted">{{ r.tableName || '—' }}</td>
+              <td class="px-4 py-3 text-muted">{{ r.tableName || (r.saleId ? `Fiş #${r.saleId}` : '—') }}</td>
               <td class="px-4 py-3">
                 <div class="font-semibold text-primary">{{ r.productName }}</div>
                 <div v-if="r.variantName" class="text-xs text-muted">{{ r.variantName }}</div>
@@ -148,7 +147,16 @@ const cards = computed(() => [
   { type: null,          label: 'Toplam İptal', amount: summary.value.amount,       count: summary.value.count },
   { type: 'Void',        label: 'Kalem Silme',  amount: summary.value.voidAmount,   count: summary.value.voidCount },
   { type: 'OrderCancel', label: 'Masa İptali',  amount: summary.value.cancelAmount, count: summary.value.cancelCount },
+  // Kasa fiş listesi: ödenmiş fişin iptali (fiş sayısı) ve ürün iadesi (kalem sayısı)
+  { type: 'SaleCancel',  label: 'Fiş İptali',   amount: summary.value.saleCancelAmount, count: summary.value.saleCancelCount },
+  { type: 'Refund',      label: 'Ürün İadesi',  amount: summary.value.refundAmount, count: summary.value.refundCount },
 ])
+
+const TYPE_LABEL = { Void: 'Kalem silme', OrderCancel: 'Masa iptali', SaleCancel: 'Fiş iptali', Refund: 'Ürün iadesi' }
+const TYPE_CLASS = {
+  Void: 'bg-amber-100 text-amber-700', OrderCancel: 'bg-red-100 text-red-700',
+  SaleCancel: 'bg-red-100 text-red-700', Refund: 'bg-purple-100 text-purple-700'
+}
 
 const filtered = computed(() => type.value ? rows.value.filter(r => r.type === type.value) : rows.value)
 
