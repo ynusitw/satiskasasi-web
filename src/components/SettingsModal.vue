@@ -1044,7 +1044,7 @@ function downloadLogs() {
 }
 
 function openSupportTicket() {
-  const subject = encodeURIComponent('YenPOS Destek Talebi')
+  const subject = encodeURIComponent('yenpos Destek Talebi')
   const body    = encodeURIComponent(
     `Kullanıcı: ${auth.username ?? ''}\nFirma: ${auth.tenantName ?? ''}\nSürüm: v1.5.0\n\nSorun:\n`
   )

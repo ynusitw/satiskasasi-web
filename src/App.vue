@@ -10,12 +10,9 @@
 
       <!-- Marka + işletme -->
       <div class="h-16 px-5 flex items-center gap-3 border-b border-white/[0.06] flex-shrink-0">
-        <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center
-                    text-[13px] font-bold tracking-tight shadow-[0_0_0_1px_rgba(255,255,255,0.12)_inset]">
-          YP
-        </div>
+        <!-- Marka: kenar menü koyu zemin → açık yazılı logo -->
         <div class="min-w-0 leading-tight">
-          <div class="text-[14px] font-semibold tracking-tight">YenPOS</div>
+          <img src="/brand/wordmark-light.png" alt="yenpos" class="h-[22px] w-auto mb-1" draggable="false">
           <div class="text-[12px] text-white/45 truncate">
             {{ auth.isSuperAdmin ? 'Süper Admin' : auth.tenantName }}
           </div>

@@ -4,14 +4,13 @@
     <!-- Marka paneli (geniş ekranda) -->
     <div class="hidden lg:flex relative overflow-hidden bg-primary text-white p-12 flex-col justify-between">
       <div class="absolute inset-0 pointer-events-none
-                  bg-[radial-gradient(60%_50%_at_20%_15%,rgba(37,99,235,0.35),transparent_70%)]"/>
+                  bg-[radial-gradient(60%_50%_at_20%_15%,rgba(57,255,136,0.16),transparent_70%)]"/>
       <div class="absolute inset-0 pointer-events-none opacity-[0.07]
                   bg-[linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)]
                   bg-[size:44px_44px]"/>
 
       <div class="relative flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-[14px] font-bold">YP</div>
-        <span class="text-[16px] font-semibold tracking-tight">YenPOS</span>
+        <img src="/brand/wordmark-light.png" alt="yenpos" class="h-9 w-auto" draggable="false">
       </div>
 
       <div class="relative max-w-md">
@@ -24,7 +23,7 @@
       </div>
 
       <div class="relative text-[12.5px] text-white/40">
-        © {{ new Date().getFullYear() }} YenPOS
+        © {{ new Date().getFullYear() }} yenpos · Bulut tabanlı POS ve işletme yönetimi
       </div>
     </div>
 
@@ -32,8 +31,9 @@
     <div class="flex items-center justify-center p-6 sm:p-12 bg-white">
       <div class="w-full max-w-[360px]">
         <div class="lg:hidden flex items-center gap-3 mb-10">
-          <div class="w-9 h-9 rounded-lg bg-accent text-white flex items-center justify-center text-[14px] font-bold">YP</div>
-          <span class="text-[16px] font-semibold tracking-tight text-primary">YenPOS</span>
+          <!-- Açık form zemini → koyu yazılı logo; panel koyu temadaysa açık yazılı -->
+          <img src="/brand/wordmark-dark.png" alt="yenpos" class="logo-on-light h-9 w-auto" draggable="false">
+          <img src="/brand/wordmark-light.png" alt="yenpos" class="logo-on-dark h-9 w-auto" draggable="false">
         </div>
 
         <h1 class="text-[26px] font-semibold text-primary">Giriş yapın</h1>

@@ -116,6 +116,11 @@
    karşılıklarına çevrilir. Palet açık temanın slate tonlarıyla uyumludur. */
 .theme-dark { color-scheme: dark; }
 
+/* Marka logosu: açık zeminde koyu yazılı, koyu temada açık yazılı sürüm */
+.logo-on-dark { display: none; }
+.theme-dark .logo-on-light { display: none; }
+.theme-dark .logo-on-dark { display: block; }
+
 .theme-dark body {
   background: #0B1120;
   color: #E2E8F0;
