@@ -9,11 +9,11 @@
            class="sidebar fixed left-0 top-0 h-full w-64 bg-primary text-white flex flex-col z-50">
 
       <!-- Marka + işletme -->
-      <div class="h-16 px-5 flex items-center gap-3 border-b border-white/[0.06] flex-shrink-0">
+      <div class="h-[88px] px-5 flex items-center gap-3 border-b border-white/[0.06] flex-shrink-0">
         <!-- Marka: kenar menü koyu zemin → açık yazılı logo -->
         <div class="min-w-0 leading-tight">
-          <img src="/brand/wordmark-light.png" alt="yenpos" class="h-[22px] w-auto mb-1" draggable="false">
-          <div class="text-[12px] text-white/45 truncate">
+          <img src="/brand/wordmark-light.png" alt="yenpos" class="h-10 w-auto mb-1.5" draggable="false">
+          <div class="text-[12.5px] text-white/50 truncate">
             {{ auth.isSuperAdmin ? 'Süper Admin' : auth.tenantName }}
           </div>
         </div>
