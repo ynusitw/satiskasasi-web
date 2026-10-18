@@ -98,13 +98,15 @@
           </div>
         </div>
         <div class="px-4 space-y-2">
-          <button v-for="p in shownProducts" :key="p.id" @click="pick(p)"
-                  class="w-full bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-3 text-left active:bg-gray-50">
+          <button v-for="p in shownProducts" :key="p.id" @click="pick(p)" :disabled="p.isSoldOut"
+                  class="w-full bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-3 text-left active:bg-gray-50"
+                  :class="p.isSoldOut ? 'opacity-50' : ''">
             <div class="min-w-0 flex-1">
               <div class="text-[15px] font-semibold text-primary leading-snug">{{ p.name }}</div>
               <div class="text-[13px] text-muted">
                 {{ p.variants.length ? money(Math.min(...p.variants.map(v => v.price))) + '’den' : money(p.price) }}
                 <span v-if="p.variants.length || p.modifierGroups.length" class="text-accent"> · seçenekli</span>
+                <span v-if="p.isSoldOut" class="font-bold text-red-600"> · Tükendi</span>
               </div>
             </div>
             <span v-if="inCart(p.id)" class="min-w-[26px] h-[26px] px-1.5 rounded-full bg-accent text-white text-[13px] font-bold flex items-center justify-center">
@@ -306,6 +308,7 @@ const shownProducts = computed(() => {
 })
 
 function pick(p) {
+  if (p.isSoldOut) return
   if (!p.variants.length && !p.modifierGroups.length) {
     addToCart({ product: p, variantId: null, options: new Set(), quantity: 1, note: '' })
     return

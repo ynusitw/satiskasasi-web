@@ -47,6 +47,21 @@
         </div>
       </div>
 
+      <!-- Kasa hareketleri: kasadan girilen gider / avans / para girişi / cari tahsilatı -->
+      <div v-if="report.drawerCash !== undefined" class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="section-title">Kasa Hareketleri</h2>
+          <div class="flex flex-wrap gap-x-6 gap-y-1 text-[13px]">
+            <span class="text-muted">Giriş <b class="text-green-600">+{{ fmt(report.cashInTotal) }}</b></span>
+            <span class="text-muted">Nakit tahsilat <b class="text-green-600">+{{ fmt(report.cariCollectionCash) }}</b></span>
+            <span class="text-muted">Çıkış <b class="text-danger">−{{ fmt(report.cashOutTotal) }}</b></span>
+            <span v-if="report.cariCollectionCard" class="text-muted">Kartla tahsilat <b class="text-primary">{{ fmt(report.cariCollectionCard) }}</b></span>
+            <span class="text-muted">Çekmeceye giren nakit <b class="text-primary">{{ fmt(report.drawerCash) }}</b></span>
+          </div>
+        </div>
+        <CashMovementList ref="moveList" />
+      </div>
+
       <!-- Kasiyer -->
       <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100">
@@ -81,6 +96,8 @@
         Personel satışları ciroya ve kasiyer tablosuna dahil değildir, ayrıca gösterilir.
         Açık hesap (cariye yazılan) satışlar tahsil edilmediği için nakit ve kart toplamlarına girmez;
         "Açık Hesap" kartında ayrıca görünür. Nakit + Kart + Açık Hesap = toplam satış.
+        Kasa hareketleri (gider, avans, para girişi, cari tahsilatı) ciroya girmez; Z raporundaki
+        beklenen kasaya eklenir. "Çekmeceye giren nakit" = satışların nakdi + giriş + nakit tahsilat − çıkış (açılış nakdi hariç).
         Z raporu kasadan alınır; alındığında bu sayfa sıfırlanır.
       </p>
     </template>
@@ -90,10 +107,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '../../api/api'
+import CashMovementList from '../../components/reports/CashMovementList.vue'
 
 const report  = ref(null)
 const loading = ref(true)
 const error   = ref('')
+const moveList = ref(null)
 
 function fmt(v) {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0) + ' ₺'
@@ -124,6 +143,7 @@ async function load() {
   error.value = ''
   try {
     report.value = (await api.getXReport()).data
+    moveList.value?.load()
   } catch (e) {
     error.value = e.response?.data?.message || 'Kasa durumu alınamadı.'
   } finally {

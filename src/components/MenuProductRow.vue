@@ -17,7 +17,7 @@
       <div class="product-foot">
         <span v-if="campaign" class="price-old">{{ listLabel }}</span>
         <span class="price-tag">{{ priceLabel }}</span>
-        <span v-if="isInactive" class="unavailable">Şu anda mevcut değil</span>
+        <span v-if="isInactive" class="unavailable">{{ product.isSoldOut ? 'Tükendi' : 'Şu anda mevcut değil' }}</span>
         <!-- Masadan sipariş açıksa -->
         <button v-if="orderable && !isInactive" type="button" class="add-btn"
                 @click.stop="emit('add', product)">

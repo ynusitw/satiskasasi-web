@@ -254,6 +254,8 @@ export default {
   createProduct:  (d)      => api.post('products', d),
   updateProduct:  (id, d)  => api.put(`products/${id}`, d),
   deleteProduct:  (id)     => api.delete(`products/${id}`),
+  // Tükendi işareti: kasa, garson telefonu ve QR menü sipariş almaz; Z'de kalkar
+  setSoldOut:     (id, soldOut) => api.post(`products/${id}/sold-out`, { soldOut }),
 
   // Kategoriler
   getCategories:  ()       => api.get('categories'),
@@ -340,4 +342,6 @@ export default {
   getDailyReport: (date) => api.get(`reports/daily?date=${date}`),
   // Z dönemi: zReportId yoksa açık dönem (kasadaki X raporuyla aynı satışlar)
   getPeriodReport: (zReportId) => api.get('reports/daily', { params: zReportId ? { zReportId } : { period: 'current' } }),
+  // Kasa hareketleri (gider, avans, para girişi, cari tahsilatı): zReportId yoksa açık dönem
+  getCashMovements: (zReportId) => api.get('cash-movements', { params: zReportId ? { zReportId } : { period: 'current' } }),
 }

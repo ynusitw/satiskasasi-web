@@ -224,8 +224,23 @@
                   </div>
                 </div>
                 <p class="text-xs text-muted mt-3">
-                  Beklenen = devreden nakit + dönemin nakit tahsilatı (parçalı ödemelerin nakit payı dahil, açık hesap hariç).
+                  Beklenen = devreden nakit + dönemin nakit tahsilatı (parçalı ödemelerin nakit payı dahil, açık hesap hariç)
+                  + kasa hareketleri (para girişi ve nakit cari tahsilatı eklenir, para çıkışı düşülür).
                 </p>
+              </div>
+
+              <!-- Kasa hareketleri (bu Z'ye bağlı) -->
+              <div v-if="hasMovements(modal.zRow)" class="rounded-xl border border-gray-100 mb-5 overflow-hidden">
+                <div class="px-4 py-3 flex flex-wrap items-center justify-between gap-2 border-b border-gray-100">
+                  <div class="text-[13px] font-semibold text-primary">Kasa hareketleri</div>
+                  <div class="flex flex-wrap gap-x-4 text-[12.5px] text-muted">
+                    <span v-if="modal.zRow.cashInTotal">Giriş <b class="text-green-600">+{{ fmt(modal.zRow.cashInTotal) }}</b></span>
+                    <span v-if="modal.zRow.cariCollectionCash">Nakit tahsilat <b class="text-green-600">+{{ fmt(modal.zRow.cariCollectionCash) }}</b></span>
+                    <span v-if="modal.zRow.cashOutTotal">Çıkış <b class="text-danger">−{{ fmt(modal.zRow.cashOutTotal) }}</b></span>
+                    <span v-if="modal.zRow.cariCollectionCard">Kartla tahsilat <b class="text-primary">{{ fmt(modal.zRow.cariCollectionCard) }}</b></span>
+                  </div>
+                </div>
+                <CashMovementList :z-report-id="modal.zRow.id" />
               </div>
 
               <!-- Satışlar tablosu -->
@@ -273,6 +288,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import api from '../../api/api'
+import CashMovementList from '../../components/reports/CashMovementList.vue'
 
 const reports   = ref([])
 const loading   = ref(true)
@@ -308,6 +324,11 @@ function diffClass(v, muteZero = false) {
   const n = v ?? 0
   if (Math.abs(n) < 0.005) return muteZero ? 'text-primary' : 'text-success'
   return n < 0 ? 'text-danger' : 'text-warning'
+}
+
+// Bu Z'de kasa hareketi var mı (eski Z'lerde alanlar 0 / yok)
+function hasMovements(z) {
+  return !!z && !!(z.cashInTotal || z.cashOutTotal || z.cariCollectionCash || z.cariCollectionCard)
 }
 
 function fmt(v) {

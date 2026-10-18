@@ -132,7 +132,8 @@
                   <div class="text-xs font-extrabold price-tag mt-0.5">
                     <span v-if="p.campaign" class="price-old">{{ fmt(p.price) }}</span>{{ fmt(menuPrice(p)) }}
                   </div>
-                  <button v-if="canOrder" type="button" class="featured-add" @click.stop="startAdd(p)">Ekle</button>
+                  <button v-if="canOrder && p.isActive !== false" type="button" class="featured-add" @click.stop="startAdd(p)">Ekle</button>
+                  <div v-else-if="p.isSoldOut" class="text-[11px] font-bold text-red-600 mt-1">Tükendi</div>
                 </div>
               </div>
             </div>
@@ -197,7 +198,7 @@
                   <span v-if="preview.campaign && preview.isActive !== false" class="price-old">{{ fmt(preview.price) }}</span>{{ fmt(menuPrice(preview)) }}
                 </span>
                 <span v-if="preview.isActive === false" class="lightbox-unavailable">
-                  Şu anda mevcut değil
+                  {{ preview.isSoldOut ? 'Tükendi' : 'Şu anda mevcut değil' }}
                 </span>
                 <button v-if="canOrder && preview.isActive !== false" type="button" class="lightbox-add"
                         @click="startAdd(preview)">Sepete ekle</button>
@@ -358,7 +359,11 @@ function fullUrl(p)     { return imageUrl('product', p.id) }
 // var/yok bilgisi veriyor. İkisi de çalışsın ki API ile Vue'nun hangi sırayla
 // yayına alındığı önemli olmasın.
 function normalize(data) {
-  const markProduct = p => { if (p.hasImage === undefined) p.hasImage = !!p.imageBase64 }
+  const markProduct = p => {
+    if (p.hasImage === undefined) p.hasImage = !!p.imageBase64
+    // Tükenen ürün pasif gibi soluk görünür, sipariş alınmaz (etiketi "Tükendi")
+    if (p.isSoldOut) p.isActive = false
+  }
   data.featured?.forEach(markProduct)
   data.categories?.forEach(c => {
     if (c.hasImage === undefined) c.hasImage = !!c.menuImageBase64

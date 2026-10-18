@@ -211,6 +211,12 @@
                                  bg-gray-200 text-gray-500 flex-shrink-0">
                       Pasif
                     </span>
+                    <span v-if="p.isSoldOut"
+                          :title="soldOutTitle(p)"
+                          class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                                 bg-red-100 text-red-600 flex-shrink-0">
+                      Tükendi
+                    </span>
                   </div>
                   <div v-if="!selectedCategoryId && p.categoryName"
                        class="text-xs mt-0.5 font-medium"
@@ -241,6 +247,16 @@
                 <!-- Aksiyon -->
                 <td class="px-5 py-3">
                   <div class="flex items-center justify-end gap-1">
+                    <!-- Tükendi: o gün bitti; Z raporu alınınca kendiliğinden kalkar -->
+                    <button v-if="p.isActive" @click="toggleSoldOut(p)"
+                            :disabled="soldOutBusy === p.id"
+                            :title="p.isSoldOut ? 'Yeniden satışa aç' : 'Tükendi olarak işaretle (Z raporunda kalkar)'"
+                            class="px-2 h-8 rounded-lg text-[11.5px] font-semibold transition-colors disabled:opacity-50"
+                            :class="p.isSoldOut
+                              ? 'text-green-700 hover:bg-green-50'
+                              : 'text-muted hover:text-danger hover:bg-red-50'">
+                      {{ p.isSoldOut ? 'Satışa aç' : 'Tükendi' }}
+                    </button>
                     <button @click="openExistingProductModal(p)"
                             title="Düzenle"
                             class="p-2 rounded-lg text-muted hover:text-accent hover:bg-accent/10
@@ -1209,6 +1225,31 @@ async function save() {
     error.value = e.response?.data?.message || e.response?.data?.title || e.message || 'Hata oluştu.'
   } finally {
     saving.value = false
+  }
+}
+
+// ── Tükendi ───────────────────────────────────────────────────────────────
+const soldOutBusy = ref(null)
+
+function soldOutTitle(p) {
+  const at = p.soldOutAt ? new Date(p.soldOutAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''
+  return ['Tükendi', at && `${at}'de`, p.soldOutBy && `(${p.soldOutBy})`].filter(Boolean).join(' ')
+    + ' — Z raporu alınınca kendiliğinden satışa açılır.'
+}
+
+async function toggleSoldOut(p) {
+  soldOutBusy.value = p.id
+  try {
+    const { data } = await api.setSoldOut(p.id, !p.isSoldOut)
+    p.isSoldOut = data.isSoldOut
+    p.soldOutAt = data.soldOutAt
+    p.soldOutBy = data.soldOutBy
+  } catch (e) {
+    await uiAlert(e.response?.status === 404 || e.response?.status === 405
+      ? 'Sunucu henüz güncellenmemiş; tükendi işareti için API yayınlanmalı.'
+      : (e.response?.data?.message || 'İşaret kaydedilemedi.'))
+  } finally {
+    soldOutBusy.value = null
   }
 }
 
