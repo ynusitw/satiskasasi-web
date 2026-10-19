@@ -401,6 +401,7 @@ const form = reactive({
   showPaymentMethod:   true,
   showFooter:          true,
   showInfoNote:        true,
+  showSignatureLine:   true,
 })
 
 async function load() {
@@ -499,5 +500,7 @@ const visibilityOptions = [
   { key: 'showPaymentMethod',  label: 'Ödeme Yöntemi'   },
   { key: 'showFooter',         label: 'Alt Not'          },
   { key: 'showInfoNote',       label: 'Bilgi Fişi Notu'  },
+  // Tahsilat makbuzu ve kasa giriş/çıkış fişindeki "Teslim eden / alan imza"
+  { key: 'showSignatureLine',  label: 'İmza Satırı (makbuz)' },
 ]
 </script>
