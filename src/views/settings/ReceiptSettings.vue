@@ -253,7 +253,7 @@
                   <template v-else>
                     <div v-for="item in sampleItems" :key="item.name"
                          class="flex justify-between mb-0.5">
-                      <span>{{ item.name }}</span>
+                      <span>{{ item.qty }} x {{ item.name }}</span>
                       <span>{{ fmt(item.qty * item.price) }}</span>
                     </div>
                   </template>
@@ -494,7 +494,8 @@ const visibilityOptions = [
   { key: 'showPhone',          label: 'Telefon'         },
   { key: 'showDate',           label: 'Tarih & Saat'    },
   { key: 'showSeparatorLines', label: 'Ayraç Çizgiler'  },
-  { key: 'showProductDetails', label: 'Ürün Detayları'  },
+  // Ürünler her zaman basılır; bu yalnızca ayrıntıyı (birim fiyat, çeşni, not) açar
+  { key: 'showProductDetails', label: 'Ürün Detayları (birim fiyat, çeşni)' },
   { key: 'showSubtotal',       label: 'Ara Toplam'      },
   { key: 'showDiscount',       label: 'İndirim'         },
   { key: 'showPaymentMethod',  label: 'Ödeme Yöntemi'   },
