@@ -122,6 +122,7 @@ const routes = [
   { path: '/settings/yazici-ayarlari', redirect: '/settings/receipt' },
   { path: '/settings/musteri-ekrani',  component: () => import('../views/settings/MusteriEkrani.vue') },
   { path: '/settings/terminal',        component: () => import('../views/settings/TerminalAyarlari.vue') },
+  { path: '/settings/islem-yetkileri', component: () => import('../views/settings/IslemYetkileri.vue') },
   { path: '/settings/terazi',          component: () => import('../views/settings/TeraziAyarlari.vue') },
   {
     path: '/subscription',

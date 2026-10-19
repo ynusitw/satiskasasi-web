@@ -265,6 +265,9 @@ export default {
 
   // Kullanıcılar
   getUsers:    ()       => api.get('users'),
+  // İşlem yetkileri: kasadaki her işlem için Şifresiz / Yönetici / Özel şifre
+  getActionPolicies:  ()        => api.get('action-policies'),
+  saveActionPolicies: (updates) => api.put('action-policies', updates),
   createUser:  (d)      => api.post('users', d),
   updateUser:  (id, d)  => api.put(`users/${id}`, d),
   deleteUser:  (id)     => api.delete(`users/${id}`),

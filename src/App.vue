@@ -291,6 +291,7 @@ const showCari               = computed(() => allowed({ module: MODULES.CARI }))
 
 const menuBottom = [
   { to: '/users', label: 'Kullanıcılar' },
+  { to: '/settings/islem-yetkileri', label: 'İşlem Yetkileri' },
   { to: '/staff', label: 'Personel', module: MODULES.STAFF },
 ]
 

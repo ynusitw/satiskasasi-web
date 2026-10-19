@@ -54,7 +54,7 @@
               <span v-if="u.twoFactorEnabled" class="chip-success ml-1" title="İki adımlı doğrulama açık">2FA</span>
             </td>
             <td class="px-6 py-4 text-xs text-muted">
-              {{ [u.canTakePayment && 'Ödeme', u.canAccessMenu && 'Menü', u.canClearCart && 'Sepet', u.canAccessCashZReport && 'Rapor'].filter(Boolean).join(', ') }}
+              {{ u.isAdmin ? 'Tüm işlemler' : u.canApproveAdjustments ? 'Onay yetkilisi' : 'İşlem Yetkileri’ne göre' }}
             </td>
             <td class="px-6 py-4">
               <div class="flex gap-2 justify-end">
@@ -94,27 +94,25 @@
                 <span class="text-sm font-semibold">Aktif</span>
               </label>
             </div>
-            <div>
-              <p class="text-sm font-semibold mb-2">Yetkiler</p>
-              <div class="space-y-2">
-                <label v-for="p in permissions" :key="p.key" class="flex items-center gap-2 cursor-pointer">
-                  <input v-model="form[p.key]" type="checkbox" class="w-4 h-4"/>
-                  <span class="text-sm">{{ p.label }}</span>
-                </label>
-              </div>
-            </div>
+            <!-- Kişi bazlı yetkiler kalktı: hangi işlemin şifre / onay isteyeceği
+                 tek yerden, İşlem Yetkileri sayfasından yönetilir. -->
+            <p class="text-xs text-muted bg-gray-50 rounded-lg px-3 py-2">
+              Hangi işlemin şifre ya da yönetici onayı isteyeceği
+              <router-link to="/settings/islem-yetkileri" class="text-accent font-semibold">İşlem Yetkileri</router-link>
+              sayfasından ayarlanır.
+            </p>
 
             <!-- Yönetici onayı: kasada indirim / ikram / personel satışı -->
             <div class="pt-4 border-t border-gray-100">
               <p class="text-sm font-semibold mb-1">Yönetici Onayı</p>
               <p class="text-xs text-muted mb-3">
-                Kasada indirim, ikram ve personel satışı bu PIN ile onaylanır.
-                Admin kullanıcılar her zaman onaylayabilir.
+                İşlem Yetkileri'nde "Yönetici" seçilen işlemler (indirim, ikram, iade...) kasada bu PIN ile onaylanır.
+                Admin ve onay yetkilisi kullanıcılar bu işlemleri kendileri PIN'siz yapar.
               </p>
               <label class="flex items-center gap-2 cursor-pointer mb-3">
                 <input v-model="form.canApproveAdjustments" type="checkbox" class="w-4 h-4"
                        :disabled="form.isAdmin"/>
-                <span class="text-sm">İndirim / ikram onaylayabilir
+                <span class="text-sm">Onay yetkilisi (yönetici onayı verebilir)
                   <span v-if="form.isAdmin" class="text-xs text-muted">(admin — zaten yetkili)</span>
                 </span>
               </label>
@@ -158,13 +156,6 @@ const EMPTY = { id: 0, username: '', password: '', isAdmin: false, isActive: tru
 const form = reactive({ ...EMPTY })
 // PIN kaldırma ayrı bir onay: boş PIN kutusu "değiştirme" anlamına gelir.
 const removePin = ref(false)
-const permissions = [
-  { key: 'canTakePayment', label: 'Ödeme alabilir' },
-  { key: 'canAccessMenu', label: 'Menüye erişebilir' },
-  { key: 'canClearCart', label: 'Sepeti temizleyebilir' },
-  { key: 'canChangeQuantity', label: 'Miktar değiştirebilir' },
-  { key: 'canAccessCashZReport', label: 'Kasa/Z-Raporu görebilir' },
-]
 async function load() { loading.value = true; users.value = (await api.getUsers()).data; loading.value = false }
 function openCreate() { Object.assign(form, { ...EMPTY }); removePin.value = false; modal.editing = false; modal.show = true; error.value = '' }
 function openEdit(u) { Object.assign(form, { ...EMPTY, ...u, password: '', managerPin: '' }); removePin.value = false; modal.editing = true; modal.show = true; error.value = '' }
