@@ -1,8 +1,8 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
 
     <!-- Başlık -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between flex-wrap mb-6 gap-3">
       <h1 class="page-title">Cari / Müşteri Yönetimi</h1>
       <button @click="openCreate" class="btn-primary">
         + Yeni Müşteri
@@ -111,7 +111,7 @@
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
 
           <!-- Başlık -->
-          <div class="px-8 pt-8 pb-4 border-b border-gray-100">
+          <div class="px-5 sm:px-8 pt-6 sm:pt-8 pb-4 border-b border-gray-100">
             <div class="flex items-start justify-between">
               <div>
                 <h2 class="modal-title">{{ detailModal.cari?.name }}</h2>
@@ -154,7 +154,7 @@
           </div>
 
           <!-- Hareket Listesi -->
-          <div class="flex-1 overflow-y-auto px-8 py-4">
+          <div class="flex-1 overflow-y-auto px-5 sm:px-8 py-4">
             <div v-if="txLoading" class="text-center py-8 text-muted">Yükleniyor...</div>
             <div v-else-if="transactions.length === 0" class="text-center py-8 text-muted">Henüz hareket yok</div>
             <div v-else class="space-y-2">
@@ -171,7 +171,7 @@
             </div>
           </div>
 
-          <div class="px-8 pb-6 pt-4 border-t border-gray-100">
+          <div class="px-5 sm:px-8 pb-6 pt-4 border-t border-gray-100">
             <button @click="detailModal.show = false" class="btn-secondary w-full">Kapat</button>
           </div>
         </div>

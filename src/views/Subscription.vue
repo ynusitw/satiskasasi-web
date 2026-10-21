@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
     <h1 class="page-title mb-8">Abonelik Bilgileri</h1>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

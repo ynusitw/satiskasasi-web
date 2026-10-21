@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
         <h1 class="page-title">Kârlılık</h1>
@@ -30,24 +30,24 @@
 
     <!-- Özet -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-      <div class="bg-white rounded-2xl shadow-sm p-5">
+      <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
         <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Ciro</div>
-        <div class="text-2xl font-semibold tracking-tight text-primary mt-1">{{ money(summary.revenue) }}</div>
+        <div class="stat-value text-primary mt-1">{{ money(summary.revenue) }}</div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-5">
+      <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
         <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Maliyet</div>
-        <div class="text-2xl font-semibold tracking-tight text-amber-600 mt-1">{{ money(summary.cost) }}</div>
+        <div class="stat-value text-amber-600 mt-1">{{ money(summary.cost) }}</div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-5">
+      <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
         <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Kâr</div>
-        <div class="text-2xl font-semibold tracking-tight mt-1"
+        <div class="stat-value mt-1"
              :class="(summary.profit ?? 0) >= 0 ? 'text-success' : 'text-danger'">
           {{ money(summary.profit) }}
         </div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-5">
+      <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
         <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Kâr Marjı</div>
-        <div class="text-2xl font-semibold tracking-tight text-primary mt-1">
+        <div class="stat-value text-primary mt-1">
           {{ summary.margin != null ? pct(summary.margin) : '—' }}
         </div>
       </div>

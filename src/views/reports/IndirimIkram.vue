@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
         <h1 class="page-title">İndirim &amp; İkram</h1>
@@ -44,10 +44,10 @@
     <!-- Özet: türe tıklayınca liste o türe süzülür -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
       <button v-for="c in cards" :key="c.type" @click="toggleType(c.type)"
-              class="text-left bg-white rounded-2xl shadow-sm p-5 border-2 transition-colors"
+              class="text-left stat-card bg-white rounded-2xl shadow-sm p-5 border-2 transition-colors"
               :class="type === c.type ? 'border-accent' : 'border-transparent hover:border-gray-200'">
         <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">{{ c.label }}</div>
-        <div class="text-2xl font-semibold tracking-tight mt-1" :class="c.color">{{ fmt(c.total) }}</div>
+        <div class="stat-value mt-1" :class="c.color">{{ fmt(c.total) }}</div>
         <div class="text-xs text-muted mt-1">{{ c.count }} işlem</div>
       </button>
     </div>

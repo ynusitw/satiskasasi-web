@@ -1,8 +1,8 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
 
     <!-- Başlık -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between flex-wrap mb-6 gap-3">
       <div>
         <h1 class="page-title">Paket Yönetimi</h1>
         <p class="page-subtitle">Plan fiyatlarını ve özelliklerini yönetin</p>

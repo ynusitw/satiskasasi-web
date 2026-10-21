@@ -57,6 +57,15 @@
   .page-title    { @apply text-[26px] leading-tight font-semibold text-primary; letter-spacing: -0.022em; }
   .page-subtitle { @apply text-[13px] text-muted mt-1; }
 
+  /* Rapor özet kartı ve büyük tutarı. Tutar hiç kırılmaz (₺ tek başına alt
+     satıra düşmesin); kart daraldıkça yazı küçülür: 15cqi = kart iç
+     genişliğinin %15'i, "123.456,00 ₺" sığar. Üst sınır --stat-max. */
+  .stat-card     { container-type: inline-size; }
+  .stat-value    { @apply font-semibold tracking-tight whitespace-nowrap;
+                   font-size: clamp(0.8125rem, 15cqi, var(--stat-max, 1.5rem)); line-height: 1.3; }
+  .stat-value-lg { --stat-max: 1.875rem; }
+  .stat-value-sm { --stat-max: 1.25rem; }
+
   .btn {
     @apply inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-lg
            text-[13px] font-medium whitespace-nowrap select-none

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
 
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -27,9 +27,9 @@
         <div class="text-xs text-muted mb-1">Alacaklı</div>
         <div class="text-2xl font-semibold tracking-tight text-primary">{{ alacakliSayisi }}</div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm p-5">
+      <div class="stat-card bg-white rounded-2xl shadow-sm p-4 sm:p-5">
         <div class="text-xs text-muted mb-1">Net Pozisyon</div>
-        <div class="text-2xl font-semibold tracking-tight" :class="netBakiye > 0 ? 'text-danger' : netBakiye < 0 ? 'text-success' : 'text-muted'">
+        <div class="stat-value" :class="netBakiye > 0 ? 'text-danger' : netBakiye < 0 ? 'text-success' : 'text-muted'">
           {{ fmt(Math.abs(netBakiye)) }}
         </div>
       </div>
@@ -309,7 +309,7 @@
 
           <div class="border border-gray-200 rounded-xl p-4 mb-5">
             <div class="text-sm font-semibold text-primary mb-2">Elle düzeltme</div>
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input v-model.number="loyalty.adj.points" type="number" step="1" placeholder="Puan (+/-)"
                      class="px-3 h-9 border border-gray-200 rounded-lg text-[13.5px] bg-white"/>
               <select v-model="loyalty.adj.cardId" class="px-3 h-9 border border-gray-200 rounded-lg text-[13.5px] bg-white">

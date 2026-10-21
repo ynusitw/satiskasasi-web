@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
 
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
@@ -102,7 +102,7 @@
           <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl">
 
             <!-- Modal Başlık -->
-            <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div class="px-4 sm:px-8 py-4 sm:py-5 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h2 class="text-xl font-semibold tracking-tight text-primary">Yeni Fatura Oluştur</h2>
                 <p class="text-xs text-muted mt-0.5">Kalemleri girdikten sonra kaydedin</p>
@@ -116,7 +116,7 @@
             </div>
 
             <!-- Modal Gövde -->
-            <div class="p-8 space-y-8">
+            <div class="p-4 sm:p-8 space-y-6 sm:space-y-8">
 
               <!-- Fatura Başlık Bilgileri -->
               <div>
@@ -278,7 +278,7 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="px-8 py-5 border-t border-gray-100 flex items-center justify-between gap-4">
+            <div class="px-4 sm:px-8 py-4 sm:py-5 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
               <div class="text-sm min-w-0 flex-1">
                 <span v-if="error" class="text-danger">{{ error }}</span>
                 <span v-else class="text-muted">
@@ -309,7 +309,7 @@
       <div v-if="detail.show" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex items-center justify-center p-4"
            @click.self="detail.show = false">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-          <div class="px-7 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
+          <div class="px-5 sm:px-7 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
             <div>
               <div class="flex items-center gap-2">
                 <h2 class="modal-title">{{ detail.row?.tip }} Faturası · {{ detail.row?.no }}</h2>
@@ -326,7 +326,7 @@
             <button class="btn-secondary btn-sm" @click="detail.show = false">Kapat</button>
           </div>
 
-          <div class="p-7">
+          <div class="p-5 sm:p-7">
             <div v-if="detail.loading" class="text-sm text-muted">Yükleniyor...</div>
             <template v-else>
               <p v-if="detail.inv?.description" class="text-sm text-muted mb-4">{{ detail.inv.description }}</p>

@@ -1,8 +1,8 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
 
     <!-- Başlık -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between flex-wrap mb-6 gap-3">
       <div>
         <h1 class="page-title">Lisans</h1>
         <p class="page-subtitle">
@@ -16,9 +16,9 @@
     </div>
 
     <!-- Sekmeler -->
-    <div class="flex gap-1 mb-6 border-b border-gray-200">
+    <div class="scroll-x flex gap-1 mb-6 border-b border-gray-200">
       <RouterLink v-for="t in tabs" :key="t.key" :to="t.to"
-                  class="px-5 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors"
+                  class="px-3 sm:px-5 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap flex-shrink-0"
                   :class="tab === t.key
                     ? 'border-accent text-accent'
                     : 'border-transparent text-muted hover:text-primary'">

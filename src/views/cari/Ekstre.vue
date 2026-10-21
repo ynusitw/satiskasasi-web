@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
 
     <!-- Başlık + Cari Seçici -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -53,7 +53,7 @@
       </div>
 
       <!-- Özet Kartlar -->
-      <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow-sm p-5 text-center">
           <div class="text-xs text-muted mb-1">Toplam Borç</div>
           <div class="text-xl font-semibold tracking-tight text-danger">{{ fmt(toplamBorc) }}</div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
     <div class="mb-6">
       <h1 class="page-title">Kasa İşlemleri</h1>
       <p class="page-subtitle">Tahsilat ve tediye makbuz yönetimi</p>

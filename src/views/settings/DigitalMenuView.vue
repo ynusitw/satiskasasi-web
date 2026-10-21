@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8 max-w-6xl">
+  <div class="p-4 sm:p-6 lg:p-8 max-w-6xl">
     <h1 class="page-title">Dijital Menü (QR)</h1>
     <p class="text-muted text-sm mt-1 mb-6">
       Bu QR kodu masalarınıza koyun — müşterileriniz telefonlarıyla okutup
@@ -12,7 +12,7 @@
     <!-- Kartlar geniş ekranda iki sütuna yayılır; dar ekranda alt alta iner -->
     <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
       <!-- QR + bağlantı -->
-      <div class="bg-white rounded-2xl shadow-sm p-8 flex flex-col items-center">
+      <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-8 flex flex-col items-center">
         <img :src="qrUrl" :alt="menuUrl" width="220" height="220"
              class="rounded-xl border border-gray-100"/>
 

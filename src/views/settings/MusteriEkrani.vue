@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8 max-w-5xl">
+  <div class="p-4 sm:p-6 lg:p-8 max-w-5xl">
     <h1 class="page-title">Müşteri Ekranı</h1>
     <p class="text-muted text-sm mt-1 mb-6">
       Kasaya bağlı ikinci ekranda müşterinin gördüğü sayfa. Kasa açılırken bu ayarları

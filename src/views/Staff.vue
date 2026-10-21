@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8 max-w-7xl">
+  <div class="p-4 sm:p-6 lg:p-8 max-w-7xl">
     <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
       <div>
         <h1 class="page-title">Personel</h1>

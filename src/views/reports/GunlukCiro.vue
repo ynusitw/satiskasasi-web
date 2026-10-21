@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
 
     <!-- Başlık -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -25,25 +25,25 @@
 
       <!-- Özet Kartlar -->
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Toplam Satış</div>
-          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(report.grandTotal) }}</div>
+          <div class="stat-value text-primary">{{ fmt(report.grandTotal) }}</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">İşlem Sayısı</div>
-          <div class="text-2xl font-semibold tracking-tight text-primary">{{ report.saleCount }}</div>
+          <div class="stat-value text-primary">{{ report.saleCount }}</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Nakit</div>
-          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(report.totalCash) }}</div>
+          <div class="stat-value text-primary">{{ fmt(report.totalCash) }}</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Kart</div>
-          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(report.totalCard) }}</div>
+          <div class="stat-value text-primary">{{ fmt(report.totalCard) }}</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-xs text-muted mb-1">Açık Hesap</div>
-          <div class="text-2xl font-semibold tracking-tight text-amber-600">{{ fmt(report.totalOpenAccount) }}</div>
+          <div class="stat-value text-amber-600">{{ fmt(report.totalOpenAccount) }}</div>
         </div>
       </div>
 

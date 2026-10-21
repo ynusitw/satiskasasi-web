@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
       <div>
         <h1 class="page-title">Kasa Defteri</h1>
@@ -21,28 +21,28 @@
     <template v-else-if="report">
       <!-- Ana tutarlar -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-6">
           <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Nakit</div>
-          <div class="text-3xl font-semibold tracking-tight text-primary mt-1">{{ fmt(report.totalCash) }}</div>
+          <div class="stat-value stat-value-lg text-primary mt-1">{{ fmt(report.totalCash) }}</div>
           <div class="text-xs text-muted mt-1">{{ pct(report.totalCash) }} · parçalı ödemelerin nakit payı dahil</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-6">
           <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Kredi Kartı</div>
-          <div class="text-3xl font-semibold tracking-tight text-primary mt-1">{{ fmt(report.totalCard) }}</div>
+          <div class="stat-value stat-value-lg text-primary mt-1">{{ fmt(report.totalCard) }}</div>
           <div class="text-xs text-muted mt-1">{{ pct(report.totalCard) }} · parçalı ödemelerin kart payı dahil</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-6">
           <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">Genel Toplam</div>
-          <div class="text-3xl font-semibold tracking-tight text-primary mt-1">{{ fmt(report.grandTotal) }}</div>
+          <div class="stat-value stat-value-lg text-primary mt-1">{{ fmt(report.grandTotal) }}</div>
           <div class="text-xs text-muted mt-1">{{ report.saleCount }} işlem</div>
         </div>
       </div>
 
       <!-- İkincil göstergeler -->
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div v-for="k in secondary" :key="k.label" class="bg-white rounded-2xl shadow-sm p-5">
+        <div v-for="k in secondary" :key="k.label" class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold uppercase tracking-wider text-muted">{{ k.label }}</div>
-          <div class="text-xl font-semibold tracking-tight mt-1" :class="k.tone">{{ k.value }}</div>
+          <div class="stat-value stat-value-sm mt-1" :class="k.tone">{{ k.value }}</div>
           <div v-if="k.hint" class="text-xs text-muted mt-1">{{ k.hint }}</div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8 max-w-5xl">
+  <div class="p-4 sm:p-6 lg:p-8 max-w-5xl">
     <h1 class="page-title">İşlem Yetkileri</h1>
     <p class="page-subtitle mb-6">
       Kasadaki her işlemin kimin tarafından, hangi onayla yapılacağını seçin. Değişiklik kasalara

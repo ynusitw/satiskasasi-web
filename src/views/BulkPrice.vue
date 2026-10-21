@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8 pb-32">
+  <div class="p-4 sm:p-6 lg:p-8 pb-32">
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
         <h1 class="page-title">Toplu Fiyat</h1>

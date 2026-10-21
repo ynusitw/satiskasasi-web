@@ -1,0 +1,47 @@
+/* ── Telefon ve tablet ───────────────────────────────────────────────────
+   Sayfalar masaüstü için yazıldı; buradaki kurallar yalnızca dar ekranda
+   devreye girer ve sayfaları tek tek elden geçirmeden ortak sorunları çözer.
+   Sayfaya özel düzen (ızgara sütunları, başlık satırları) sayfanın kendisinde. */
+
+@media (max-width: 1023.98px) {
+  /* Tablo kartları köşe yuvarlaması için overflow-hidden kullanıyor; dar
+     ekranda bu, sağdaki sütunları kesip erişilmez yapıyordu. Kart yatay
+     kaydırılır, dikeyde kırpma (yuvarlak köşe) korunur. */
+  .overflow-hidden:has(table) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Sütun başlıkları harf harf, tutarlar ₺ işaretinden kırılmasın
+     (tutar sütunları sağa hizalı; tablo gerekirse yana kayar) */
+  :where(thead th), :where(td.text-right) { white-space: nowrap; }
+
+  /* Sekme / filtre şeritleri sığmazsa kaydırılır (alt satıra taşmadan) */
+  .scroll-x {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll-x::-webkit-scrollbar { display: none; }
+}
+
+@media (max-width: 639.98px) {
+  .page-title { font-size: 22px; }
+
+  /* Açılır pencereler: telefonda kenar boşluğu küçülür; uzun pencere ekrana
+     sığmazsa kendi içinde kayar (içeriği kendi düzenleyen flex pencereler hariç). */
+  .fixed.inset-0 > .shadow-2xl.p-8,
+  .fixed.inset-0 > .shadow-2xl.p-7 { padding: 1.25rem; }
+  .fixed.inset-0 > .shadow-2xl:not(.flex-col) {
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+  }
+}
+
+/* iOS Safari 16 pikselden küçük yazılı alana dokununca sayfayı yakınlaştırır
+   ve geri uzaklaştırmaz. Yalnızca dokunmatik Safari'de alanlar 16 piksel. */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 1023.98px) {
+    input:not([type=checkbox]):not([type=radio]):not([type=range]),
+    select, textarea { font-size: 16px !important; }
+  }
+}

@@ -1,6 +1,6 @@
 <template>
-  <div class="p-8">
-    <div class="flex items-center justify-between mb-6">
+  <div class="p-4 sm:p-6 lg:p-8">
+    <div class="flex items-center justify-between flex-wrap mb-6 gap-3">
       <h1 class="page-title">Kategoriler</h1>
       <button @click="openCreate" class="btn-primary">+ Yeni Kategori</button>
     </div>

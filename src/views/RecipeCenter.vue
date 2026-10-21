@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8 min-h-screen bg-bg">
+  <div class="p-4 sm:p-6 lg:p-8 min-h-screen bg-bg">
 
     <!-- Başlık -->
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">

@@ -5,11 +5,55 @@
 
   <div v-else class="flex min-h-screen bg-bg">
 
-    <aside v-if="auth.isLoggedIn && route.path !== '/login'"
-           class="sidebar fixed left-0 top-0 h-full w-64 bg-primary text-white flex flex-col z-50">
+    <!-- Telefon / tablet üst çubuğu: kenar menü 1024 pikselin altında gizli,
+         buradaki düğmeyle soldan açılır. -->
+    <header v-if="hasShell"
+            class="lg:hidden fixed top-0 inset-x-0 z-40 h-14 bg-primary text-white flex items-center gap-2 px-2
+                   border-b border-white/[0.06]">
+      <button @click="drawerOpen = true" aria-label="Menüyü aç"
+              class="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-white/[0.08]">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+      </button>
+      <img src="/brand/wordmark-light.png" alt="yenpos" class="h-7 w-auto" draggable="false">
+      <span class="min-w-0 flex-1 truncate text-[12.5px] text-white/50 pl-1">
+        {{ auth.isSuperAdmin ? 'Süper Admin' : auth.tenantName }}
+      </span>
+      <RouterLink v-if="!auth.isSuperAdmin" to="/notifications" aria-label="Bildirimler"
+                  class="relative w-11 h-11 flex items-center justify-center rounded-lg hover:bg-white/[0.08]">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0"/>
+        </svg>
+        <span v-if="notificationsStore.unread"
+              class="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-[10.5px]
+                     font-semibold flex items-center justify-center">
+          {{ notificationsStore.unread > 99 ? '99+' : notificationsStore.unread }}
+        </span>
+      </RouterLink>
+    </header>
+
+    <!-- Menü açıkken arka plan (telefon) -->
+    <Transition name="fade">
+      <div v-if="hasShell && drawerOpen" class="lg:hidden fixed inset-0 z-[45] bg-black/40"
+           @click="drawerOpen = false"/>
+    </Transition>
+
+    <aside v-if="hasShell"
+           class="sidebar fixed left-0 top-0 h-full w-64 max-w-[85vw] bg-primary text-white flex flex-col z-50
+                  transition-transform duration-200 lg:translate-x-0"
+           :class="drawerOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'">
 
       <!-- Marka + işletme -->
       <div class="h-[88px] px-5 flex items-center gap-3 border-b border-white/[0.06] flex-shrink-0">
+        <button @click="drawerOpen = false" aria-label="Menüyü kapat"
+                class="lg:hidden order-last ml-auto -mr-2 w-10 h-10 flex items-center justify-center rounded-lg
+                       text-white/60 hover:text-white hover:bg-white/[0.08]">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
         <!-- Marka: kenar menü koyu zemin → açık yazılı logo -->
         <div class="min-w-0 leading-tight">
           <img src="/brand/wordmark-light.png" alt="yenpos" class="h-10 w-auto mb-1.5" draggable="false">
@@ -90,7 +134,7 @@
           </div>
         </div>
         <div class="grid grid-cols-2 gap-1.5 mt-2">
-          <button @click="settingsOpen = true"
+          <button @click="settingsOpen = true; drawerOpen = false"
                   class="py-1.5 rounded-md text-[12px] font-medium text-white/60
                          bg-white/[0.04] hover:bg-white/[0.08] hover:text-white">
             Ayarlar
@@ -108,11 +152,11 @@
     <SettingsModal v-model:open="settingsOpen"/>
 
     <!-- İçerik -->
-    <main :class="auth.isLoggedIn && route.path !== '/login' ? 'ml-64' : ''"
-          class="flex-1">
+    <main :class="hasShell ? 'pt-14 lg:pt-0 lg:ml-64' : ''"
+          class="flex-1 min-w-0">
       <!-- Lisansta olmayan bir modüle gidilmek istendi -->
       <div v-if="deniedModule"
-           class="mx-8 mt-6 flex items-center justify-between gap-4 rounded-xl
+           class="mx-4 lg:mx-8 mt-6 flex items-center justify-between gap-4 rounded-xl
                   border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
         <span>
           <strong>{{ deniedModule }}</strong> lisansınızda bulunmuyor.
@@ -214,6 +258,18 @@ function dismissDenied() {
 }
 
 const settingsOpen = ref(false)
+
+// Kenar menü (kabuk) giriş yapılmışken görünür; telefonda çekmece olarak açılır.
+const hasShell   = computed(() => auth.isLoggedIn && route.path !== '/login')
+const drawerOpen = ref(false)
+// Sayfa değişince ya da ekran genişleyince çekmece kapanır; açıkken arka plan kaymaz.
+watch(() => route.fullPath, () => { drawerOpen.value = false })
+watch(drawerOpen, v => { document.documentElement.style.overflow = v ? 'hidden' : '' })
+const wideQuery = window.matchMedia('(min-width: 1024px)')
+const onWide = e => { if (e.matches) drawerOpen.value = false }
+const onKey = e => { if (e.key === 'Escape') drawerOpen.value = false }
+onMounted(() => { wideQuery.addEventListener('change', onWide); window.addEventListener('keydown', onKey) })
+onUnmounted(() => { wideQuery.removeEventListener('change', onWide); window.removeEventListener('keydown', onKey) })
 
 // Açılır menü grupları
 const open = reactive({ reports: false, cari: false, kasa: false, lisans: false })

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8 min-h-screen bg-bg">
+  <div class="p-4 sm:p-6 lg:p-8 min-h-screen bg-bg">
 
     <!-- Başlık -->
     <div class="flex flex-wrap items-end justify-between gap-4 mb-7">
@@ -26,7 +26,7 @@
 
       <!-- ── Ana göstergeler ──────────────────────────────────────────── -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <div v-for="k in kpis" :key="k.label" class="bg-white rounded-2xl shadow-sm p-5">
+        <div v-for="k in kpis" :key="k.label" class="stat-card bg-white rounded-2xl shadow-sm p-4 sm:p-5">
           <div class="flex items-center justify-between gap-2">
             <span class="text-[13px] font-medium text-muted">{{ k.label }}</span>
             <span v-if="k.trend !== null && k.trend !== undefined"
@@ -35,7 +35,7 @@
               {{ k.trend >= 0 ? '+' : '−' }}{{ Math.abs(k.trend).toFixed(1) }}%
             </span>
           </div>
-          <div class="text-[26px] leading-tight font-semibold text-primary tracking-tight mt-2">
+          <div class="stat-value text-primary mt-2" style="--stat-max: 26px">
             {{ k.value }}
           </div>
           <div class="text-[12.5px] text-muted mt-1.5">{{ k.hint }}</div>

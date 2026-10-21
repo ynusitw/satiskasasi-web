@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
 
     <!-- Başlık + eylemler -->
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
@@ -8,7 +8,7 @@
         <p class="page-subtitle">Kategori ve ürün yönetimi</p>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <!-- Excel işlemleri tek menüde -->
         <div class="relative">
           <button @click="excelMenuOpen = !excelMenuOpen" class="btn-secondary">
@@ -53,10 +53,10 @@
     </div>
 
     <!-- ── İki Sütun Layout ──────────────────────────────────────────── -->
-    <div class="flex gap-5 items-start">
+    <div class="flex flex-col lg:flex-row gap-5 lg:items-start">
 
       <!-- ── Sol Kart: Kategoriler ──────────────────────────────────── -->
-      <div class="w-60 flex-shrink-0 bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="w-full lg:w-60 flex-shrink-0 bg-white rounded-2xl shadow-sm overflow-hidden">
 
         <!-- Başlık + Yeni Grup -->
         <div class="px-4 py-3.5 border-b border-gray-100 flex items-center justify-between">
@@ -145,7 +145,7 @@
       <div class="flex-1 min-w-0 bg-white rounded-2xl shadow-sm overflow-hidden">
 
         <!-- Toolbar -->
-        <div class="flex items-center gap-3 px-5 py-3 border-b border-gray-100">
+        <div class="flex flex-wrap items-center gap-3 px-4 sm:px-5 py-3 border-b border-gray-100">
           <!-- Seçili kategori başlığı -->
           <div class="flex items-center gap-2 flex-1 min-w-0">
             <span v-if="selectedCategory"
@@ -158,14 +158,14 @@
           </div>
 
           <!-- Arama -->
-          <div class="relative">
+          <div class="relative w-full sm:w-auto">
             <svg class="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
             </svg>
             <input v-model="search" placeholder="Ürün ara..."
-                   class="pl-9 pr-3 h-9 border border-gray-200 rounded-lg text-[13px] w-64 bg-white"/>
+                   class="pl-9 pr-3 h-9 border border-gray-200 rounded-lg text-[13px] w-full sm:w-64 bg-white"/>
           </div>
 
         </div>
@@ -486,7 +486,7 @@
 
           <!-- Sonuç -->
           <div v-else-if="importModal.done > 0 || importModal.errors.length">
-            <div class="grid grid-cols-4 gap-3 mt-4 mb-5">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 mb-5">
               <div class="bg-green-50 rounded-xl p-3 text-center">
                 <div class="text-2xl font-semibold tracking-tight text-primary">{{ importModal.productsCreated }}</div>
                 <div class="text-xs text-muted mt-0.5">Ürün Eklendi</div>
@@ -530,18 +530,18 @@
            class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
 
-          <div class="px-8 pt-8 pb-6 border-b border-gray-100">
+          <div class="px-5 sm:px-8 pt-6 sm:pt-8 pb-5 sm:pb-6 border-b border-gray-100">
             <h2 class="modal-title">{{ modal.editing ? 'Ürünü Düzenle' : 'Yeni Ürün' }}</h2>
           </div>
 
-          <div class="px-8 py-6 space-y-5">
+          <div class="px-5 sm:px-8 py-5 sm:py-6 space-y-5">
 
             <!-- Ürün Görseli -->
             <div>
               <label class="field-label">Ürün Görseli
                 <span class="text-muted font-normal">(192×192 · POS'ta görünür)</span>
               </label>
-              <div class="flex gap-4 items-start">
+              <div class="flex flex-col sm:flex-row gap-4 sm:items-start">
                 <div
                   class="relative w-48 h-48 rounded-2xl overflow-hidden border-2 transition-all cursor-pointer flex-shrink-0"
                   :class="dragOver
@@ -823,7 +823,7 @@
             {{ error }}
           </div>
 
-          <div class="px-8 pb-8 flex gap-3 justify-end">
+          <div class="px-5 sm:px-8 pb-6 sm:pb-8 flex gap-3 justify-end">
             <button @click="modal.show = false"
                     class="btn-secondary">
               İptal

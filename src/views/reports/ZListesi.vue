@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
 
     <!-- Başlık -->
     <div class="mb-6">
@@ -19,28 +19,28 @@
 
       <!-- Özet kartlar -->
       <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam Nakit</div>
-          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(totals.cash) }}</div>
+          <div class="stat-value text-primary">{{ fmt(totals.cash) }}</div>
           <div class="text-xs text-muted mt-1">{{ reports.length }} rapor</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam Kart</div>
-          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(totals.card) }}</div>
+          <div class="stat-value text-primary">{{ fmt(totals.card) }}</div>
           <div v-if="totals.openAccount" class="text-xs text-amber-600 mt-1">+ {{ fmt(totals.openAccount) }} açık hesap</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Toplam İndirim</div>
-          <div class="text-2xl font-semibold tracking-tight text-danger">{{ fmt(totals.discount) }}</div>
+          <div class="stat-value text-danger">{{ fmt(totals.discount) }}</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Genel Toplam</div>
-          <div class="text-2xl font-semibold tracking-tight text-primary">{{ fmt(totals.grand) }}</div>
+          <div class="stat-value text-primary">{{ fmt(totals.grand) }}</div>
           <div class="text-xs text-muted mt-1">{{ totals.sales }} işlem</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
           <div class="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Kasa Farkı</div>
-          <div class="text-2xl font-semibold tracking-tight" :class="diffClass(totals.diff, true)">
+          <div class="stat-value" :class="diffClass(totals.diff, true)">
             {{ totals.counted ? signed(totals.diff) : '—' }}
           </div>
           <div class="text-xs text-muted mt-1">{{ totals.counted }} / {{ reports.length }} rapor sayıldı</div>

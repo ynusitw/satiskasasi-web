@@ -1,5 +1,5 @@
 <template>
-  <div class="p-8 max-w-4xl">
+  <div class="p-4 sm:p-6 lg:p-8 max-w-4xl">
     <h1 class="page-title">Terminal Ayarları</h1>
     <p class="text-muted text-sm mt-1 mb-6">
       Kartlı ödeme alınan banka POS cihazının bilgileri.
