@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useModulesStore } from '../stores/modules'
 import { MODULES } from '../constants/modules'
+import { loginBlockReason } from '../site'
 
 const routes = [
   {
@@ -180,6 +181,12 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const token       = localStorage.getItem('token')
   const isSuperAdmin= localStorage.getItem('isSuperAdmin') === 'true'
+
+  // Bu adreste izin verilmeyen bir oturum kalmışsa kapat (ör. yönetici panel adresinde)
+  if (token && loginBlockReason(isSuperAdmin)) {
+    localStorage.clear()
+    return '/login'
+  }
 
   // Giriş sonrası istenen sayfaya dönülür (ör. garson telefonda /garson açar)
   if (!to.meta.public && !token)

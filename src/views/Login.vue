@@ -37,7 +37,9 @@
         </div>
 
         <h1 class="text-[26px] font-semibold text-primary">Giriş yapın</h1>
-        <p class="text-muted text-[14px] mt-1.5 mb-8">Yönetim paneline erişmek için bilgilerinizi girin.</p>
+        <p class="text-muted text-[14px] mt-1.5 mb-8">
+          {{ SITE === 'yonetim' ? 'Yönetici girişi: yalnızca süper admin hesabı.' : 'Yönetim paneline erişmek için bilgilerinizi girin.' }}
+        </p>
 
         <!-- İkinci adım: doğrulama kodu -->
         <form v-if="challenge" @submit.prevent="handleCode" class="space-y-4">
@@ -96,6 +98,7 @@
 import { ref, reactive, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { SITE } from '../site'
 const auth = useAuthStore()
 const router = useRouter()
 const form = reactive({ username: '', password: '' })
@@ -108,7 +111,9 @@ const codeInput = ref(null)
 // Giriş sonrası dönülecek sayfa: yalnızca uygulama içi yol (dış adrese yönlendirme olmasın)
 function nextPath() {
   const n = router.currentRoute.value.query.next
-  return typeof n === 'string' && n.startsWith('/') && !n.startsWith('//') ? n : '/'
+  if (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//')) return n
+  // Yönetim adresinde süper admin doğrudan işletme yönetimine gider
+  return SITE === 'yonetim' ? '/superadmin' : '/'
 }
 
 async function handleLogin() {
@@ -132,7 +137,7 @@ async function handleCode() {
   loading.value = true; error.value = ''
   try { await auth.verifyTwoFactor(challenge.value, code.value.trim()); router.push(nextPath()) }
   catch (e) {
-    error.value = e.response?.data?.message || 'Doğrulanamadı.'
+    error.value = e.response?.data?.message || e.message || 'Doğrulanamadı.'
     // Süre doldu / çok deneme: baştan giriş
     if (e.response?.data?.code === 'challenge_expired') { challenge.value = ''; form.password = '' }
   }

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '../api/api'
 import { useModulesStore } from './modules'
+import { loginBlockReason } from '../site'
 
 export const useAuthStore = defineStore('auth', () => {
   const token       = ref(localStorage.getItem('token')       || '')
@@ -30,6 +31,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function applySession(d) {
+    // Yanlış adresten giriş (bkz. src/site.js): oturum açmadan uyar.
+    // Hem normal girişte hem iki adımlı doğrulamada buradan geçer.
+    const blocked = loginBlockReason(d.isSuperAdmin)
+    if (blocked) throw new Error(blocked)
 
     token.value        = d.token
     username.value     = d.username
