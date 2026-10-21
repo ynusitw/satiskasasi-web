@@ -92,6 +92,10 @@ export default {
   replySupport:        (id, d) => api.post(`support/${id}/reply`, d),
   closeSupport:        (id)    => api.post(`support/${id}/close`),
   getSupportOpenCount: ()      => api.get('support/open-count'),
+  // Tanıtım sitesi demo talepleri (süper yönetici)
+  getDemoRequests:      ()         => api.get('demo-requests'),
+  getDemoOpenCount:     ()         => api.get('demo-requests/open-count'),
+  updateDemoRequest:    (id, data) => api.put(`demo-requests/${id}`, data),
 
   // İki adımlı doğrulama
   verifyTwoFactor:  (d)  => api.post('auth/2fa/verify', d),

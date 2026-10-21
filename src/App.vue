@@ -160,17 +160,21 @@ const notificationsStore = useNotificationsStore()
 let notifTimer = null
 const supportOpen = ref(0)
 const resetPending = ref(0)
+const demoNew = ref(0)
 function pollNotifications() {
   if (auth.isLoggedIn && !auth.isSuperAdmin) notificationsStore.refresh()
   if (auth.isLoggedIn && auth.isSuperAdmin)
     api.getSupportOpenCount().then(r => (supportOpen.value = r.data.count)).catch(() => {})
   if (auth.isLoggedIn && auth.isSuperAdmin)
     api.getDataResetPendingCount().then(r => (resetPending.value = r.data.count)).catch(() => {})
+  if (auth.isLoggedIn && auth.isSuperAdmin)
+    api.getDemoOpenCount().then(r => (demoNew.value = r.data.count)).catch(() => {})
 }
 const badgeOf = item =>
   item.badge === 'notifications' ? notificationsStore.unread
   : item.badge === 'support' ? supportOpen.value
   : item.badge === 'reset' ? resetPending.value
+  : item.badge === 'demo' ? demoNew.value
   : 0
 
 // Sayfa yenilendiğinde modül listesi localStorage'dan anında gelir (menü boş
@@ -306,6 +310,7 @@ const navSections = computed(() => {
         { to: '/superadmin/paketler', label: 'Paket Yönetimi'   },
         { key: 'lisans', label: 'Lisans', prefix: '/superadmin/lisans', children: lisansSubMenu },
         { to: '/superadmin/destek',   label: 'Destek Talepleri', badge: 'support' },
+        { to: '/superadmin/demo-talepleri', label: 'Demo Talepleri', badge: 'demo' },
         { to: '/superadmin/sifirlama', label: 'Sıfırlama Talepleri', badge: 'reset' },
       ],
     }]
