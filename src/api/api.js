@@ -2,9 +2,8 @@ import axios from 'axios'
 
 const api = axios.create({
   // Yerel test ortamı: `npm run dev:test` (.env.test) yerel test API'sine bağlanır
-  baseURL: import.meta.env.VITE_API_BASE || 'https://driving-gladly-outcome.ngrok-free.dev/api/',
-  timeout: 10000,
-  headers: { 'ngrok-skip-browser-warning': 'true' }
+  baseURL: import.meta.env.VITE_API_BASE || 'https://api.yenpos.com/api/',
+  timeout: 10000
 })
 
 api.interceptors.request.use(config => {
@@ -201,7 +200,7 @@ export default {
   deletePlan: (id)     => api.delete(`plans/${id}`),
 
   // Dijital Menü (herkese açık)
-  // Menü yanıtı fotoğraflar yüzünden büyük ve ngrok tüneli yavaş (~64 KB/sn);
+  // Menü yanıtı büyük olabilir ve müşteri telefonu yavaş bağlantıda olabilir;
   // 10 sn'lik genel zaman aşımı isteği kesip menüyü "bulunamadı" gösteriyordu.
   getPublicMenu: (slug, masa) => api.get(`menu/${slug}`, { timeout: 60000, params: masa ? { masa } : undefined }),
   placeQrOrder: (slug, d) => api.post(`menu/${slug}/order`, d, { timeout: 30000 }),

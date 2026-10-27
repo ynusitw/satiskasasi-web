@@ -15,7 +15,9 @@
   Yol, dinamik dosya adı yerine sorgu parametresiyle taşınıyor:
     /api/img?p=<slug>/product/12/image&size=thumb
 */
-const API = 'https://driving-gladly-outcome.ngrok-free.dev/api/menu'
+// API artık kendi alan adında; yeni sayfalar görselleri doğrudan oradan alır.
+// Bu geçit yalnız tarayıcı önbelleğindeki eski sayfalar için duruyor.
+const API = 'https://api.yenpos.com/api/menu'
 
 // Yalnızca menü görseli adreslerine izin ver — geçidin açık bir yönlendirici
 // hâline gelmemesi için.

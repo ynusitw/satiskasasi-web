@@ -7,12 +7,8 @@
 
 <script setup>
 /*
-  Görseller /api/img geçidi üzerinden, yani sayfayla aynı alan adından
-  geliyor. Bu sayede sade <img> kullanılabiliyor: tarayıcının kendi tembel
-  yüklemesi, önbelleği ve öncelik sırası devrede; CORS ön-uçuşu yok.
-
-  Doğrudan API'ye gidilseydi ngrok tarayıcı isteklerine uyarı sayfası
-  döndürdüğü için görseller hiç yüklenmezdi — bkz. api/img.js.
+  Görseller doğrudan API'den (api.yenpos.com) sade <img> ile gelir: tarayıcının
+  kendi tembel yüklemesi, önbelleği ve öncelik sırası devrede; CORS ön-uçuşu yok.
 */
 defineProps({
   src:   { type: String, required: true },

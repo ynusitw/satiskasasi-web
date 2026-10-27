@@ -306,7 +306,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import api from '../api/api'
+import api, { API_BASE } from '../api/api'
 import ProductRow from '../components/MenuProductRow.vue'
 import MenuImage from '../components/MenuImage.vue'
 import MenuOptionSheet from '../components/MenuOptionSheet.vue'
@@ -343,13 +343,11 @@ const searchResults = computed(() => {
 const mapUrl = computed(() =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(menu.value.address || menu.value.businessName)}`)
 
-// Görseller menü yanıtında gelmiyor; her biri kendi adresinden iniyor.
-// Adres API'ye değil, aynı alan adındaki /api/img geçidine gidiyor:
-// ngrok tarayıcı isteklerine uyarı sayfası döndürdüğü için doğrudan
-// <img> ile API'den görsel çekilemiyor (bkz. api/img.js).
+// Görseller menü yanıtında gelmiyor; her biri kendi adresinden, doğrudan
+// API'den iner (sade <img>: tarayıcının önbelleği ve tembel yüklemesi devrede).
 function imageUrl(kind, id, size) {
-  const p = encodeURIComponent(`${route.params.slug}/${kind}/${id}/image`)
-  return `/api/img?p=${p}${size ? `&size=${size}` : ''}`
+  const slug = encodeURIComponent(route.params.slug)
+  return `${API_BASE}menu/${slug}/${kind}/${id}/image${size ? `?size=${size}` : ''}`
 }
 function thumbUrl(p)    { return imageUrl('product', p.id, 'thumb') }
 function categoryUrl(c) { return imageUrl('category', c.id) }
