@@ -95,6 +95,16 @@ export default {
   getDemoRequests:      ()         => api.get('demo-requests'),
   getDemoOpenCount:     ()         => api.get('demo-requests/open-count'),
   updateDemoRequest:    (id, data) => api.put(`demo-requests/${id}`, data),
+  // Fiyat teklifi (süper yönetici)
+  getPricing:     ()         => api.get('quotes/pricing'),
+  savePricing:    (d)        => api.put('quotes/pricing', d),
+  getQuotes:      ()         => api.get('quotes'),
+  getQuote:       (id)       => api.get(`quotes/${id}`),
+  createQuote:    (d)        => api.post('quotes', d),
+  updateQuote:    (id, d)    => api.put(`quotes/${id}`, d),
+  setQuoteStatus: (id, d)    => api.put(`quotes/${id}/status`, d),
+  deleteQuote:    (id)       => api.delete(`quotes/${id}`),
+  applyQuote:     (id, d)    => api.post(`quotes/${id}/apply`, d),
 
   // İki adımlı doğrulama
   verifyTwoFactor:  (d)  => api.post('auth/2fa/verify', d),

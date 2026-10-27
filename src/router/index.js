@@ -157,6 +157,16 @@ const routes = [
   // Lisansın tamamı tek sayfada: aktif / bekleyen / reddedilen sekmeleri.
   { path: '/superadmin/lisans', redirect: '/superadmin/lisans/aktif' },
   {
+    path: '/superadmin/fiyat-listesi',
+    component: () => import('../views/SuperAdminFiyatListesi.vue'),
+    meta: { superAdminOnly: true }
+  },
+  {
+    path: '/superadmin/teklif',
+    component: () => import('../views/SuperAdminTeklif.vue'),
+    meta: { superAdminOnly: true }
+  },
+  {
     path: '/superadmin/demo-talepleri',
     component: () => import('../views/SuperAdminDemo.vue'),
     meta: { superAdminOnly: true }

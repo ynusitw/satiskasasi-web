@@ -364,6 +364,8 @@ const navSections = computed(() => {
         { to: '/superadmin',          label: 'Müşteri Yönetimi' },
         { to: '/superadmin/gelir',    label: 'Gelir Analizi'    },
         { to: '/superadmin/paketler', label: 'Paket Yönetimi'   },
+        { to: '/superadmin/teklif',   label: 'Fiyat Teklifi'    },
+        { to: '/superadmin/fiyat-listesi', label: 'Fiyat Listesi' },
         { key: 'lisans', label: 'Lisans', prefix: '/superadmin/lisans', children: lisansSubMenu },
         { to: '/superadmin/destek',   label: 'Destek Talepleri', badge: 'support' },
         { to: '/superadmin/demo-talepleri', label: 'Demo Talepleri', badge: 'demo' },

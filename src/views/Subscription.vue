@@ -27,8 +27,8 @@
           </div>
           <div class="flex justify-between py-2">
             <span class="text-sm text-muted">Kalan Gün</span>
-            <span :class="remainingDays < 7 ? 'text-red-500 font-bold' : 'font-semibold'">
-              {{ remainingDays }} gün
+            <span :class="isExpiringSoon ? 'text-red-500 font-bold' : 'font-semibold'">
+              {{ remainingDays === null ? 'Süresiz' : remainingDays + ' gün' }}
             </span>
           </div>
         </div>
@@ -48,31 +48,28 @@
         </p>
 
         <div class="space-y-3">
-          <a href="mailto:admin@genpos.tr"
+          <a href="mailto:info@yenpos.com"
              class="flex items-center gap-3 p-4 bg-blue-50 rounded-xl
                     text-accent font-semibold text-sm hover:bg-blue-100 transition-colors">
-            yekutuk@gmail.com
+            info@yenpos.com
           </a>
-          <a href="tel:+905001234567"
+          <a href="tel:+905054060017"
              class="flex items-center gap-3 p-4 bg-green-50 rounded-xl
                     text-green-600 font-semibold text-sm hover:bg-green-100 transition-colors">
-            +90 505 406 00 17
+            0505 406 00 17
+          </a>
+          <a href="https://wa.me/905054060017?text=Merhaba%2C%20YenPOS%20aboneli%C4%9Fimi%20yenilemek%20istiyorum."
+             target="_blank" rel="noopener"
+             class="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl
+                    text-emerald-700 font-semibold text-sm hover:bg-emerald-100 transition-colors">
+            WhatsApp'tan yazın
           </a>
         </div>
 
-        <div class="mt-6 p-4 bg-gray-50 rounded-xl">
-          <p class="text-xs font-bold text-primary mb-2">Yıllık Plan Fiyatları:</p>
-          <div class="space-y-1 text-xs text-muted">
-            <div class="flex justify-between">
-              <span>Basic Plan</span>
-              <span class="font-bold text-primary">₺X.XXX / yıl</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Pro Plan</span>
-              <span class="font-bold text-primary">₺X.XXX / yıl</span>
-            </div>
-          </div>
-        </div>
+        <p class="mt-6 p-4 bg-gray-50 rounded-xl text-xs text-muted leading-relaxed">
+          Fiyat, kullandığınız modüllere ve kasa sayısına göre belirlenir.
+          Yenileme ya da modül eklemek için bize ulaşın; size özel teklif hazırlayalım.
+        </p>
       </div>
     </div>
   </div>
@@ -85,12 +82,12 @@ import { useAuthStore } from '../stores/auth'
 const auth = useAuthStore()
 
 const remainingDays = computed(() => {
-  if (!auth.tenantExpires) return 0
+  if (!auth.tenantExpires) return null   // bitiş tarihi yok: süresiz
   const diff = new Date(auth.tenantExpires) - new Date()
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 })
 
-const isExpiringSoon = computed(() => remainingDays.value < 7)
+const isExpiringSoon = computed(() => remainingDays.value !== null && remainingDays.value < 7)
 
 const planLabel = computed(() => {
   const plans = { basic: 'Basic', pro: 'Pro', superadmin: 'Süper Admin' }
@@ -107,7 +104,7 @@ const planColor = computed(() => {
 })
 
 function formatDate(d) {
-  if (!d) return 'Belirsiz'
+  if (!d) return 'Süresiz'
   return new Date(d).toLocaleDateString('tr-TR', {
     year: 'numeric', month: 'long', day: 'numeric'
   })
