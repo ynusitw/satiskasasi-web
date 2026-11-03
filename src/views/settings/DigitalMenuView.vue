@@ -111,7 +111,11 @@
               <div class="text-sm font-semibold text-primary truncate">{{ p.name }}</div>
               <div class="text-xs text-muted">{{ fmt(p.price) }}</div>
             </div>
-            <span v-if="!p.isActive"
+            <span v-if="isEffectivelyHidden(p)"
+                  class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">
+              QR'da gizli
+            </span>
+            <span v-else-if="!p.isActive"
                   class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">
               Pasif
             </span>
@@ -189,6 +193,102 @@
 
         <input ref="categoryFileInput" type="file" accept="image/*"
                class="hidden" @change="onCategoryFileChange"/>
+      </div>
+
+      <!-- QR Menüde Gösterilenler — tam genişlik -->
+      <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-1">
+          <h2 class="section-title">QR Menüde Gösterilenler</h2>
+          <span class="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+                :class="hiddenSummary.total ? 'bg-accent/10 text-accent' : 'bg-gray-100 text-muted'">
+            {{ hiddenSummary.total
+                ? `${hiddenSummary.cats} grup, ${hiddenSummary.prods} ürün gizli`
+                : 'Hepsi görünüyor' }}
+          </span>
+        </div>
+        <p class="text-xs text-muted mb-4">
+          Kapattığınız ürün grupları ve ürünler <strong>yalnızca QR menüde</strong> görünmez
+          ve QR'dan sipariş edilemez. Kasada ve garson ekranında satılmaya devam eder.
+        </p>
+
+        <input v-model="visSearch" placeholder="Grup veya ürün ara..."
+               class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] mb-3 h-10 bg-white"/>
+
+        <div class="border border-gray-100 rounded-xl divide-y divide-gray-100">
+          <div v-for="g in visibilityGroups" :key="g.id">
+            <!-- Grup satırı -->
+            <div class="flex items-center gap-3 px-3 py-2.5"
+                 :class="isCatHidden(g.id) ? 'bg-gray-50' : ''">
+              <button @click="toggleExpand(g.id)"
+                      class="flex-1 min-w-0 flex items-center gap-2 text-left">
+                <svg class="w-4 h-4 text-muted flex-shrink-0 transition-transform"
+                     :class="g.open ? 'rotate-90' : ''" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.3 14.7a1 1 0 0 1 0-1.4L10.6 10 7.3 6.7a1 1 0 1 1 1.4-1.4l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 0 1-1.4 0z" clip-rule="evenodd"/>
+                </svg>
+                <span class="min-w-0">
+                  <span class="block text-sm font-semibold truncate"
+                        :class="isCatHidden(g.id) ? 'text-muted line-through' : 'text-primary'">
+                    {{ g.name }}
+                  </span>
+                  <span class="block text-xs text-muted">
+                    {{ isCatHidden(g.id)
+                        ? 'Grup QR menüde gizli'
+                        : `${g.visibleCount} / ${g.products.length} ürün görünüyor` }}
+                  </span>
+                </span>
+              </button>
+              <button v-if="g.id !== null" @click="toggleCatHidden(g.id)"
+                      :aria-label="isCatHidden(g.id) ? 'Grubu göster' : 'Grubu gizle'"
+                      class="relative inline-flex h-6 w-11 items-center rounded-full
+                             transition-colors duration-200 flex-shrink-0"
+                      :class="isCatHidden(g.id) ? 'bg-gray-300' : 'bg-accent'">
+                <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                             transition-transform duration-200"
+                      :class="isCatHidden(g.id) ? 'translate-x-1' : 'translate-x-6'"/>
+              </button>
+            </div>
+
+            <!-- Grubun ürünleri -->
+            <div v-if="g.open" class="bg-gray-50 divide-y divide-gray-100">
+              <div v-for="p in g.products" :key="p.id"
+                   class="flex items-center gap-3 pl-9 pr-3 py-2"
+                   :class="isCatHidden(g.id) ? 'opacity-50' : ''">
+                <div class="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                  <img v-if="p.imageBase64" :src="p.imageBase64" :alt="p.name"
+                       class="w-full h-full object-cover"/>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm truncate"
+                       :class="isProdHidden(p.id) ? 'text-muted line-through' : 'text-primary font-medium'">
+                    {{ p.name }}
+                  </div>
+                  <div class="text-xs text-muted">
+                    {{ fmt(p.price) }}<span v-if="!p.isActive"> · Pasif</span>
+                  </div>
+                </div>
+                <button @click="toggleProdHidden(p.id)" :disabled="isCatHidden(g.id)"
+                        :aria-label="isProdHidden(p.id) ? 'Ürünü göster' : 'Ürünü gizle'"
+                        class="relative inline-flex h-6 w-11 items-center rounded-full
+                               transition-colors duration-200 flex-shrink-0 disabled:cursor-not-allowed"
+                        :class="isProdHidden(p.id) ? 'bg-gray-300' : 'bg-accent'">
+                  <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                               transition-transform duration-200"
+                        :class="isProdHidden(p.id) ? 'translate-x-1' : 'translate-x-6'"/>
+                </button>
+              </div>
+              <div v-if="g.products.length === 0" class="pl-9 pr-3 py-3 text-xs text-muted">
+                Bu grupta ürün yok
+              </div>
+            </div>
+          </div>
+
+          <div v-if="visibilityGroups.length === 0" class="px-3 py-6 text-center text-sm text-muted">
+            {{ visSearch ? 'Eşleşen grup veya ürün yok' : 'Henüz ürün grubu tanımlanmamış' }}
+          </div>
+        </div>
+        <p class="text-xs text-muted mt-3">
+          Değişiklikler aşağıdaki <strong>Menü Ayarlarını Kaydet</strong> ile kaydedilir.
+        </p>
       </div>
 
       <!-- Kaydet — iki sütunun altında tam genişlik -->
@@ -344,6 +444,12 @@ const configError    = ref('')
 const categoryFileInput = ref(null)
 let   pendingCategoryId = null
 
+// QR menüde gizlenenler (Kaydet ile birlikte gider)
+const hiddenCategoryIds = ref([])
+const hiddenProductIds  = ref([])
+const visSearch         = ref('')
+const expandedGroups    = ref([])
+
 const menuUrl = computed(() => `${window.location.origin}/menu/${slug.value}`)
 const qrUrl   = computed(() =>
   `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(menuUrl.value)}`)
@@ -393,6 +499,47 @@ function toggleFeatured(id) {
   if (i !== -1) featuredIds.value.splice(i, 1)
   else if (featuredIds.value.length < featuredLimit.value) featuredIds.value.push(id)
 }
+
+// ── QR menüde gösterilenler ──────────────────────────────────────────────
+const isCatHidden  = id => id !== null && hiddenCategoryIds.value.includes(id)
+const isProdHidden = id => hiddenProductIds.value.includes(id)
+const isEffectivelyHidden = p => isProdHidden(p.id) || isCatHidden(p.categoryId ?? null)
+
+function toggleIn(list, id) {
+  const i = list.value.indexOf(id)
+  if (i !== -1) list.value.splice(i, 1)
+  else list.value.push(id)
+}
+const toggleCatHidden  = id => toggleIn(hiddenCategoryIds, id)
+const toggleProdHidden = id => toggleIn(hiddenProductIds, id)
+const toggleExpand     = id => toggleIn(expandedGroups, id)
+
+// Gruplar ve ürünleri; aramada eşleşen ürünün grubu kendiliğinden açılır.
+// Grupsuz ürünler QR menüde zaten listelenmez, yalnız "Grupsuz" altında gizlenebilir.
+const visibilityGroups = computed(() => {
+  const q = visSearch.value.trim().toLocaleLowerCase('tr')
+  const groups = categories.value.map(c => ({ id: c.id, name: c.name }))
+  if (products.value.some(p => p.categoryId == null)) groups.push({ id: null, name: 'Grupsuz' })
+
+  return groups.map(g => {
+    const all = products.value.filter(p => (p.categoryId ?? null) === g.id)
+    const groupMatch = !q || g.name.toLocaleLowerCase('tr').includes(q)
+    const list = groupMatch ? all : all.filter(p => p.name.toLocaleLowerCase('tr').includes(q))
+    return {
+      ...g,
+      products: list,
+      visibleCount: all.filter(p => !isProdHidden(p.id)).length,
+      open: expandedGroups.value.includes(g.id) || (!!q && !groupMatch),
+      show: groupMatch || list.length > 0,
+    }
+  }).filter(g => g.show)
+})
+
+const hiddenSummary = computed(() => {
+  const cats  = hiddenCategoryIds.value.length
+  const prods = products.value.filter(p => isProdHidden(p.id) && !isCatHidden(p.categoryId ?? null)).length
+  return { cats, prods, total: cats + prods }
+})
 
 // ── Kategori görselleri ──────────────────────────────────────────────────
 function pickCategoryImage(categoryId) {
@@ -692,6 +839,8 @@ async function saveConfig() {
         categoryId: c.id,
         imageBase64: c.menuImageBase64 || null,
       })),
+      hiddenCategoryIds: hiddenCategoryIds.value,
+      hiddenProductIds: hiddenProductIds.value,
     })
     configSaved.value = true
     setTimeout(() => (configSaved.value = false), 3000)
@@ -719,6 +868,8 @@ onMounted(async () => {
     featuredIds.value   = configRes.data.products
       .filter(p => p.isFeaturedOnMenu)
       .map(p => p.id)
+    hiddenCategoryIds.value = configRes.data.categories.filter(c => c.hiddenOnMenu).map(c => c.id)
+    hiddenProductIds.value  = configRes.data.products.filter(p => p.hiddenOnMenu).map(p => p.id)
   } finally {
     loading.value = false
   }
