@@ -635,7 +635,15 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="field-label">Fiyat (₺{{ form.isWeighed ? ' / kg' : '' }}) *</label>
-                <input v-model.number="form.price" type="number" step="0.01" min="0"
+                <!-- Fiyat seçeneği varsa ayrı fiyat yok: kasada kartta en düşük seçenek görünür -->
+                <div v-if="variantMinPrice != null"
+                     class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-gray-50
+                            flex items-center justify-between gap-2"
+                     title="Fiyat seçeneklerinden en düşüğü">
+                  <span class="font-semibold text-primary">{{ fmtTL(variantMinPrice) }}</span>
+                  <span class="text-[11px] text-muted truncate">seçeneklerden</span>
+                </div>
+                <input v-else v-model.number="form.price" type="number" step="0.01" min="0"
                        class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
               </div>
               <div>
@@ -659,7 +667,8 @@
               </div>
               <p class="text-xs text-muted mb-3">
                 Boş bırakırsanız ürün tek fiyatlıdır. Seçenek eklerseniz kasada
-                "Hangi porsiyon?" diye sorulur ve yukarıdaki fiyat kullanılmaz.
+                "Hangi porsiyon?" diye sorulur; ayrı bir ürün fiyatı olmaz, kasadaki ürün
+                kartında ve QR menüde en düşük seçeneğin fiyatı görünür.
               </p>
 
               <div v-if="form.variants.length" class="space-y-2">
@@ -1149,11 +1158,22 @@ function openEdit(p) {
   error.value   = ''
 }
 
+// Aktif fiyat seçeneklerinin en düşüğü; seçenek yoksa null (ürün tek fiyatlı)
+const variantMinPrice = computed(() => {
+  const prices = form.variants
+    .filter(v => (v.name || '').trim() && v.isActive !== false)
+    .map(v => Number(v.price) || 0)
+  return prices.length ? Math.min(...prices) : null
+})
+const fmtTL = v => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + ' ₺'
+
 // Sunucuya giden gövde: seçeneklerdeki geçici anahtar atılır, boş adlı
 // satırlar gönderilmez, sıra ekrandaki sıradır.
 function productPayload() {
   return {
     ...form,
+    // Seçenekli üründe fiyat en düşük seçenektir (sunucu da aynısını uygular)
+    price: variantMinPrice.value ?? form.price,
     variants: form.variants
       .filter(v => (v.name || '').trim())
       .map((v, i) => ({ id: v.id || 0, name: v.name.trim(), price: Number(v.price) || 0,

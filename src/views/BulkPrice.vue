@@ -89,7 +89,7 @@
                   class="border-t border-gray-50"
                   :class="included(r) ? '' : 'opacity-50'">
                 <td class="px-4 py-2.5">
-                  <input type="checkbox" class="w-4 h-4" :checked="included(r)" @change="toggleRow(r)"/>
+                  <input v-if="!r.header" type="checkbox" class="w-4 h-4" :checked="included(r)" @change="toggleRow(r)"/>
                 </td>
                 <td class="px-4 py-2.5 text-[13.5px]">
                   <template v-if="r.variantId">
@@ -97,13 +97,13 @@
                   </template>
                   <template v-else>
                     <span class="font-medium text-primary">{{ r.productName }}</span>
-                    <span v-if="r.hasVariants" class="ml-1.5 text-[11px] text-muted">ana fiyat</span>
+                    <span v-if="r.header" class="ml-1.5 text-[11px] text-muted">fiyat seçeneklerine göre</span>
                   </template>
                 </td>
                 <td class="px-4 py-2.5 text-[12.5px] text-muted hidden md:table-cell">{{ r.variantId ? '' : r.categoryName }}</td>
-                <td class="px-4 py-2.5 text-right text-[13px] text-muted whitespace-nowrap">{{ fmt(r.price) }}</td>
+                <td class="px-4 py-2.5 text-right text-[13px] text-muted whitespace-nowrap">{{ r.header ? '' : fmt(r.price) }}</td>
                 <td class="px-4 py-2.5 text-right whitespace-nowrap">
-                  <input type="number" min="0" step="0.5" :value="newPrice(r)" :disabled="!included(r)"
+                  <input v-if="!r.header" type="number" min="0" step="0.5" :value="newPrice(r)" :disabled="!included(r)"
                          @change="e => setOverride(r, e.target.value)"
                          class="w-24 px-2 h-8 border rounded-md text-[13px] text-right bg-white"
                          :class="overrides[r.key] != null ? 'border-accent font-semibold' : 'border-gray-200'"/>
@@ -214,13 +214,14 @@ const when = ref('now')
 const scheduledAt = ref('')
 const detail = reactive({})
 
-// Ürün + porsiyon satırları (porsiyonlu üründe ana fiyat da ayrı satır)
+// Ürün + porsiyon satırları. Porsiyonlu üründe ürün satırı yalnızca başlıktır:
+// ayrı ana fiyat yoktur (en düşük porsiyon fiyatıdır, sunucu kendisi hesaplar).
 const rows = computed(() => {
   const list = []
   for (const p of products.value) {
     const variants = (p.variants || []).filter(v => v.isActive !== false)
     list.push({ key: `p${p.id}`, productId: p.id, variantId: null, productName: p.name, categoryId: p.categoryId,
-                categoryName: p.categoryName, price: p.price, hasVariants: variants.length > 0 })
+                categoryName: p.categoryName, price: p.price, header: variants.length > 0 })
     for (const v of variants)
       list.push({ key: `v${v.id}`, productId: p.id, variantId: v.id, productName: p.name, variantName: v.name,
                   categoryId: p.categoryId, categoryName: p.categoryName, price: v.price })
@@ -235,9 +236,10 @@ const visibleRows = computed(() => {
     (!q || r.productName.toLocaleLowerCase('tr-TR').includes(q)))
 })
 
-const included = r => !excluded[r.key]
+const included = r => !r.header && !excluded[r.key]
 function toggleRow(r) { excluded[r.key] ? delete excluded[r.key] : (excluded[r.key] = true) }
-const allVisibleIncluded = computed(() => visibleRows.value.length > 0 && visibleRows.value.every(included))
+const allVisibleIncluded = computed(() => visibleRows.value.some(r => !r.header)
+  && visibleRows.value.every(r => r.header || included(r)))
 function toggleAllVisible() {
   const on = !allVisibleIncluded.value
   for (const r of visibleRows.value) on ? delete excluded[r.key] : (excluded[r.key] = true)

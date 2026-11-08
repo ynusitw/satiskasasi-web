@@ -397,12 +397,12 @@ async function send() {
   sending.value = true
   error.value = ''
   try {
-    await api.waiterAdd(table.value.id, {
+    const { data } = await api.waiterAdd(table.value.id, {
       items: cart.value.map(l => ({ productId: l.productId, variantId: l.variantId, optionIds: l.optionIds, quantity: l.quantity, note: l.note || null })),
     })
     cart.value = []
     saveCart()
-    flash('Sipariş mutfağa gönderildi')
+    flash(data?.orderNo ? `Sipariş #${data.orderNo} mutfağa gönderildi` : 'Sipariş mutfağa gönderildi')
     screen.value = 'table'
     await loadOrder()
   } catch (e) {
