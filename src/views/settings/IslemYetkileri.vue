@@ -100,7 +100,7 @@ const modes = [
 
 // Modülü olmayan işletmede ilgisiz işlemler gösterilmez
 const moduleOf = {
-  'table.item_cancel': MODULES.TABLES, 'table.cancel': MODULES.TABLES,
+  'table.item_cancel': MODULES.TABLES, 'table.cancel': MODULES.TABLES, 'table.move': MODULES.TABLES,
   'manage.reservations': MODULES.TABLES, 'cari.cards': MODULES.CARI,
 }
 
