@@ -84,6 +84,58 @@
       </div>
     </div>
 
+    <!-- ── Masa süresi ─────────────────────────────────────────────────── -->
+    <div v-if="aktif" class="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2 transition-colors"
+         :class="sure.enabled || sure.idleWarnMinutes > 0 ? 'border-accent/30' : 'border-gray-100'">
+      <div class="flex items-start justify-between gap-6">
+        <div>
+          <div class="font-bold text-primary">Masa Süresi</div>
+          <p class="text-sm text-muted mt-0.5 max-w-lg">
+            Kasadaki masa seçim ekranında dolu masaların kartının sağ üstünde geçen süre görünür.
+          </p>
+        </div>
+        <button @click="sure.enabled = !sure.enabled; kaydetSure()"
+                class="relative inline-flex h-7 items-center rounded-full flex-shrink-0
+                       transition-colors duration-300"
+                style="width:3.25rem"
+                :class="sure.enabled ? 'bg-accent' : 'bg-gray-300'">
+          <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow-md
+                       transition-transform duration-300"
+                :class="sure.enabled ? 'translate-x-7' : 'translate-x-1'"/>
+        </button>
+      </div>
+
+      <div v-if="sure.enabled" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label v-for="m in SURE_TURLERI" :key="m.value"
+               class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors"
+               :class="sure.mode === m.value ? 'border-accent bg-accent/5' : 'border-gray-200 hover:bg-gray-50'">
+          <input type="radio" name="sureTuru" :value="m.value" v-model="sure.mode" @change="kaydetSure()"
+                 class="mt-1 accent-accent"/>
+          <span>
+            <span class="block text-sm font-semibold text-primary">{{ m.label }}</span>
+            <span class="block text-xs text-muted mt-0.5">{{ m.hint }}</span>
+          </span>
+        </label>
+      </div>
+
+      <div class="mt-5 pt-4 border-t border-gray-100">
+        <div class="text-sm font-semibold text-primary">Sipariş gelmeyen masayı vurgula</div>
+        <p class="text-xs text-muted mt-0.5 max-w-lg">
+          Masaya bu süre boyunca yeni sipariş girilmezse kart kırmızıya döner (garson masaya uğrasın).
+          0 yazarsanız kapalıdır. Süre görünmese de çalışır.
+        </p>
+        <div class="flex items-center gap-2 mt-2">
+          <input v-model.number="sure.idleWarnMinutes" type="number" min="0" max="600"
+                 @change="kaydetSure()"
+                 class="w-24 h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white"/>
+          <span class="text-sm text-muted">dakika</span>
+          <span class="text-xs ml-2" :class="sureHata ? 'text-danger' : 'text-muted'">
+            {{ sureHata || (sureKaydedildi ? 'Kaydedildi' : '') }}
+          </span>
+        </div>
+      </div>
+    </div>
+
     <!-- ── İptalde onay: İşlem Yetkileri'ne taşındı ─────────────────────── -->
     <div v-if="aktif" class="bg-white rounded-2xl shadow-sm p-6 mb-6 border-2 border-gray-100">
       <div class="font-bold text-primary">İptalde Onay</div>
@@ -508,11 +560,48 @@ async function toggleIptalAciklama() {
   await kaydetIptalAyari(() => { iptalAciklamaZorunlu.value = !iptalAciklamaZorunlu.value })
 }
 
+// ── Masa süresi (kasa masa kartı) ───────────────────────────────────────────
+const SURE_TURLERI = [
+  { value: 'FirstOrder', label: 'İlk siparişten beri',
+    hint: 'Masaya ilk ürün girildiğinden bu yana geçen süre (masada oturma süresi).' },
+  { value: 'LastServed', label: 'Son teslimden beri',
+    hint: 'Mutfak ekranında son siparişin servis edildiği andan beri. Teslim yoksa ilk siparişten sayılır.' },
+]
+const sure = reactive({ enabled: false, mode: 'FirstOrder', idleWarnMinutes: 0 })
+const sureHata = ref('')
+const sureKaydedildi = ref(false)
+
+async function loadSureAyari() {
+  try {
+    const d = (await api.getTableTimerSettings()).data ?? {}
+    Object.assign(sure, { enabled: !!d.enabled, mode: d.mode || 'FirstOrder', idleWarnMinutes: d.idleWarnMinutes ?? 0 })
+  } catch { /* uç yoksa kapalı kalır */ }
+}
+
+async function kaydetSure() {
+  sureHata.value = ''
+  sureKaydedildi.value = false
+  const dk = Number(sure.idleWarnMinutes)
+  if (!Number.isInteger(dk) || dk < 0 || dk > 600) {
+    sureHata.value = '0 ile 600 arasında tam sayı girin.'
+    return
+  }
+  try {
+    await api.saveTableTimerSettings({ enabled: sure.enabled, mode: sure.mode, idleWarnMinutes: dk })
+    sureKaydedildi.value = true
+    setTimeout(() => (sureKaydedildi.value = false), 2000)
+  } catch (e) {
+    sureHata.value = e.response?.status === 403 ? 'Bu ayarı yalnızca yönetici değiştirebilir.'
+      : (e.response?.data?.message || 'Ayar kaydedilemedi.')
+    await loadSureAyari()
+  }
+}
+
 function toplamMasa() {
   return bolumler.value.reduce((s, b) => s + b.masalar.length, 0)
 }
 
-onMounted(() => { load(); loadIptalAyari() })
+onMounted(() => { load(); loadIptalAyari(); loadSureAyari() })
 
 // ── Bölüm Modal ──────────────────────────────────────────────────────────────
 const bolumInputRef = ref(null)

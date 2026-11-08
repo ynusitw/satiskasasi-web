@@ -143,6 +143,8 @@ export default {
   deleteSmtpSettings:        ()   => api.delete('notifications/smtp'),
   getCancellationSettings:  ()  => api.get('settings/cancellations'),
   saveCancellationSettings: (d) => api.put('settings/cancellations', d),
+  getTableTimerSettings:    ()  => api.get('settings/table-timer'),
+  saveTableTimerSettings:   (d) => api.put('settings/table-timer', d),
   getStaffSettings:   ()        => api.get('settings/staff'),
   saveStaffSettings:  (d)       => api.put('settings/staff', d),
   getAdjustmentsReport: (params) => api.get('reports/adjustments', { params }),
