@@ -75,6 +75,7 @@ const filters = [
   { key: 'unread',         label: 'Okunmamış' },
   { key: 'ZReport',        label: 'Z raporu' },
   { key: 'CashDifference', label: 'Kasa farkı' },
+  { key: 'MissingSale',    label: 'Eksik satış' },
   { key: 'LowStock',       label: 'Kritik stok' },
   { key: 'FailedLogin',    label: 'Güvenlik' },
 ]
@@ -82,6 +83,7 @@ const filters = [
 const TYPES = {
   ZReport:        { label: 'Z raporu',    cls: 'bg-blue-50 text-accent' },
   CashDifference: { label: 'Kasa farkı',  cls: 'bg-red-50 text-danger' },
+  MissingSale:    { label: 'Eksik satış', cls: 'bg-red-50 text-danger' },
   LowStock:       { label: 'Kritik stok', cls: 'bg-amber-50 text-warning' },
   FailedLogin:    { label: 'Güvenlik',    cls: 'bg-gray-100 text-primary' },
   Support:        { label: 'Destek',      cls: 'bg-green-50 text-success' },
