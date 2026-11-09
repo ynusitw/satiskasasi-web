@@ -1,0 +1,6 @@
+/* Satış CRM sayfalarının ortak alan biçimleri (panelin diğer formlarıyla aynı görünüm) */
+.crm-field { @apply w-full px-3 h-10 border border-gray-200 rounded-lg text-[13.5px] bg-white; }
+.crm-area  { @apply w-full px-3 py-2.5 border border-gray-200 rounded-lg text-[13.5px] bg-white leading-relaxed; }
+.crm-card  { @apply bg-white rounded-2xl shadow-sm; }
+.crm-label { @apply flex flex-col gap-1 text-[13px]; }
+.crm-label > span:first-child { @apply text-muted; }

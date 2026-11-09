@@ -372,6 +372,17 @@ const navSections = computed(() => {
         { to: '/superadmin/demo-talepleri', label: 'Demo Talepleri', badge: 'demo' },
         { to: '/superadmin/sifirlama', label: 'Sıfırlama Talepleri', badge: 'reset' },
       ],
+    }, {
+      // YenPOS'un kendi satış CRM'i (önceden crm.yenpos.com)
+      title: 'Satış (CRM)',
+      items: [
+        { to: '/superadmin/crm',             label: 'Bugün'             },
+        { to: '/superadmin/crm/aranacaklar', label: 'Aranacaklar'       },
+        { to: '/superadmin/crm/adaylar',     label: 'Müşteri Adayları'  },
+        { to: '/superadmin/crm/bul',         label: 'İşletme Bul'       },
+        { to: '/superadmin/crm/sablonlar',   label: 'Mesaj Şablonları'  },
+        { to: '/superadmin/crm/ayarlar',     label: 'CRM Ayarları'      },
+      ],
     }]
   }
 
@@ -393,7 +404,7 @@ const navSections = computed(() => {
 
 // Tek bağlantılarda tam eşleşme: "/superadmin" alt sayfalarda da yanmasın.
 function isExact(to) {
-  return to === '/' || to === '/superadmin' ? route.path === to : route.path.startsWith(to)
+  return to === '/' || to === '/superadmin' || to === '/superadmin/crm' ? route.path === to : route.path.startsWith(to)
 }
 
 const initials = computed(() =>

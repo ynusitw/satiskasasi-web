@@ -158,6 +158,21 @@ export default {
   getTablesReport:       (params) => api.get('reports/tables', { params }),
   getStockReport:        ()       => api.get('reports/stock'),
   getCancellationsReport:(params) => api.get('reports/cancellations', { params }),
+  // Satış CRM'i (süper yönetici)
+  crmState:         ()              => api.get('crm/state', { timeout: 30000 }),
+  crmAddLeads:      (leads)         => api.post('crm/leads/bulk', { leads }, { timeout: 60000 }),
+  crmMarkSent:      (id, text)      => api.post(`crm/leads/${id}/sent`, { text }),
+  crmSkip:          (id, days)      => api.post(`crm/leads/${id}/skip`, { days }),
+  crmSetStatus:     (id, status)    => api.post(`crm/leads/${id}/status`, { status }),
+  crmSetNotes:      (id, text)      => api.put(`crm/leads/${id}/notes`, { text }),
+  crmRemove:        (id)            => api.delete(`crm/leads/${id}`),
+  crmSaveTemplates: (list)          => api.put('crm/templates', list),
+  crmSaveSettings:  (s)             => api.put('crm/settings', s),
+  crmExport:        ()              => api.get('crm/export', { timeout: 60000 }),
+  crmImport:        (data)          => api.post('crm/import', data, { timeout: 120000 }),
+  // Canlı tarama Overpass'tan 1 dakikayı bulabilir
+  crmOsm:           (params)        => api.get('crm/osm', { params, timeout: 120000 }),
+  crmAi:            (d)             => api.post('crm/ai', d, { timeout: 90000 }),
   // Analiz: dönem karşılaştırma, yoğunluk haritası, menü analizi
   getAnalysisCompare: (params) => api.get('reports/analysis/compare', { params }),
   getAnalysisHeatmap: (params) => api.get('reports/analysis/heatmap', { params }),
