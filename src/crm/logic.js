@@ -169,6 +169,12 @@ export function mapUrl(l) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`
 }
 
+/** İşletmeyi Google'da adıyla arar; aynı adlı başka yerler karışmasın diye semt/ilçe de eklenir. */
+export function webSearchUrl(l) {
+  const q = [l.name, l.neighborhood, l.district].filter(Boolean).join(' ')
+  return `https://www.google.com/search?q=${encodeURIComponent(q)}`
+}
+
 /** CSV: ; ya da , ayraçlı, tırnaklı alanlar; ilk satır başlık. */
 export function parseCsv(text) {
   const t = text.replace(/^﻿/, '')

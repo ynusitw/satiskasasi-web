@@ -54,7 +54,14 @@
             <template v-for="l in filtered.slice(0, shown)" :key="l.id">
               <tr class="border-t border-gray-50 align-top">
                 <td class="px-4 py-3">
-                  <p class="font-semibold text-primary">{{ l.name }}</p>
+                  <div class="flex items-start gap-1.5">
+                    <p class="font-semibold text-primary">{{ l.name }}</p>
+                    <a class="web-search -my-1.5 flex-shrink-0" :href="webSearchUrl(l)" target="_blank" rel="noopener"
+                       :title="`${l.name} internette ara`" :aria-label="`${l.name} internette ara`">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"
+                           stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+                    </a>
+                  </div>
                   <p class="text-muted">{{ l.category }} · {{ SEGMENT_LABEL[l.segment] }}</p>
                   <p class="text-muted text-xs mt-0.5">{{ addressOf(l) || 'Adres bilinmiyor' }}</p>
                 </td>
@@ -123,7 +130,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { uiConfirm } from '../../utils/dialog'
 import { crm, loadCrm, crmActions } from '../../crm/store'
-import { STATUSES, STATUS_LABEL, SEGMENT_LABEL, addressOf, mapUrl, formatPhone, whatsappUrl } from '../../crm/logic'
+import { STATUSES, STATUS_LABEL, SEGMENT_LABEL, addressOf, mapUrl, webSearchUrl, formatPhone, whatsappUrl } from '../../crm/logic'
 import '../../crm/crm.css'
 
 const status = ref('hepsi')
@@ -193,6 +200,15 @@ onMounted(() => loadCrm(true))
 </script>
 
 <style scoped>
+/* Ada yanında küçük büyüteç; dokunma alanı 32 px */
+.web-search {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px; color: #64748B;
+}
+.web-search:hover { background: #F1F5F9; color: #2563EB; }
+.web-search:focus-visible { outline: 2px solid #2563EB; outline-offset: 1px; }
+:global(.theme-dark) .web-search { color: #94A3B8; }
+:global(.theme-dark) .web-search:hover { background: #1A2440; color: #93C5FD; }
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 </style>
