@@ -34,9 +34,15 @@
       <p v-if="info" class="text-sm text-muted" role="status">{{ info }}</p>
       <template v-if="found?.length">
         <LeadPreview :leads="found"/>
-        <button class="btn-primary self-start" :disabled="adding" @click="add(found, () => (found = null))">
-          {{ found.length }} işletmeyi listeye ekle
-        </button>
+        <div class="flex flex-wrap gap-3">
+          <button class="btn-primary" :disabled="adding" @click="add(found, () => (found = null))">
+            {{ found.length }} işletmeyi listeye ekle
+          </button>
+          <button v-if="mobileOf(found).length" class="btn-secondary" :disabled="adding"
+                  @click="add(mobileOf(found), () => (found = null))">
+            Yalnız cep (WhatsApp) olan {{ mobileOf(found).length }} işletmeyi ekle
+          </button>
+        </div>
       </template>
     </section>
 
@@ -55,9 +61,15 @@
       </label>
       <template v-if="csvLeads?.length">
         <LeadPreview :leads="csvLeads"/>
-        <button class="btn-primary self-start" :disabled="adding" @click="add(csvLeads, () => (csvLeads = null))">
-          {{ csvLeads.length }} işletmeyi listeye ekle
-        </button>
+        <div class="flex flex-wrap gap-3">
+          <button class="btn-primary" :disabled="adding" @click="add(csvLeads, () => (csvLeads = null))">
+            {{ csvLeads.length }} işletmeyi listeye ekle
+          </button>
+          <button v-if="mobileOf(csvLeads).length" class="btn-secondary" :disabled="adding"
+                  @click="add(mobileOf(csvLeads), () => (csvLeads = null))">
+            Yalnız cep (WhatsApp) olan {{ mobileOf(csvLeads).length }} işletmeyi ekle
+          </button>
+        </div>
       </template>
     </section>
 
@@ -147,6 +159,9 @@ async function scan(live) {
     scanning.value = false
   }
 }
+
+// WhatsApp'tan yazılabilenler (cep telefonu); sabit hatlar yalnız aranabilir
+const mobileOf = leads => leads.filter(l => l.phoneType === 'mobile')
 
 async function add(leads, after) {
   adding.value = true

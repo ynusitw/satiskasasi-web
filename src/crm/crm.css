@@ -4,3 +4,14 @@
 .crm-card  { @apply bg-white rounded-2xl shadow-sm; }
 .crm-label { @apply flex flex-col gap-1 text-[13px]; }
 .crm-label > span:first-child { @apply text-muted; }
+
+/* Koyu tema: panelin koyu tema kuralları sınıf adına bakar (.bg-white vb.);
+   @apply ile gelen zeminler o kurallara takılmadığı için burada ayrıca çevrilir. */
+.theme-dark .crm-card  { background: #111A2E !important; color: #E2E8F0; }
+.theme-dark .crm-field,
+.theme-dark .crm-area  { background: #0F172A !important; color: #E2E8F0 !important; border-color: #23304E !important; }
+.theme-dark .bg-emerald-50     { background: rgb(5 150 105 / 0.12) !important; }
+.theme-dark .border-emerald-200 { border-color: rgb(5 150 105 / 0.3) !important; }
+.theme-dark .text-emerald-800  { color: #6EE7B7 !important; }
+.theme-dark .text-amber-900    { color: #FCD34D !important; }
+.theme-dark .bg-gray-50\/60    { background: rgb(15 23 42 / 0.6) !important; }

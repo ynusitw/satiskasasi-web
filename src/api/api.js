@@ -171,7 +171,7 @@ export default {
   crmExport:        ()              => api.get('crm/export', { timeout: 60000 }),
   crmImport:        (data)          => api.post('crm/import', data, { timeout: 120000 }),
   // Canlı tarama Overpass'tan 1 dakikayı bulabilir
-  crmOsm:           (params)        => api.get('crm/osm', { params, timeout: 120000 }),
+  crmOsm:           (params)        => api.get('crm/osm', { params, timeout: 240000 }), // API 3 Overpass sunucusunu sırayla dener (her biri en çok 75 sn)
   crmAi:            (d)             => api.post('crm/ai', d, { timeout: 90000 }),
   // Analiz: dönem karşılaştırma, yoğunluk haritası, menü analizi
   getAnalysisCompare: (params) => api.get('reports/analysis/compare', { params }),
