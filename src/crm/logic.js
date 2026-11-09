@@ -106,7 +106,13 @@ function greeting(d = new Date()) {
 }
 
 /** Şablonu işletmeye göre doldurur; ret cümlesi sona eklenir. */
-export function fillTemplate(body, lead, settings, link, offset = 0) {
+/** İngilizce mesajın ret cümlesi (Ayarlar'daki ret cümlesi Türkçe). */
+export const EN_OPT_OUT = "Not interested? Just reply STOP and I won't message you again."
+
+/** Şablon türleri: İngilizce olan kuyrukta kendiliğinden seçilmez, mesaj kartında elle seçilir. */
+export const KIND_LABEL = { ilk: 'İlk mesaj', takip: 'Takip mesajı', en: 'İngilizce' }
+
+export function fillTemplate(body, lead, settings, link, offset = 0, english = false) {
   const semt = (lead.neighborhood || '').replace(/\s+(Mahallesi|Mah\.?)$/i, '') || lead.district || 'bölgenizdeki'
   const problems = PROBLEMS[lead.segment] ?? PROBLEMS.perakende
   const text = body.replaceAll('{selam}', greeting())
@@ -116,7 +122,8 @@ export function fillTemplate(body, lead, settings, link, offset = 0) {
     .replaceAll('{gonderen}', settings.senderName || settings.companyName)
     .replaceAll('{firma}', settings.companyName)
     .replaceAll('{link}', link)
-  return settings.optOutText ? `${text}\n\n${settings.optOutText}` : text
+  const optOut = english ? EN_OPT_OUT : settings.optOutText
+  return optOut ? `${text}\n\n${optOut}` : text
 }
 
 /** Türkiye telefonu: +90 ile 10 hane; cep (5xx) / sabit (2xx-4xx) / diğer. */

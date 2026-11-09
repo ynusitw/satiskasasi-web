@@ -14,14 +14,17 @@
 
     <div v-else class="grid md:grid-cols-[260px_1fr] gap-5">
       <nav class="flex flex-col gap-4" aria-label="Şablon listesi">
-        <div v-for="k in ['ilk', 'takip']" :key="k" class="flex flex-col gap-1">
-          <p class="text-[11px] font-semibold text-muted uppercase tracking-wider px-1">{{ k === 'ilk' ? 'İlk mesaj' : 'Takip mesajı' }}</p>
+        <div v-for="k in ['ilk', 'takip', 'en']" :key="k" class="flex flex-col gap-1">
+          <p class="text-[11px] font-semibold text-muted uppercase tracking-wider px-1">{{ KIND_LABEL[k] }}</p>
+          <p v-if="k === 'en'" class="text-xs text-muted px-1">Kendiliğinden gönderilmez; mesaj kartındaki "İngilizce" düğmesiyle seçilir.</p>
           <button v-for="t in list.filter(x => x.kind === k)" :key="t.id" @click="selected = t.id"
                   class="text-left rounded-xl px-3 py-2 min-h-11 text-sm transition-colors"
                   :class="t.id === selected ? 'bg-accent text-white font-semibold' : 'hover:bg-gray-100 text-primary'">
             {{ t.name }}
             <span class="block text-xs opacity-75">{{ t.segment === 'hepsi' ? 'Tüm sektörler' : SEGMENT_LABEL[t.segment] }}</span>
           </button>
+          <button v-if="k === 'en' && !list.some(x => x.kind === 'en') && defaultEnglish.length" class="btn-secondary btn-sm justify-start"
+                  @click="addDefaultEnglish">Hazır İngilizce şablonu ekle</button>
           <button class="btn-ghost btn-sm justify-start" @click="addTemplate(k)">+ Ekle</button>
         </div>
       </nav>
@@ -63,7 +66,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { uiConfirm } from '../../utils/dialog'
 import { crm, loadCrm, crmActions } from '../../crm/store'
-import { SEGMENT_LABEL, VARIABLES, toLead, fillTemplate } from '../../crm/logic'
+import { SEGMENT_LABEL, VARIABLES, KIND_LABEL, toLead, fillTemplate } from '../../crm/logic'
 import '../../crm/crm.css'
 
 const sample = toLead({ name: 'Moda Kahve Evi', category: 'Kafe', phone: '05321112233', district: 'Kadıköy', neighborhood: 'Caferağa' }, 'manuel')
@@ -84,15 +87,21 @@ watch(() => crm.loaded, ok => {
 const current = computed(() => list.value.find(t => t.id === selected.value))
 const preview = computed(() => current.value
   ? fillTemplate(current.value.body, { ...sample, segment: current.value.segment === 'hepsi' ? 'yeme_icme' : current.value.segment },
-    crm.settings, crm.settings.landingUrl || 'https://yenpos.com/kampanya') : '')
+    crm.settings, crm.settings.landingUrl || 'https://yenpos.com/kampanya', 0, current.value.kind === 'en') : '')
 
 function edit(patch) {
   saved.value = false
   Object.assign(current.value, patch)
 }
+const defaultEnglish = computed(() => crm.defaultTemplates.filter(t => t.kind === 'en'))
+function addDefaultEnglish() {
+  list.value.push(...defaultEnglish.value.map(t => ({ ...t })))
+  selected.value = defaultEnglish.value[0].id
+  saved.value = false
+}
 function addTemplate(kind) {
-  const t = { id: crypto.randomUUID(), name: kind === 'ilk' ? 'Yeni ilk mesaj' : 'Yeni takip', kind, segment: 'hepsi',
-              body: '{selam}, {isletme} ekibine kolay gelsin. ' }
+  const t = { id: crypto.randomUUID(), name: { ilk: 'Yeni ilk mesaj', takip: 'Yeni takip', en: 'Yeni İngilizce mesaj' }[kind], kind, segment: 'hepsi',
+              body: kind === 'en' ? 'Hi, is this {isletme}? ' : '{selam}, {isletme} ekibine kolay gelsin. ' }
   list.value.push(t)
   selected.value = t.id
   saved.value = false

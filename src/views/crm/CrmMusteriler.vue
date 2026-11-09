@@ -36,6 +36,14 @@
         </label>
       </div>
 
+      <div v-if="selected.size" class="flex flex-wrap items-center gap-3 mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm" role="status">
+        <span class="text-red-700 font-semibold">{{ selected.size }} işletme seçildi</span>
+        <button class="btn-danger-solid btn-sm" :disabled="!!deleting" @click="removeSelected">
+          {{ deleting ? `Siliniyor… ${deleting}` : 'Seçilenleri sil' }}
+        </button>
+        <button class="btn-ghost btn-sm" :disabled="!!deleting" @click="selected = new Set()">Seçimi kaldır</button>
+      </div>
+
       <div v-if="!crm.leads.length" class="crm-card p-8 text-center text-sm text-muted">
         Henüz işletme yok. "İşletme bul" sayfasından ekleyin.
       </div>
@@ -43,6 +51,10 @@
         <table class="w-full text-sm">
           <thead class="bg-gray-50 text-left">
             <tr>
+              <th class="pl-4 py-2.5 w-8">
+                <input type="checkbox" class="crm-check" :checked="allShownSelected" :indeterminate.prop="someShownSelected"
+                       aria-label="Görünen tüm işletmeleri seç" @change="toggleAllShown($event.target.checked)"/>
+              </th>
               <th class="px-4 py-2.5 text-[11px] font-semibold text-muted uppercase">İşletme</th>
               <th class="px-4 py-2.5 text-[11px] font-semibold text-muted uppercase">Telefon</th>
               <th class="px-4 py-2.5 text-[11px] font-semibold text-muted uppercase">Durum</th>
@@ -52,7 +64,11 @@
           </thead>
           <tbody>
             <template v-for="l in filtered.slice(0, shown)" :key="l.id">
-              <tr class="border-t border-gray-50 align-top">
+              <tr class="border-t border-gray-50 align-top" :class="selected.has(l.id) ? 'bg-red-50/60' : ''">
+                <td class="pl-4 py-3">
+                  <input type="checkbox" class="crm-check mt-0.5" :checked="selected.has(l.id)"
+                         :aria-label="`${l.name} seç`" @change="toggle(l.id, $event.target.checked)"/>
+                </td>
                 <td class="px-4 py-3">
                   <div class="flex items-start gap-1.5">
                     <p class="font-semibold text-primary">{{ l.name }}</p>
@@ -88,11 +104,12 @@
                     <button class="btn-ghost btn-sm" :aria-expanded="open === l.id" @click="open = open === l.id ? null : l.id">
                       {{ open === l.id ? 'Kapat' : 'Detay' }}
                     </button>
+                    <button class="btn-ghost btn-sm text-red-600" :aria-label="`${l.name} sil`" @click="remove(l)">Sil</button>
                   </div>
                 </td>
               </tr>
               <tr v-if="open === l.id" class="bg-gray-50/60">
-                <td colspan="5" class="px-4 py-4">
+                <td colspan="6" class="px-4 py-4">
                   <div class="grid md:grid-cols-2 gap-4">
                     <label class="crm-label">
                       <span>Notlar</span>
@@ -109,13 +126,10 @@
                       <a v-if="l.website" class="text-accent underline" :href="l.website" target="_blank" rel="noopener">Web sitesi</a>
                     </div>
                   </div>
-                  <div class="mt-3 text-right">
-                    <button class="btn-danger" @click="remove(l)">Kaydı sil</button>
-                  </div>
                 </td>
               </tr>
             </template>
-            <tr v-if="!filtered.length"><td colspan="5" class="text-center py-10 text-muted">Bu filtrede kayıt yok</td></tr>
+            <tr v-if="!filtered.length"><td colspan="6" class="text-center py-10 text-muted">Bu filtrede kayıt yok</td></tr>
           </tbody>
         </table>
         <div v-if="shown < filtered.length" class="p-3 text-center border-t border-gray-100">
@@ -139,6 +153,8 @@ const search = ref('')
 const shown = ref(50)
 const open = ref(null)
 const error = ref('')
+const selected = ref(new Set())
+const deleting = ref('')
 
 // Arama aksan ve büyük/küçük harf duyarsız
 const norm = s => String(s ?? '').toLocaleLowerCase('tr').normalize('NFD').replace(/\p{M}/gu, '')
@@ -180,9 +196,44 @@ function saveNotes(l, value) {
   act(() => crmActions.setNotes(l.id, value))
 }
 async function remove(l) {
-  if (!await uiConfirm(`${l.name} silinsin mi?`)) return
+  if (!await uiConfirm(`${l.name} listeden silinsin mi? Bu işlem geri alınamaz.`)) return
   await act(() => crmActions.remove(l.id))
-  open.value = null
+  if (open.value === l.id) open.value = null
+  if (selected.value.has(l.id)) toggle(l.id, false)
+}
+
+// Toplu silme: kutucukla seçilenler (filtre değişse de seçim kalır)
+const shownLeads = computed(() => filtered.value.slice(0, shown.value))
+const allShownSelected = computed(() => shownLeads.value.length > 0 && shownLeads.value.every(l => selected.value.has(l.id)))
+const someShownSelected = computed(() => !allShownSelected.value && shownLeads.value.some(l => selected.value.has(l.id)))
+function toggle(id, on) {
+  const next = new Set(selected.value)
+  on ? next.add(id) : next.delete(id)
+  selected.value = next
+}
+function toggleAllShown(on) {
+  const next = new Set(selected.value)
+  for (const l of shownLeads.value) on ? next.add(l.id) : next.delete(l.id)
+  selected.value = next
+}
+async function removeSelected() {
+  const ids = [...selected.value].filter(id => crm.leads.some(l => l.id === id))
+  if (!ids.length) { selected.value = new Set(); return }
+  if (!await uiConfirm(`${ids.length} işletme listeden silinsin mi? Bu işlem geri alınamaz.`)) return
+  error.value = ''
+  let done = 0, failed = 0
+  // Sunucuyu boğmamak için beşerli gruplar halinde
+  for (let i = 0; i < ids.length; i += 5) {
+    await Promise.all(ids.slice(i, i + 5).map(async id => {
+      try { await crmActions.remove(id) } catch { failed++ }
+      done++
+      deleting.value = `${done}/${ids.length}`
+    }))
+  }
+  deleting.value = ''
+  selected.value = new Set([...selected.value].filter(id => crm.leads.some(l => l.id === id)))
+  if (open.value && !crm.leads.some(l => l.id === open.value)) open.value = null
+  if (failed) error.value = `${failed} işletme silinemedi. Tekrar deneyin.`
 }
 
 function downloadCsv() {
@@ -200,6 +251,7 @@ onMounted(() => loadCrm(true))
 </script>
 
 <style scoped>
+.crm-check { width: 18px; height: 18px; accent-color: #DC2626; cursor: pointer; }
 /* Ada yanında küçük büyüteç; dokunma alanı 32 px */
 .web-search {
   display: inline-flex; align-items: center; justify-content: center;

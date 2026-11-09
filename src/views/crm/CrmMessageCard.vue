@@ -41,6 +41,9 @@
     <div v-else class="flex flex-wrap gap-2">
       <button class="btn-primary" @click="openWhatsApp">WhatsApp'ta aç</button>
       <button class="btn-secondary" :disabled="alternatives < 2 && edited === null" @click="nextTemplate">Başka şablon</button>
+      <button v-if="kind === 'ilk' && hasEnglish" class="btn-secondary" :aria-pressed="english" @click="toggleEnglish">
+        {{ english ? 'Türkçe' : 'İngilizce' }}
+      </button>
       <button v-if="crm.aiEnabled" class="btn-secondary" :disabled="aiBusy" @click="personalize">
         {{ aiBusy ? 'Yazılıyor…' : 'AI ile kişiselleştir' }}
       </button>
@@ -56,11 +59,12 @@ import { computed, ref } from 'vue'
 import api from '../../api/api'
 import { crm, crmActions } from '../../crm/store'
 import { SEGMENT_LABEL, addressOf, mapUrl, formatPhone, whatsappUrl, pickTemplate, fillTemplate,
-         templatesFor, copyPoster } from '../../crm/logic'
+         templatesFor, copyPoster, EN_OPT_OUT } from '../../crm/logic'
 
 const props = defineProps({ lead: Object, kind: String, link: String })
 
 const offset = ref(0)
+const english = ref(false)        // İngilizce şablon yalnız elle seçilir
 const edited = ref(null)          // elle ya da yapay zekâyla değiştirilmiş metin
 const opened = ref(false)
 const posterCopied = ref(null)
@@ -69,10 +73,12 @@ const aiBusy = ref(false)
 const error = ref('')
 
 const place = computed(() => [props.lead.neighborhood, props.lead.district].filter(Boolean).join(', '))
-const template = computed(() => pickTemplate(props.lead, props.kind, crm.templates, offset.value))
+const hasEnglish = computed(() => crm.templates.some(t => t.kind === 'en'))
+const activeKind = computed(() => english.value ? 'en' : props.kind)
+const template = computed(() => pickTemplate(props.lead, activeKind.value, crm.templates, offset.value))
 const generated = computed(() => template.value
-  ? fillTemplate(template.value.body, props.lead, crm.settings, props.link, offset.value) : '')
-const alternatives = computed(() => templatesFor(props.lead, props.kind, crm.templates).length)
+  ? fillTemplate(template.value.body, props.lead, crm.settings, props.link, offset.value, english.value) : '')
+const alternatives = computed(() => templatesFor(props.lead, activeKind.value, crm.templates).length)
 const text = computed({
   get: () => edited.value ?? generated.value,
   set: v => { edited.value = v },
@@ -81,6 +87,12 @@ const text = computed({
 function nextTemplate() {
   edited.value = null
   offset.value++
+}
+
+function toggleEnglish() {
+  edited.value = null
+  offset.value = 0
+  english.value = !english.value
 }
 
 function openWhatsApp() {
@@ -104,7 +116,7 @@ async function personalize() {
   aiBusy.value = true
   error.value = ''
   try {
-    const opt = crm.settings.optOutText
+    const opt = english.value ? EN_OPT_OUT : crm.settings.optOutText
     const draft = text.value.replace(opt, '').trim()
     const { data } = await api.crmAi({ name: props.lead.name, category: props.lead.category, place: place.value, draft })
     edited.value = opt ? `${data.text}\n\n${opt}` : data.text
