@@ -30,6 +30,7 @@
         </div>
         <div class="bar-right">
           <span class="clock">{{ clock }}</span>
+          <button class="kb kb-ghost" :class="{ 'is-on': showTotals }" @click="toggleTotals">Toplamlar</button>
           <button class="kb kb-ghost" @click="recentOpen = true">Geri Al</button>
           <button class="kb kb-ghost" @click="toggleFullscreen">{{ isFullscreen ? 'Küçült' : 'Tam Ekran' }}</button>
         </div>
@@ -39,6 +40,16 @@
         Bağlantı yok — son güncelleme {{ lastOkText }}. Yeni siparişler bağlantı gelince görünecek.
       </div>
       <div v-if="actionError" class="offline">{{ actionError }}</div>
+
+      <!-- Hazırlanacak ürünlerin toplamı (yeni + hazırlanıyor, bitmemiş kalemler) -->
+      <div v-if="showTotals" class="totals" aria-label="Hazırlanacak ürün toplamları">
+        <span class="totals-title">Hazırlanacak</span>
+        <span v-if="!productTotals.length" class="totals-empty">Bekleyen ürün yok</span>
+        <span v-for="p in productTotals" :key="p.key" class="total-chip">
+          <b>{{ qty(p.quantity) }}</b> {{ p.name }}<span v-if="p.variant" class="variant"> · {{ p.variant }}</span>
+          <span v-if="p.tickets > 1" class="total-tickets">{{ p.tickets }} sipariş</span>
+        </span>
+      </div>
 
       <div class="layout">
         <!-- Hazırlanacaklar -->
@@ -210,6 +221,32 @@ const readyTickets = computed(() => tickets.value.filter(t => t.status === 'Read
 const activeTickets = computed(() => tickets.value
   .filter(t => t.status === 'New' || t.status === 'Preparing')
   .sort((a, b) => parse(a.createdAt) - parse(b.createdAt)))
+
+// ── Ürün toplamları ─────────────────────────────────────────────────
+// Aşçı için: "şu an toplam 7 döner, 3 köfte". Yeni ve hazırlanan biletlerdeki
+// bitmemiş, iptal edilmemiş kalemler; ürün + porsiyona göre, çoktan aza.
+const TOTALS_KEY = 'kds-totals'
+const showTotals = ref((() => { try { return localStorage.getItem(TOTALS_KEY) !== '0' } catch { return true } })())
+function toggleTotals() {
+  showTotals.value = !showTotals.value
+  try { localStorage.setItem(TOTALS_KEY, showTotals.value ? '1' : '0') } catch { /* gizli sekme */ }
+}
+const productTotals = computed(() => {
+  const map = new Map()
+  for (const t of activeTickets.value) {
+    for (const i of t.items) {
+      if (i.isCancelled || i.isDone) continue
+      const key = `${i.productName}|${i.variantName ?? ''}`
+      const row = map.get(key) ?? { key, name: i.productName, variant: i.variantName, quantity: 0, ticketIds: new Set() }
+      row.quantity += Number(i.quantity) || 0
+      row.ticketIds.add(t.id)
+      map.set(key, row)
+    }
+  }
+  return [...map.values()]
+    .map(r => ({ ...r, tickets: r.ticketIds.size }))
+    .sort((a, b) => b.quantity - a.quantity || a.name.localeCompare(b.name, 'tr'))
+})
 
 // ── İşlemler ────────────────────────────────────────────────────────
 async function setStatus(t, status) {
@@ -384,6 +421,23 @@ onUnmounted(() => {
 .clock { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; margin-right: 6px; }
 
 .offline { background: #7F1D1D; color: #FEE2E2; padding: 10px 20px; font-weight: 600; font-size: 15px; }
+
+/* Ürün toplamları: başlıkların altında tek şerit, sığmazsa yatay kayar */
+.kb-ghost.is-on { background: #334155; box-shadow: inset 0 0 0 2px #FCD34D; }
+.totals {
+  display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+  background: #0B1220; border-bottom: 1px solid var(--line);
+  overflow-x: auto; scrollbar-width: none; white-space: nowrap;
+}
+.totals::-webkit-scrollbar { display: none; }
+.totals-title { font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.totals-empty { color: var(--muted); font-size: 15px; }
+.total-chip {
+  display: inline-flex; align-items: baseline; gap: 6px; flex-shrink: 0;
+  padding: 7px 14px; border-radius: 999px; background: #1E293B; font-size: 17px; font-weight: 700;
+}
+.total-chip b { color: #FDE68A; font-size: 20px; font-weight: 800; }
+.total-tickets { font-size: 12px; font-weight: 600; color: var(--muted); }
 
 /* Yerleşim */
 .layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 340px; }

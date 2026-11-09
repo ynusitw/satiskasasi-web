@@ -362,8 +362,26 @@
 
                   <div class="space-y-3 mb-4">
                     <ToggleRow v-model="notif.emailZReport"
-                               title="Z raporu özeti"
-                               desc="Gün sonu Z raporu alındığında ciro, ödeme dağılımı ve kasa sayımı e-postayla gönderilir."/>
+                               title="Gün sonu özeti"
+                               desc="Z raporu alınınca ciro (önceki Z ve geçen haftanın aynı günüyle karşılaştırmalı), ödeme dağılımı, kasa sayımı, en çok satanlar, iptal ve iadeler, en yoğun saat, kasiyerler ve bahşiş e-postayla gönderilir."/>
+                    <div v-if="notif.emailZReport" class="pl-1 -mt-1">
+                      <div class="flex flex-wrap gap-x-4 gap-y-1">
+                        <button type="button" @click="previewDaySummary" :disabled="notif.summaryLoading"
+                                class="text-xs font-bold text-accent hover:underline disabled:opacity-50">
+                          {{ notif.summaryLoading ? 'Hazırlanıyor...' : notif.summaryHtml ? 'Önizlemeyi kapat' : 'Son Z raporunun özetini önizle' }}
+                        </button>
+                        <button type="button" @click="testDaySummary"
+                                :disabled="notif.summarySending || !notif.smtpConfigured"
+                                class="text-xs font-bold text-accent hover:underline disabled:opacity-50 disabled:no-underline"
+                                :title="notif.smtpConfigured ? '' : 'Önce SMTP yapılandırılmalı'">
+                          {{ notif.summarySending ? 'Gönderiliyor...' : 'Şimdi e-postayla gönder' }}
+                        </button>
+                      </div>
+                      <!-- E-postanın kendisi: sunucunun hazırladığı HTML, betiksiz çerçevede -->
+                      <iframe v-if="notif.summaryHtml" :srcdoc="notif.summaryHtml" sandbox=""
+                              title="Gün sonu özeti önizleme"
+                              class="w-full h-[520px] mt-3 rounded-xl border border-gray-200 bg-white"></iframe>
+                    </div>
                     <ToggleRow v-model="notif.emailCashDifference"
                                title="Kasa farkı uyarısı"
                                desc="Z alınırken sayılan nakit beklenenden belirlenen tutardan fazla saparsa uyarır."/>
@@ -751,7 +769,8 @@ async function loadFailedAttempts() {
 // ─── Bildirim ayarları (sunucuda) ───────────────────────────────────────────
 // Önceden yalnızca tarayıcıda saklanıyor, hiçbir şey göndermiyordu.
 const notif = reactive({
-  loading: false, saving: false, testing: false, message: '', messageOk: true,
+  loading: false, saving: false, testing: false, summarySending: false, summaryLoading: false, summaryHtml: '',
+  message: '', messageOk: true,
   email: '', defaultEmail: '', smtpConfigured: false, smtpSource: null, smtp: null,
   emailZReport: false, emailCashDifference: true, emailLowStock: true, emailFailedLogin: true,
   cashDifferenceThreshold: 50,
@@ -859,6 +878,39 @@ async function removeSmtp() {
   } catch (e) {
     notif.message = e.response?.data?.message || 'Kaldırılamadı.'
     notif.messageOk = false
+  }
+}
+
+// Son Z'nin özetini panelde göster / gizle (e-posta sunucusu gerekmez)
+async function previewDaySummary() {
+  if (notif.summaryHtml) { notif.summaryHtml = ''; return }
+  notif.summaryLoading = true
+  notif.message = ''
+  try {
+    const { data } = await api.previewDaySummary()
+    // E-posta açık zeminli: çerçevede beyaz zemin ve kenar boşluğu
+    notif.summaryHtml = `<!doctype html><meta charset="utf-8"><body style="margin:16px;background:#fff">${data.html}</body>`
+  } catch (e) {
+    notif.message = e.response?.data?.message || 'Özet hazırlanamadı.'
+    notif.messageOk = false
+  } finally {
+    notif.summaryLoading = false
+  }
+}
+
+// Gün sonu özetini Z beklemeden görmek için: son Z'nin özeti kayıtlı adrese gider
+async function testDaySummary() {
+  notif.summarySending = true
+  notif.message = ''
+  try {
+    const { data } = await api.sendDaySummaryTest()
+    notif.message = data?.message || 'Özet gönderildi.'
+    notif.messageOk = true
+  } catch (e) {
+    notif.message = e.response?.data?.message || 'Gönderilemedi.'
+    notif.messageOk = false
+  } finally {
+    notif.summarySending = false
   }
 }
 

@@ -138,6 +138,9 @@ export default {
   getNotificationSettings:   ()   => api.get('notifications/settings'),
   saveNotificationSettings:  (d)  => api.put('notifications/settings', d),
   sendTestNotification:      ()   => api.post('notifications/test'),
+  // Son Z raporunun gün sonu özeti (e-posta görünümünü denemek için)
+  sendDaySummaryTest:        ()   => api.post('notifications/day-summary/test', null, { timeout: 30000 }),
+  previewDaySummary:         ()   => api.get('notifications/day-summary/preview', { timeout: 30000 }),
   // İşletmenin kendi e-posta sunucusu (şifre boş gönderilirse kayıtlı olan korunur)
   saveSmtpSettings:          (d)  => api.put('notifications/smtp', d),
   deleteSmtpSettings:        ()   => api.delete('notifications/smtp'),
