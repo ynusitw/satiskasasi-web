@@ -110,10 +110,12 @@ const LeadPreview = defineComponent({
     return () => {
       const mobile = props.leads.filter(l => l.phoneType === 'mobile').length
       const land = props.leads.filter(l => l.phoneType === 'landline').length
+      const other = props.leads.length - mobile - land
       return h('div', { class: 'flex flex-col gap-3' }, [
-        h('div', { class: 'grid grid-cols-3 gap-3' }, [['Telefonlu', mobile + land], ['Cep (WhatsApp)', mobile], ['Sabit hat (arama)', land]]
+        h('div', { class: 'grid grid-cols-3 gap-3' }, [['Telefonlu', props.leads.length], ['Cep (WhatsApp)', mobile], ['Sabit hat (arama)', land]]
           .map(([label, v]) => h('div', { class: 'rounded-xl bg-gray-50 p-3' }, [
             h('p', { class: 'text-xs text-muted' }, label), h('p', { class: 'text-xl font-bold text-primary' }, v)]))),
+        other ? h('p', { class: 'text-xs text-muted -mt-1' }, `${other} işletmenin numarası 0850 / 444 gibi özel hat; aramalar listesine düşer.`) : null,
         h('ul', { class: 'divide-y divide-gray-100 max-h-72 overflow-y-auto rounded-xl border border-gray-100' },
           props.leads.slice(0, 100).map(l => h('li', { class: 'px-3 py-2 flex flex-wrap gap-x-3 text-sm', key: l.key }, [
             h('span', { class: 'flex-1 min-w-40' }, [h('span', { class: 'font-semibold text-primary' }, l.name),

@@ -74,10 +74,10 @@ export function todayQueue(state) {
   }
 }
 
-/** Sabit hatlı yeni işletmeler: telefonla aranacak. */
+/** WhatsApp'ı olmayan yeni işletmeler (sabit hat, 0850 / 444): telefonla aranacak. */
 export const callList = state => {
   const now = Date.now()
-  return state.leads.filter(l => l.status === 'yeni' && l.phoneType === 'landline' && notSkipped(l, now))
+  return state.leads.filter(l => l.status === 'yeni' && l.phone && l.phoneType !== 'mobile' && notSkipped(l, now))
 }
 
 export function counts(state) {
