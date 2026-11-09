@@ -30,6 +30,16 @@
                   :class="section === s.id ? 'chip-accent' : 'chip-neutral'" class="flex-shrink-0">{{ s.name }}</button>
         </div>
         <div v-if="loadingFloor && !tables.length" class="text-sm text-muted text-center py-10">Yükleniyor...</div>
+
+        <!-- QR menüden çağıran masalar (tüm bölümler) -->
+        <div v-if="callingTables.length" class="mt-1 mb-2 space-y-1.5">
+          <button v-for="t in callingTables" :key="'c' + t.id" @click="openTable(t)"
+                  class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-red-600 text-white text-left shadow-sm">
+            <span class="text-[14px] font-semibold truncate">{{ t.displayName || t.name }}</span>
+            <span class="text-[12.5px] font-bold whitespace-nowrap">{{ t.calls.map(callLabel).join(' · ') }}</span>
+          </button>
+        </div>
+
         <div class="grid grid-cols-3 gap-2.5 mt-2">
           <button v-for="t in shownTables" :key="t.id" @click="openTable(t)"
                   class="rounded-2xl p-3 text-left min-h-[84px] flex flex-col justify-between shadow-sm active:scale-[0.98] transition"
@@ -43,6 +53,10 @@
                  :class="t.occupied ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-700'">
               {{ clock(t.reservation.startsAt) }} · {{ t.reservation.customerName }} ({{ t.reservation.guestCount }})
             </div>
+            <div v-for="c in t.calls ?? []" :key="c.id"
+                 class="text-[11px] font-bold mt-1 leading-tight rounded-md px-1.5 py-0.5 w-fit max-w-full truncate bg-red-600 text-white">
+              {{ callShort(c) }}
+            </div>
             <div v-if="cartFor(t.id)" class="text-[11px] font-bold mt-1" :class="t.occupied ? 'text-white' : 'text-accent'">
               {{ cartFor(t.id) }} ürün gönderilmedi
             </div>
@@ -55,6 +69,16 @@
 
       <!-- ── Masa adisyonu ──────────────────────────────────────── -->
       <main v-else-if="screen === 'table'" class="flex-1 p-4 pb-28">
+        <!-- Müşteri QR menüden çağırdı -->
+        <div v-for="c in table?.calls ?? []" :key="c.id"
+             class="mb-3 p-3 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="text-[15px] font-semibold text-red-700">{{ callLabel(c) }}</div>
+            <div class="text-xs text-red-700/70">QR menüden · {{ since(c.createdAt) }} önce</div>
+          </div>
+          <button class="btn-primary h-11 px-4 flex-shrink-0" :disabled="closingCall === c.id" @click="closeCall(c)">Tamam</button>
+        </div>
+
         <div class="bg-white rounded-2xl shadow-sm">
           <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <span class="text-sm font-semibold text-primary">Adisyon</span>
@@ -251,9 +275,59 @@ const sections = computed(() => {
 })
 const shownTables = computed(() => tables.value.filter(t => section.value == null || t.sectionId === section.value))
 
+// ── QR menüden "Garson çağır" / "Hesap iste" ──────────────────────────
+const callLabel = c => c.type === 'Bill'
+  ? `Hesap istiyor${c.payment ? ' · ' + c.payment : ''}`
+  : 'Garson çağırıyor'
+// Dar masa kartında kısa metin (tam metin üstteki bantta)
+const callShort = c => c.type === 'Bill' ? `Hesap${c.payment ? ' · ' + c.payment : ''}` : 'Çağırıyor'
+const callingTables = computed(() => tables.value.filter(t => t.calls?.length))
+const closingCall = ref(null)
+const seenCalls = new Set()
+let firstFloor = true
+
+// Yeni çağrı: telefon titrer, kısa bildirim çıkar (ilk açılışta değil)
+function notifyNewCalls(list) {
+  const fresh = []
+  for (const t of list)
+    for (const c of t.calls ?? [])
+      if (!seenCalls.has(c.id)) { seenCalls.add(c.id); fresh.push(`${t.displayName || t.name}: ${callLabel(c)}`) }
+  if (firstFloor) { firstFloor = false; return }
+  if (fresh.length) {
+    try { navigator.vibrate?.([200, 100, 200]) } catch { /* desteklenmiyor */ }
+    flash(fresh[0] + (fresh.length > 1 ? ` (+${fresh.length - 1})` : ''))
+  }
+}
+
+// Masa ekranındayken çağrılar da tazelenir (kasa kapattıysa ya da yeni çağrı geldiyse)
+async function refreshTableCalls() {
+  if (!table.value) return
+  try {
+    const list = (await api.waiterFloor()).data
+    tables.value = list
+    notifyNewCalls(list)
+    const t = list.find(x => x.id === table.value?.id)
+    if (t && table.value) table.value.calls = t.calls
+  } catch { /* sonraki turda */ }
+}
+
+async function closeCall(c) {
+  closingCall.value = c.id
+  try {
+    await api.closeTableCall(c.id)
+    if (table.value) table.value.calls = (table.value.calls ?? []).filter(x => x.id !== c.id)
+    for (const t of tables.value) if (t.calls) t.calls = t.calls.filter(x => x.id !== c.id)
+  } catch (e) {
+    error.value = e.response?.data?.message || 'Kapatılamadı. Bağlantıyı kontrol edin.'
+  } finally {
+    closingCall.value = null
+  }
+}
+
 async function loadFloor() {
   try {
     tables.value = (await api.waiterFloor()).data
+    notifyNewCalls(tables.value)
     if (section.value == null || !sections.value.some(s => s.id === section.value))
       section.value = sections.value[0]?.id ?? null
   } catch (e) {
@@ -433,7 +507,7 @@ onMounted(async () => {
   poll = setInterval(() => {
     if (document.hidden) return
     if (screen.value === 'floor') loadFloor()
-    else if (screen.value === 'table') loadOrder()
+    else if (screen.value === 'table') { loadOrder(); refreshTableCalls() }
   }, 15000)
 })
 onUnmounted(() => clearInterval(poll))

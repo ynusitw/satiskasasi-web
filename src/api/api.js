@@ -155,6 +155,10 @@ export default {
   getTablesReport:       (params) => api.get('reports/tables', { params }),
   getStockReport:        ()       => api.get('reports/stock'),
   getCancellationsReport:(params) => api.get('reports/cancellations', { params }),
+  // Analiz: dönem karşılaştırma, yoğunluk haritası, menü analizi
+  getAnalysisCompare: (params) => api.get('reports/analysis/compare', { params }),
+  getAnalysisHeatmap: (params) => api.get('reports/analysis/heatmap', { params }),
+  getAnalysisMenu:    (params) => api.get('reports/analysis/menu', { params, timeout: 60000 }),
 
   // ── Aşama 3: hammadde, reçete ve çeşniler ──────────────────────────
   getIngredients:     (includeInactive) =>
@@ -217,6 +221,11 @@ export default {
   getPublicMenu: (slug, masa) => api.get(`menu/${slug}`, { timeout: 60000, params: masa ? { masa } : undefined }),
   placeQrOrder: (slug, d) => api.post(`menu/${slug}/order`, d, { timeout: 30000 }),
   getQrOrderStatus: (slug, code) => api.get(`menu/${slug}/order/${code}`),
+  // Garson çağır / Hesap iste (masa QR kodu yetkidir)
+  callTable:     (slug, d)    => api.post(`menu/${slug}/call`, d),
+  getTableCalls: (slug, masa) => api.get(`menu/${slug}/calls`, { params: { masa } }),
+  // Kasa / garson: çağrıyı kapat
+  closeTableCall: (id) => api.post(`tablecalls/${id}/done`),
 
   // Masadan sipariş yönetimi (panel)
   getQrOrderSettings:  ()   => api.get('qrorders/settings'),

@@ -131,6 +131,41 @@
       </div>
     </div>
 
+    <!-- Bahşiş: ciroya dahil değil, personel başına -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mt-6">
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="section-title">Bahşiş</h2>
+        <p class="text-xs text-muted mt-0.5">
+          Ciroya dahil değildir.
+          <template v-if="tips.count">
+            Toplam <b class="text-primary">{{ money(tips.total) }}</b>
+            (nakit {{ money(tips.cash) }} · kart {{ money(tips.card) }}), {{ tips.count }} hesapta.
+          </template>
+        </p>
+      </div>
+      <table v-if="tips.byUser?.length" class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="text-left  px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Personel</th>
+            <th class="text-right px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Hesap</th>
+            <th class="text-right px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Nakit</th>
+            <th class="text-right px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Kart</th>
+            <th class="text-right px-5 py-2.5 text-[11px] font-semibold text-muted uppercase">Toplam</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="u in tips.byUser" :key="u.user" class="border-t border-gray-50">
+            <td class="px-5 py-2.5 font-semibold text-primary">{{ u.user }}</td>
+            <td class="px-5 py-2.5 text-right text-muted">{{ u.count }}</td>
+            <td class="px-5 py-2.5 text-right text-muted whitespace-nowrap">{{ money(u.cash) }}</td>
+            <td class="px-5 py-2.5 text-right text-muted whitespace-nowrap">{{ money(u.card) }}</td>
+            <td class="px-5 py-2.5 text-right font-semibold text-primary whitespace-nowrap">{{ money(u.total) }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else class="py-8 text-center text-sm text-muted">Bu aralıkta bahşiş yok</div>
+    </div>
+
     <p class="text-xs text-muted mt-6">
       Ciro Z raporuyla aynı ölçütle hesaplanır: personel satışları dahil değildir.
       Ürün ve kategori cirosu satır indirimleri düşülmüş tutardır; fiş geneli indirim satırlara dağıtılmaz.
@@ -158,6 +193,7 @@ const hours      = ref([])
 const byUser     = ref([])
 const byCategory = ref([])
 const byProduct  = ref([])
+const tips       = ref({})
 const loading = ref(false)
 const error   = ref('')
 const productSearch = ref('')
@@ -240,6 +276,8 @@ async function load() {
     byUser.value = data.byUser
     byCategory.value = data.byCategory
     byProduct.value = data.byProduct
+    // Eski API alanı göndermez
+    tips.value = data.tips ?? {}
   } catch (e) {
     error.value = e.response?.data?.message || 'Rapor alınamadı.'
   } finally {

@@ -319,6 +319,7 @@ const reportSubMenu = [
   { to: '/reports/kasa',      label: 'Kasa Defteri'    },
   { to: '/reports/z-listesi', label: 'Z-Listesi'       },
   { to: '/reports/satis',     label: 'Satış Raporları' },
+  { to: '/reports/analiz',    label: 'Analiz'          },
   { to: '/reports/iptaller',  label: 'İptaller'        },
   { to: '/reports/indirim-ikram', label: 'İndirim & İkram' },
   { to: '/reports/masalar',   label: 'Masalar',         module: MODULES.TABLES },

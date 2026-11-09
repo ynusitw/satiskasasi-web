@@ -55,6 +55,19 @@
         </div>
       </div>
 
+      <!-- Garson çağır / Hesap iste -->
+      <div v-if="menu.ordering?.calls" class="call-row">
+        <button type="button" class="call-btn" :class="{ 'is-on': hasCall('Waiter') }"
+                :disabled="callBusy || hasCall('Waiter')" @click="sendCall('Waiter')">
+          {{ hasCall('Waiter') ? 'Garson çağrıldı' : 'Garson çağır' }}
+        </button>
+        <button type="button" class="call-btn" :class="{ 'is-on': hasCall('Bill') }"
+                :disabled="callBusy" @click="billOpen = true">
+          {{ hasCall('Bill') ? `Hesap istendi${billPayment ? ' · ' + billPayment : ''}` : 'Hesap iste' }}
+        </button>
+      </div>
+      <div v-if="callError" class="call-error">{{ callError }}</div>
+
       <!-- Verilen siparişin durumu -->
       <button v-if="activeOrder && orderStatus" type="button" class="status-pill"
               :class="`is-${statusInfo.tone}`" @click="statusOpen = true">
@@ -261,6 +274,23 @@
             <button type="button" class="add-main" :disabled="!cart.length || sending" @click="submitOrder">
               {{ sending ? 'Gönderiliyor...' : `Siparişi gönder · ${fmt(cartTotal)}` }}
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hesap iste: ödeme tercihi -->
+      <div v-if="billOpen" class="sheet-backdrop" @click="billOpen = false">
+        <div class="sheet" @click.stop>
+          <div class="sheet-head">
+            <div class="sheet-title">Hesap · {{ menu.ordering?.tableName }}</div>
+            <button type="button" class="sheet-close" @click="billOpen = false">Kapat</button>
+          </div>
+          <div class="sheet-body">
+            <p class="cart-hint">Nasıl ödemek istersiniz? Garson hesabı masanıza getirir.</p>
+          </div>
+          <div class="sheet-foot pay-choice">
+            <button type="button" class="add-main" :disabled="callBusy" @click="requestBill('Nakit')">Nakit</button>
+            <button type="button" class="add-main" :disabled="callBusy" @click="requestBill('Kart')">Kart</button>
           </div>
         </div>
       </div>
@@ -527,6 +557,47 @@ async function refreshStatus() {
   }
 }
 
+// ── Garson çağır / Hesap iste ──
+// Açık çağrı varken 8 sn'de bir bakılır: garson "tamam" deyince düğme yeniden açılır.
+const calls = ref([])
+const callBusy = ref(false)
+const callError = ref('')
+const billOpen = ref(false)
+let callTimer = null
+const hasCall = t => calls.value.some(c => c.type === t)
+const billPayment = computed(() => calls.value.find(c => c.type === 'Bill')?.payment)
+
+async function refreshCalls() {
+  clearTimeout(callTimer)
+  if (!masa || !menu.value.ordering?.calls) return
+  try {
+    calls.value = (await api.getTableCalls(route.params.slug, masa)).data
+  } catch { /* geçici ağ hatası: son durum kalır */ }
+  if (calls.value.length) callTimer = setTimeout(refreshCalls, 8000)
+}
+
+async function sendCall(type, payment) {
+  if (callBusy.value) return
+  callBusy.value = true
+  callError.value = ''
+  try {
+    const { data } = await api.callTable(route.params.slug, { table: masa, type, payment: payment ?? null })
+    calls.value = [...calls.value.filter(c => c.type !== type), data]
+    showToast(type === 'Bill' ? 'Hesabınız istendi, garson getirecek' : 'Garson çağrıldı, birazdan masanızda')
+    clearTimeout(callTimer)
+    callTimer = setTimeout(refreshCalls, 8000)
+  } catch (e) {
+    callError.value = e.response?.data?.message || 'İletilemedi. Bağlantınızı kontrol edip tekrar deneyin.'
+  } finally {
+    callBusy.value = false
+  }
+}
+
+function requestBill(payment) {
+  billOpen.value = false
+  sendCall('Bill', payment)
+}
+
 function finishOrder() {
   clearTimeout(pollTimer)
   activeOrder.value = null
@@ -557,6 +628,7 @@ onMounted(async () => {
   try {
     const res = await api.getPublicMenu(route.params.slug, masa || undefined)
     menu.value = normalize(res.data)
+    refreshCalls()
   } catch {
     notFound.value = true
   } finally {
@@ -566,6 +638,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   clearTimeout(pollTimer)
+  clearTimeout(callTimer)
   clearTimeout(toastTimer)
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('keydown', onKeydown)
@@ -790,6 +863,24 @@ onUnmounted(() => {
 .status-pill.is-wait .status-dot { animation: pulse 1.4s ease infinite; }
 @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
 .status-more { margin-left: auto; font-size: 12px; opacity: .75; }
+
+.call-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  width: calc(100% - 32px); max-width: 640px; margin: 10px auto 0;
+}
+.call-btn {
+  height: 44px; padding: 0 10px; border-radius: 14px; cursor: pointer;
+  border: 1.5px solid var(--brand); background: white; color: var(--brand-dark);
+  font-size: 14px; font-weight: 800;
+}
+.call-btn.is-on { background: #ECFDF5; border-color: #10B981; color: #065F46; }
+.call-btn:disabled { cursor: default; }
+.call-btn:not(.is-on):disabled { opacity: .5; }
+.call-error {
+  width: calc(100% - 32px); max-width: 640px; margin: 8px auto 0; padding: 8px 12px;
+  border-radius: 12px; background: #FEF2F2; color: #991B1B; font-size: 13px;
+}
+.pay-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 .featured-add, .lightbox-add {
   border: none; background: var(--brand); color: white; font-weight: 800; cursor: pointer;

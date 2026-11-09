@@ -326,6 +326,28 @@
         <div v-if="qrError" class="text-xs text-danger mt-2">{{ qrError }}</div>
 
         <template v-if="qrEnabled">
+          <!-- Garson çağır / Hesap iste -->
+          <div class="flex items-start justify-between gap-4 mt-5 p-4 rounded-xl border border-gray-100">
+            <div>
+              <div class="text-sm font-semibold text-primary">Garson çağırma ve hesap isteme</div>
+              <div class="text-xs text-muted mt-0.5 max-w-2xl">
+                Müşteri menüdeki "Garson çağır" ya da "Hesap iste" (nakit / kart) düğmesine basar; kasada
+                bildirim ve masa kartında rozet çıkar, garson telefonunda masanın üstünde görünür.
+                Hesap kapanınca kendiliğinden kapanır.
+              </div>
+            </div>
+            <button @click="toggleQrCalls" :disabled="qrSaving || !auth.isAdmin"
+                    :title="auth.isAdmin ? '' : 'Yalnızca yönetici değiştirebilir'"
+                    aria-label="Garson çağırma ve hesap isteme"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full
+                           transition-colors duration-200 flex-shrink-0 mt-1 disabled:opacity-50"
+                    :class="qrCalls ? 'bg-accent' : 'bg-gray-300'">
+              <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                           transition-transform duration-200"
+                    :class="qrCalls ? 'translate-x-6' : 'translate-x-1'"/>
+            </button>
+          </div>
+
           <!-- Masa QR kodları -->
           <div class="flex items-center justify-between gap-3 mt-6 mb-3">
             <div>
@@ -730,6 +752,7 @@ async function importCategoryImages(e) {
 // bölüm hiç gösterilmez (uç 403 döner).
 const qrAvailable = computed(() => modules.has('qr_menu') && modules.has('tables'))
 const qrEnabled = ref(false)
+const qrCalls   = ref(true)    // QR menüde "Garson çağır" / "Hesap iste"
 const qrSaving  = ref(false)
 const qrError   = ref('')
 const qrTables  = ref([])
@@ -749,6 +772,8 @@ async function loadQrOrdering() {
       api.getQrOrderSettings(), api.getQrOrderTables(),
     ])
     qrEnabled.value = !!settingsRes.data.enabled
+    // Eski API alanı göndermez: açık kabul edilir
+    qrCalls.value   = settingsRes.data.callsEnabled !== false
     qrTables.value  = tablesRes.data
   } catch {
     qrError.value = 'Masadan sipariş ayarları yüklenemedi.'
@@ -770,6 +795,19 @@ async function toggleQrOrdering() {
     qrEnabled.value = !!data.enabled
     // Açılınca kodu olmayan masalara sunucu kod üretir
     if (qrEnabled.value) qrTables.value = (await api.getQrOrderTables()).data
+  } catch (e) {
+    qrError.value = e.response?.data?.message || 'Kaydedilemedi, tekrar deneyin.'
+  } finally {
+    qrSaving.value = false
+  }
+}
+
+async function toggleQrCalls() {
+  qrSaving.value = true
+  qrError.value  = ''
+  try {
+    const { data } = await api.saveQrOrderSettings({ callsEnabled: !qrCalls.value })
+    qrCalls.value = data.callsEnabled !== false
   } catch (e) {
     qrError.value = e.response?.data?.message || 'Kaydedilemedi, tekrar deneyin.'
   } finally {
