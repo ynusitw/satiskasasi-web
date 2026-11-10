@@ -19,8 +19,11 @@
         </span>
       </div>
       <div v-if="product.description" class="product-desc">{{ product.description }}</div>
-      <div v-if="labels.length || (orderable && !isInactive)" class="product-foot">
-        <span v-if="labels.length" class="product-allergens">Alerjen: {{ labels.join(', ') }}</span>
+      <div v-if="codes.length || (orderable && !isInactive)" class="product-foot">
+        <span v-if="codes.length" class="product-allergens" :title="`Alerjen: ${labels.join(', ')}`"
+              :aria-label="`Alerjen: ${labels.join(', ')}`">
+          <AllergenIcon v-for="c in codes" :key="c" :code="c" :size="19"/>
+        </span>
         <!-- Masadan sipariş açıksa -->
         <button v-if="orderable && !isInactive" type="button" class="add-btn"
                 @click.stop="emit('add', product)">
@@ -33,7 +36,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { allergenLabels } from '../constants/allergens'
+import { allergenLabels, parseAllergens } from '../constants/allergens'
+import AllergenIcon from './AllergenIcon.vue'
 import MenuImage from './MenuImage.vue'
 import { discountedPrice } from '../utils/campaign'
 
@@ -63,6 +67,7 @@ const listLabel  = computed(() => label(p => p))
 const hasImage = computed(() => !!props.product.hasImage && !!props.imageUrl)
 
 const labels = computed(() => allergenLabels(props.product.allergens))
+const codes  = computed(() => parseAllergens(props.product.allergens))
 
 // Yalnızca API açıkça false derse pasif say — alanı göndermeyen eski bir API
 // sürümü karşımıza çıkarsa ürünler yanlışlıkla "mevcut değil" görünmesin.
@@ -113,7 +118,7 @@ function fmt(v) {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .product-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 8px; }
-.product-allergens { font-size: 10.5px; color: var(--ink-muted, #7B8089); }
+.product-allergens { display: inline-flex; align-items: center; gap: 6px; }
 .add-btn {
   margin-left: auto;
   height: 36px; padding: 0 18px; border-radius: 999px; border: none;

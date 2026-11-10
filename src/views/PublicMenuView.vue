@@ -200,8 +200,11 @@
             <div class="lightbox-info">
               <div class="lightbox-name">{{ preview.name }}</div>
               <div v-if="preview.description" class="lightbox-desc">{{ preview.description }}</div>
-              <div v-if="previewAllergens.length" class="lightbox-allergens">
-                Alerjen: {{ previewAllergens.join(', ') }}
+              <div v-if="previewAllergenCodes.length" class="lightbox-allergens">
+                <strong>Alerjen:</strong>
+                <span v-for="(c, i) in previewAllergenCodes" :key="c" class="allergen-item">
+                  <AllergenIcon :code="c" :size="18"/>{{ previewAllergens[i] }}<template v-if="i < previewAllergenCodes.length - 1">,</template>
+                </span>
               </div>
               <div class="lightbox-foot">
                 <span class="lightbox-price">
@@ -338,7 +341,8 @@ import ProductRow from '../components/MenuProductRow.vue'
 import MenuImage from '../components/MenuImage.vue'
 import MenuOptionSheet from '../components/MenuOptionSheet.vue'
 import { unitDiscount, discountedPrice } from '../utils/campaign'
-import { allergenLabels } from '../constants/allergens'
+import { allergenLabels, parseAllergens } from '../constants/allergens'
+import AllergenIcon from '../components/AllergenIcon.vue'
 
 const route      = useRoute()
 const loading    = ref(true)
@@ -354,6 +358,8 @@ const fullFailed = ref(false)
 
 const previewAllergens = computed(() =>
   preview.value ? allergenLabels(preview.value.allergens) : [])
+const previewAllergenCodes = computed(() =>
+  preview.value ? parseAllergens(preview.value.allergens) : [])
 
 const categoriesWithProducts = computed(() =>
   menu.value.categories.filter(c => c.products.length > 0))
@@ -899,7 +905,12 @@ onUnmounted(() => {
 .lightbox-info { padding: 18px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; }
 .lightbox-name { font-size: 22px; font-weight: 800; color: var(--ink); line-height: 1.2; padding-right: 44px; }
 .lightbox-desc { font-size: 14px; color: var(--ink-muted); margin-top: 8px; line-height: 1.5; }
-.lightbox-allergens { font-size: 12px; color: var(--ink-muted); margin-top: 10px; }
+.lightbox-allergens {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+  font-size: 13.5px; color: var(--ink-muted); margin-top: 12px;
+}
+.lightbox-allergens strong { color: var(--ink); font-weight: 800; }
+.allergen-item { display: inline-flex; align-items: center; gap: 4px; }
 .lightbox-foot {
   display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 10px;
 }
