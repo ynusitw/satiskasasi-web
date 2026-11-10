@@ -19,8 +19,7 @@
         </span>
       </div>
       <div v-if="product.description" class="product-desc">{{ product.description }}</div>
-      <div class="product-foot">
-        <span class="more-link">Devamını gör ›</span>
+      <div v-if="labels.length || (orderable && !isInactive)" class="product-foot">
         <span v-if="labels.length" class="product-allergens">Alerjen: {{ labels.join(', ') }}</span>
         <!-- Masadan sipariş açıksa -->
         <button v-if="orderable && !isInactive" type="button" class="add-btn"
@@ -114,7 +113,6 @@ function fmt(v) {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .product-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 8px; }
-.more-link { font-size: 12.5px; font-weight: 800; color: var(--ink, #13223A); }
 .product-allergens { font-size: 10.5px; color: var(--ink-muted, #7B8089); }
 .add-btn {
   margin-left: auto;
