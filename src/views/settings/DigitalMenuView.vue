@@ -8,9 +8,16 @@
     </p>
 
     <div v-if="loading" class="text-muted">Yükleniyor...</div>
+    <div v-else-if="!slug" class="mb-6 rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm" role="alert">
+      Menü bağlantısı alınamadı. Bağlantınızı kontrol edip sayfayı yenileyin; QR kodu bağlantı gelmeden gösterilmez.
+    </div>
+    <div v-if="!loading && listError" class="mb-6 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 px-4 py-3 text-sm" role="alert">
+      {{ listError }}
+      <button class="ml-2 underline font-semibold" @click="loadConfig">Tekrar dene</button>
+    </div>
 
     <!-- Kartlar geniş ekranda iki sütuna yayılır; dar ekranda alt alta iner -->
-    <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+    <div v-if="!loading && slug" class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
       <!-- QR + bağlantı -->
       <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-8 flex flex-col items-center">
         <img :src="qrUrl" :alt="menuUrl" width="220" height="220"
@@ -889,17 +896,13 @@ async function saveConfig() {
   }
 }
 
-onMounted(async () => {
+// Ürün / kategori listesi (fotoğraflarla, yavaş gelebilir). Menü adresi bundan
+// bağımsız yüklenir: liste gecikse de QR ve bağlantı yanlış (adsız) üretilmez.
+const listError = ref('')
+async function loadConfig() {
+  listError.value = ''
   try {
-    const [tenantRes, configRes] = await Promise.all([
-      api.getMyTenant(),
-      api.getMenuConfig(),
-    ])
-
-    slug.value = tenantRes.data.slugName
-    settings.showAddressOnMenu = tenantRes.data.showAddressOnMenu ?? true
-    settings.showPhoneOnMenu   = tenantRes.data.showPhoneOnMenu ?? true
-
+    const configRes = await api.getMenuConfig()
     categories.value    = configRes.data.categories
     products.value      = configRes.data.products
     featuredLimit.value = configRes.data.featuredLimit ?? 3
@@ -908,9 +911,23 @@ onMounted(async () => {
       .map(p => p.id)
     hiddenCategoryIds.value = configRes.data.categories.filter(c => c.hiddenOnMenu).map(c => c.id)
     hiddenProductIds.value  = configRes.data.products.filter(p => p.hiddenOnMenu).map(p => p.id)
-  } finally {
+  } catch (e) {
+    listError.value = e.response?.data?.message
+      || 'Ürün ve kategori listesi yüklenemedi (bağlantı yavaş olabilir). QR kodu ve bağlantı yine de doğrudur.'
+  }
+}
+
+onMounted(async () => {
+  try {
+    const tenantRes = await api.getMyTenant()
+    slug.value = tenantRes.data.slugName || ''
+    settings.showAddressOnMenu = tenantRes.data.showAddressOnMenu ?? true
+    settings.showPhoneOnMenu   = tenantRes.data.showPhoneOnMenu ?? true
+  } catch { /* slug boş kalır: uyarı gösterilir */ }
+  finally {
     loading.value = false
   }
+  loadConfig()
   loadQrOrdering()
 })
 </script>

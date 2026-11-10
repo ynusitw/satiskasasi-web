@@ -10,7 +10,8 @@ const routes = [
     meta: { public: true }
   },
   {
-    path: '/menu/:slug',
+    // :slug? — adı eksik (hatalı basılmış) QR da giriş ekranına değil "Menü bulunamadı"ya düşer
+    path: '/menu/:slug?',
     component: () => import('../views/PublicMenuView.vue'),
     meta: { public: true }
   },

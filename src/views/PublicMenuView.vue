@@ -626,6 +626,7 @@ onMounted(async () => {
   if (activeOrder.value && Date.now() - (activeOrder.value.at ?? 0) > 3 * 3600_000) finishOrder()
   if (activeOrder.value) refreshStatus()
   try {
+    if (!route.params.slug) throw new Error('menü adı yok')
     const res = await api.getPublicMenu(route.params.slug, masa || undefined)
     menu.value = normalize(res.data)
     refreshCalls()

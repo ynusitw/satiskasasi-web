@@ -268,7 +268,8 @@ export default {
   saveKitchenSettings:    (d)       => api.put('kitchen/settings', d),
 
   // Dijital Menü yapılandırması (öne çıkanlar + kategori görselleri)
-  getMenuConfig:  ()  => api.get('menu/config'),
+  // Kategori ve ürün fotoğraflarıyla gelir (yüzlerce KB); varsayılan 10 sn yetmez
+  getMenuConfig:  ()  => api.get('menu/config', { timeout: 90000 }),
   saveMenuConfig: (d) => api.put('menu/config', d),
 
   // Dashboard
