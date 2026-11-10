@@ -189,6 +189,7 @@ import { MODULES }              from './constants/modules'
 import SettingsModal            from './components/SettingsModal.vue'
 import AppDialog                from './components/AppDialog.vue'
 import api                      from './api/api'
+import { SITE }                 from './site'
 
 const auth     = useAuthStore()
 const router   = useRouter()
@@ -282,7 +283,7 @@ watch(() => route.path, path => {
 }, { immediate: true })
 
 // Herkese açık tam sayfa ekranlar (QR menü, mutfak ekranı): panel iskeleti yok
-const isMenuRoute      = computed(() => route.path.startsWith('/menu/') || route.path.startsWith('/mutfak/')
+const isMenuRoute      = computed(() => SITE === 'menu' || route.path.startsWith('/menu') || route.path.startsWith('/mutfak/')
                                      || route.path === '/garson')
 
 const lisansSubMenu = [

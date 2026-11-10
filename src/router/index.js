@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useModulesStore } from '../stores/modules'
 import { MODULES } from '../constants/modules'
-import { loginBlockReason } from '../site'
+import { loginBlockReason, SITE } from '../site'
 
 const routes = [
   {
@@ -197,9 +197,20 @@ const routes = [
   },
 ]
 
+// menu.yenpos.com: yalnızca müşterinin QR menüsü (oturum yok, panel sayfaları yok).
+// Kök adres ve tanınmayan yollar tanıtım sitesine gider.
+const menuHostRoutes = [
+  { path: '/', beforeEnter: () => { window.location.replace('https://yenpos.com'); return false },
+    component: () => import('../views/PublicMenuView.vue'), meta: { public: true } },
+  { path: '/menu/:slug?', component: () => import('../views/PublicMenuView.vue'), meta: { public: true } },
+  { path: '/:slug',       component: () => import('../views/PublicMenuView.vue'), meta: { public: true } },
+  { path: '/:rest(.*)*', beforeEnter: () => { window.location.replace('https://yenpos.com'); return false },
+    component: () => import('../views/PublicMenuView.vue'), meta: { public: true } },
+]
+
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes: SITE === 'menu' ? menuHostRoutes : routes
 })
 
 router.beforeEach(async (to) => {

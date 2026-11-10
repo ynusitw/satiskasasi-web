@@ -444,6 +444,7 @@
 import { uiAlert, uiConfirm } from '../../utils/dialog'
 import { ref, computed, reactive, onMounted } from 'vue'
 import api from '../../api/api'
+import { publicMenuUrl } from '../../site'
 import { useAuthStore } from '../../stores/auth'
 import { useModulesStore } from '../../stores/modules'
 
@@ -479,7 +480,8 @@ const hiddenProductIds  = ref([])
 const visSearch         = ref('')
 const expandedGroups    = ref([])
 
-const menuUrl = computed(() => `${window.location.origin}/menu/${slug.value}`)
+// Canlıda kısa adres: menu.yenpos.com/{işletme} (eski panel.yenpos.com/menu/… QR'ları da açılır)
+const menuUrl = computed(() => publicMenuUrl(slug.value))
 const qrUrl   = computed(() =>
   `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(menuUrl.value)}`)
 

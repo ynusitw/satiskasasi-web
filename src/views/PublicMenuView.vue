@@ -629,6 +629,8 @@ onMounted(async () => {
     if (!route.params.slug) throw new Error('menü adı yok')
     const res = await api.getPublicMenu(route.params.slug, masa || undefined)
     menu.value = normalize(res.data)
+    // Müşterinin sekmesinde panel adı değil işletmenin adı görünsün
+    if (menu.value.businessName) document.title = `${menu.value.businessName} — Menü`
     refreshCalls()
   } catch {
     notFound.value = true
