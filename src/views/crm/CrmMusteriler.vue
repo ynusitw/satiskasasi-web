@@ -112,7 +112,7 @@
         </div>
       </div>
       <div v-else class="crm-card overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full min-w-[880px] text-sm">
           <thead class="bg-gray-50 text-left">
             <tr>
               <th class="pl-4 py-2.5 w-8">
@@ -153,7 +153,7 @@
                 </td>
                 <td class="px-4 py-3">
                   <label class="sr-only" :for="`st-${l.id}`">Durum</label>
-                  <select :id="`st-${l.id}`" class="crm-field w-auto h-9" :value="l.status"
+                  <select :id="`st-${l.id}`" class="crm-field w-auto min-w-36 h-9" :value="l.status"
                           @change="act(() => crmActions.setStatus(l.id, $event.target.value))">
                     <option v-for="s in STATUSES" :key="s" :value="s">{{ STATUS_LABEL[s] }}</option>
                   </select>
