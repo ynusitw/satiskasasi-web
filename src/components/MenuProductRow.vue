@@ -1,23 +1,27 @@
 <template>
   <!-- Dijital menüde tek ürün satırı. Pasif ürünler gizlenmez, soluk gösterilir. -->
-  <div class="product-row"
-       :class="{ 'is-inactive': isInactive, 'is-clickable': hasImage }"
-       @click="hasImage && emit('open', product)">
-    <div class="product-thumb">
-      <MenuImage v-if="hasImage" :src="imageUrl" :alt="product.name" class="thumb-img"/>
-      <span v-if="hasImage" class="zoom-hint" aria-hidden="true"></span>
+  <div class="product-row is-clickable"
+       :class="{ 'is-inactive': isInactive }"
+       @click="emit('open', product)">
+    <div v-if="hasImage" class="product-thumb">
+      <MenuImage :src="imageUrl" :alt="product.name" class="thumb-img"/>
     </div>
     <div class="product-body">
-      <div class="product-name">{{ product.name }}</div>
-      <div v-if="campaign" class="camp-badge">{{ campaign.name }} · {{ campaign.label }}</div>
-      <div v-if="product.description" class="product-desc">{{ product.description }}</div>
-      <div v-if="labels.length" class="product-allergens">
-        Alerjen: {{ labels.join(', ') }}
+      <div v-if="campaign || product.isFeaturedOnMenu || isInactive" class="badges">
+        <span v-if="isInactive" class="badge is-off">{{ product.isSoldOut ? 'Tükendi' : 'Şu anda mevcut değil' }}</span>
+        <span v-if="campaign" class="badge is-camp">{{ campaign.name }} · {{ campaign.label }}</span>
+        <span v-else-if="product.isFeaturedOnMenu && !isInactive" class="badge">Öne çıkan</span>
       </div>
+      <div class="product-head">
+        <div class="product-name">{{ product.name }}</div>
+        <span class="price-pill">
+          <span v-if="campaign" class="price-old">{{ listLabel }}</span>{{ priceLabel }}
+        </span>
+      </div>
+      <div v-if="product.description" class="product-desc">{{ product.description }}</div>
       <div class="product-foot">
-        <span v-if="campaign" class="price-old">{{ listLabel }}</span>
-        <span class="price-tag">{{ priceLabel }}</span>
-        <span v-if="isInactive" class="unavailable">{{ product.isSoldOut ? 'Tükendi' : 'Şu anda mevcut değil' }}</span>
+        <span class="more-link">Devamını gör ›</span>
+        <span v-if="labels.length" class="product-allergens">Alerjen: {{ labels.join(', ') }}</span>
         <!-- Masadan sipariş açıksa -->
         <button v-if="orderable && !isInactive" type="button" class="add-btn"
                 @click.stop="emit('add', product)">
@@ -72,90 +76,65 @@ function fmt(v) {
 
 <style scoped>
 /* Renkler üst sayfadaki .menu-page üzerinde tanımlı CSS değişkenlerinden
-   miras alınır (CSS değişkenleri scoped stilden bağımsız olarak kalıtılır).
-   Yönetici panelinin koyu teması "bg-white", <input> gibi çıplak seçicileri
-   ezdiği için burada da yalnızca kendi class isimlerimiz kullanılıyor. */
-.price-old { font-size: 12px; color: var(--ink-muted, #8B8378); text-decoration: line-through; margin-right: 4px; }
-.camp-badge {
-  display: inline-block; margin-top: 3px; padding: 1px 8px; border-radius: 999px;
-  background: #DCFCE7; color: #166534; font-size: 11px; font-weight: 800;
-}
+   miras alınır. Yönetici panelinin koyu teması "bg-white", <input> gibi
+   çıplak seçicileri ezdiği için burada yalnızca kendi class isimlerimiz var. */
 .product-row {
-  display: flex; gap: 12px; align-items: flex-start;
-  background: white; border-radius: 16px; padding: 10px;
-  border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  display: flex; gap: 14px; align-items: stretch;
+  background: #fff; border-radius: 22px; padding: 12px;
+  box-shadow: 0 2px 10px rgba(19,34,58,0.06);
 }
 .product-thumb {
-  width: 76px; height: 76px; border-radius: 12px; overflow: hidden;
-  background: #F3ECE3; flex-shrink: 0;
+  position: relative; width: 104px; height: 104px; border-radius: 16px; overflow: hidden;
+  background: var(--soft, #EDE8DF); flex-shrink: 0; align-self: flex-start;
 }
-.product-thumb { position: relative; }
 .product-thumb .thumb-img { width: 100%; height: 100%; }
-
-/* Fotoğrafın büyütülebileceğini belli eden büyüteç rozeti.
-   Artı işareti bilerek kullanılmadı — menüde sipariş yok, "sepete ekle"
-   sanılmaması gerekiyor. */
-.zoom-hint {
-  position: absolute; right: 4px; bottom: 4px;
-  width: 18px; height: 18px; border-radius: 6px;
-  background: rgba(0,0,0,0.45);
+.product-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 5px; }
+.badge {
+  font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+  background: var(--brand-soft, #E3F4E8); color: var(--brand-dark, #15803D);
 }
-.zoom-hint::before {
-  content: ''; position: absolute;
-  left: 3.5px; top: 3.5px; width: 7px; height: 7px;
-  border: 1.5px solid white; border-radius: 50%;
+.badge.is-camp { background: #FEF3C7; color: #92400E; }
+.badge.is-off  { background: #F1F1F1; color: #6B7280; }
+.product-head { display: flex; align-items: flex-start; gap: 8px; }
+.product-name {
+  flex: 1; min-width: 0; font-weight: 800; font-size: 15.5px; line-height: 1.25;
+  color: var(--ink, #13223A);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.zoom-hint::after {
-  content: ''; position: absolute;
-  left: 11px; top: 10.5px; width: 4.5px; height: 1.5px;
-  background: white; border-radius: 1px;
-  transform: rotate(45deg); transform-origin: left center;
+.price-pill {
+  flex-shrink: 0; font-weight: 800; font-size: 13.5px; white-space: nowrap;
+  color: var(--brand-dark, #15803D); background: var(--brand-soft, #E3F4E8);
+  padding: 4px 10px; border-radius: 999px;
 }
+.price-old { font-size: 11.5px; font-weight: 600; color: var(--ink-muted, #7B8089); text-decoration: line-through; margin-right: 4px; }
+.product-desc {
+  font-size: 12.5px; margin-top: 5px; line-height: 1.4;
+  color: var(--ink-muted, #7B8089);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.product-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 8px; }
+.more-link { font-size: 12.5px; font-weight: 800; color: var(--ink, #13223A); }
+.product-allergens { font-size: 10.5px; color: var(--ink-muted, #7B8089); }
+.add-btn {
+  margin-left: auto;
+  height: 36px; padding: 0 18px; border-radius: 999px; border: none;
+  background: var(--brand, #16A34A); color: white;
+  font-size: 13.5px; font-weight: 800; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(22,163,74,0.3);
+}
+.add-btn:active { transform: scale(.96); }
 
 .product-row.is-clickable { cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
 .product-row.is-clickable:active { transform: scale(.985); }
 @media (hover: hover) {
-  .product-row.is-clickable:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
-}
-.product-body { flex: 1; min-width: 0; }
-.product-name {
-  font-weight: 700; font-size: 14px; line-height: 1.3;
-  color: var(--ink, #1F2937);
-}
-.product-desc {
-  font-size: 12px; margin-top: 2px; line-height: 1.35;
-  color: var(--ink-muted, #8B8378);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-.product-allergens {
-  font-size: 10.5px; margin-top: 3px; opacity: .85;
-  color: var(--ink-muted, #8B8378);
-}
-.product-foot {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 5px;
-}
-.price-tag {
-  font-weight: 800; font-size: 13.5px;
-  color: var(--brand-dark, #92400E);
-}
-.add-btn {
-  margin-left: auto;
-  height: 32px; padding: 0 16px; border-radius: 999px; border: none;
-  background: var(--brand, #D97706); color: white;
-  font-size: 13px; font-weight: 800; cursor: pointer;
-  box-shadow: 0 2px 6px rgba(217,119,6,0.3);
-}
-.add-btn:active { transform: scale(.96); }
-.unavailable {
-  font-size: 10.5px; font-weight: 700; color: #9CA3AF;
-  background: #F3F4F6; padding: 2px 7px; border-radius: 999px;
+  .product-row.is-clickable:hover { box-shadow: 0 6px 18px rgba(19,34,58,0.1); }
 }
 
-/* Pasif ürün */
-.product-row.is-inactive { background: #FAF7F2; }
+/* Pasif / tükenen ürün */
+.product-row.is-inactive { background: #FBFAF7; }
 .product-row.is-inactive .product-thumb { filter: grayscale(1); opacity: .55; }
 .product-row.is-inactive .product-name,
-.product-row.is-inactive .product-desc,
-.product-row.is-inactive .price-tag { color: #9CA3AF; }
+.product-row.is-inactive .product-desc { color: #9CA3AF; }
+.product-row.is-inactive .price-pill { color: #9CA3AF; background: #F1F1F1; }
 </style>

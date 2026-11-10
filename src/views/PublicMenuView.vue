@@ -3,11 +3,16 @@
 
     <!-- ── Yüklenme ─────────────────────────────────────────────── -->
     <div v-if="loading" class="min-h-screen menu-surface">
-      <div class="hero-skel"></div>
-      <div class="max-w-2xl mx-auto p-4 space-y-3">
-        <div class="h-10 skel rounded-full"></div>
-        <div class="grid grid-cols-2 gap-3 mt-4">
-          <div class="h-28 skel rounded-2xl" v-for="i in 6" :key="i"></div>
+      <div class="max-w-2xl mx-auto p-4 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-14 h-14 skel rounded-2xl"></div>
+          <div class="flex-1 space-y-2"><div class="h-4 w-40 skel rounded-full"></div><div class="h-3 w-24 skel rounded-full"></div></div>
+        </div>
+        <div class="h-12 skel rounded-full"></div>
+        <div class="flex gap-4"><div class="w-[72px] h-[72px] skel rounded-full" v-for="i in 4" :key="i"></div></div>
+        <div class="h-40 skel rounded-3xl"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="h-32 skel rounded-3xl" v-for="i in 4" :key="i"></div>
         </div>
       </div>
     </div>
@@ -21,22 +26,17 @@
 
     <!-- ── Menü ─────────────────────────────────────────────────── -->
     <div v-else>
-      <!-- Hero -->
-      <header class="hero px-5 pt-9 pb-7 text-center relative overflow-hidden">
-        <div class="hero-glow"></div>
-        <div class="relative">
-          <h1 class="text-[26px] leading-tight font-extrabold text-white">
-            {{ menu.businessName }}
-          </h1>
-          <div v-if="menu.address || menu.phone"
-               class="flex items-center justify-center gap-3 mt-3 flex-wrap">
-            <a v-if="menu.phone" :href="`tel:${menu.phone}`" class="hero-chip">
-              {{ menu.phone }}
-            </a>
-            <a v-if="menu.address" :href="mapUrl" target="_blank" rel="noopener" class="hero-chip">
-              Konum
-            </a>
-          </div>
+      <!-- Başlık: işletme rozeti, adı ve hızlı düğmeler -->
+      <header class="menu-head">
+        <div class="biz-badge" aria-hidden="true">{{ initials }}</div>
+        <div class="biz-text">
+          <h1 class="biz-name">{{ menu.businessName }}</h1>
+          <div class="biz-sub">Dijital Menü</div>
+        </div>
+        <div class="head-actions">
+          <a v-if="menu.phone" :href="`tel:${menu.phone}`" class="round-btn" :title="menu.phone" aria-label="İşletmeyi ara"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/></svg></a>
+          <a v-if="menu.address" :href="mapUrl" target="_blank" rel="noopener" class="round-btn" title="Konum" aria-label="Konum"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></a>
+          <button type="button" class="round-btn" title="Paylaş" aria-label="Menüyü paylaş" @click="shareMenu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
         </div>
       </header>
 
@@ -77,14 +77,14 @@
       </button>
 
       <!-- Arama (sticky) -->
-      <div class="sticky top-0 z-20 bg-cream/95 backdrop-blur border-b border-black/5">
+      <div class="sticky top-0 z-20 search-bar">
         <div class="max-w-2xl mx-auto px-4 py-3">
           <div class="relative">
-            <input v-model="search" type="text" placeholder="Menüde ara..."
-                   class="search-input w-full pl-4 pr-9 py-2.5 rounded-full text-sm
-                          text-ink placeholder:text-inkmuted/70 focus:outline-none"/>
+            <span class="search-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+            <input v-model="search" type="text" placeholder="Ürün ara..." aria-label="Menüde ara"
+                   class="search-input w-full pl-11 pr-20 rounded-full focus:outline-none"/>
             <button v-if="search" @click="search = ''"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-inkmuted text-xs font-semibold">Temizle</button>
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-inkmuted text-xs font-semibold">Temizle</button>
           </div>
         </div>
       </div>
@@ -108,18 +108,21 @@
 
         <!-- ══ SEVİYE 2: KATEGORİ İÇİ ÜRÜNLER ══ -->
         <template v-else-if="activeCategory">
-          <button @click="activeCategory = null" class="back-link">
-            ‹ Kategorilere Dön
-          </button>
-
-          <div class="flex items-baseline gap-2 mt-3 mb-4">
-            <h2 class="text-xl font-extrabold text-ink">{{ activeCategory.name }}</h2>
-            <span class="text-xs text-inkmuted font-semibold">
-              {{ activeCategory.products.length }} ürün
-            </span>
+          <div class="crumbs"><button type="button" @click="activeCategory = null">Menü</button> › <span>{{ activeCategory.name }}</span></div>
+          <div class="cat-bar">
+            <button type="button" @click="activeCategory = null" class="back-link round-btn is-dark"
+                    title="Kategorilere dön" aria-label="Kategorilere dön"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+            <div class="cat-chips no-scrollbar">
+              <button v-for="c in categoriesWithProducts" :key="c.id" type="button" class="cat-chip"
+                      :class="{ 'is-on': c.id === activeCategory?.id }"
+                      @click="openCategory(c)">{{ c.name }}</button>
+            </div>
           </div>
 
-          <div class="space-y-2.5">
+          <h2 class="sr-only">{{ activeCategory.name }}</h2>
+          <div class="text-xs text-inkmuted font-semibold mb-3 px-1">{{ activeCategory.products.length }} ürün</div>
+
+          <div class="space-y-3">
             <ProductRow v-for="p in activeCategory.products" :key="p.id" :product="p"
                         :image-url="thumbUrl(p)" :orderable="canOrder"
                         @open="openPreview" @add="startAdd"/>
@@ -129,42 +132,35 @@
         <!-- ══ SEVİYE 1: ÖNE ÇIKANLAR + KATEGORİLER ══ -->
         <template v-else>
           <!-- Bunları beğenebilirsiniz -->
-          <section v-if="menu.featured?.length" class="mb-7">
-            <h2 class="text-[15px] font-extrabold text-ink text-center mb-3">
-              Bunları Beğenebilirsiniz
-            </h2>
-            <div class="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-              <div v-for="p in menu.featured" :key="p.id" class="featured-card"
-                   :class="{ 'is-clickable': p.hasImage }"
-                   @click="p.hasImage && openPreview(p)">
-                <div class="featured-media">
+          <section v-if="menu.featured?.length" class="mb-6">
+            <h2 class="section-head">Öne Çıkanlar</h2>
+            <div class="flex gap-4 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+              <button v-for="p in menu.featured" :key="p.id" type="button" class="featured-item"
+                      :class="{ 'is-off': p.isActive === false }" @click="openPreview(p)">
+                <span class="featured-ring">
                   <MenuImage v-if="p.hasImage" :src="thumbUrl(p)" :alt="p.name" class="featured-img" eager/>
-                </div>
-                <div class="px-2 py-2 text-center">
-                  <div class="text-xs font-bold text-ink truncate">{{ p.name }}</div>
-                  <div class="text-xs font-extrabold price-tag mt-0.5">
-                    <span v-if="p.campaign" class="price-old">{{ fmt(p.price) }}</span>{{ fmt(menuPrice(p)) }}
-                  </div>
-                  <button v-if="canOrder && p.isActive !== false" type="button" class="featured-add" @click.stop="startAdd(p)">Ekle</button>
-                  <div v-else-if="p.isSoldOut" class="text-[11px] font-bold text-red-600 mt-1">Tükendi</div>
-                </div>
-              </div>
+                  <span v-else class="featured-letter">{{ p.name.slice(0, 1) }}</span>
+                </span>
+                <span class="featured-name">{{ p.name }}</span>
+                <span class="featured-price">
+                  <template v-if="p.isSoldOut">Tükendi</template>
+                  <template v-else>{{ fmt(menuPrice(p)) }}</template>
+                </span>
+              </button>
             </div>
           </section>
 
           <!-- Kategoriler -->
           <div class="grid grid-cols-2 gap-3">
-            <button v-for="c in categoriesWithProducts" :key="c.id"
+            <button v-for="(c, i) in categoriesWithProducts" :key="c.id"
                     @click="openCategory(c)"
-                    class="category-card"
-                    :style="{ background: c.colorHex || '#D97706' }">
+                    class="category-card" :class="{ 'is-wide': i === 0 }"
+                    :style="{ background: c.colorHex || '#1E3A2F' }">
               <MenuImage v-if="c.hasImage" :src="categoryUrl(c)" :alt="c.name"
                          class="category-img" eager/>
               <span class="category-overlay"></span>
-              <span class="category-label">
-                {{ c.name }}
-                <span class="category-count">{{ c.products.length }} ürün</span>
-              </span>
+              <span class="category-label">{{ c.name }}</span>
+              <span class="category-count">{{ c.products.length }} ürün</span>
             </button>
           </div>
 
@@ -176,7 +172,7 @@
       </div>
 
       <footer class="text-center text-xs text-inkmuted/70 py-6 border-t border-black/5">
-        Dijital menü · yenpos ile oluşturuldu
+        Dijital menü · YenPOS ile hazırlandı
       </footer>
 
       <Transition name="fade">
@@ -189,10 +185,11 @@
       <Transition name="fade">
         <div v-if="preview" class="lightbox" @click="closePreview">
           <div class="lightbox-inner" @click.stop>
-            <button class="lightbox-close" @click="closePreview" aria-label="Kapat">Kapat</button>
+            <span class="lightbox-grip" aria-hidden="true"></span>
+            <button class="lightbox-close" @click="closePreview" aria-label="Kapat">✕</button>
             <!-- Küçük görsel anında görünür (bulanık), tam çözünürlüklü
                  fotoğraf inince üstüne biner. -->
-            <div class="lightbox-media" :class="{ 'is-inactive': preview.isActive === false }">
+            <div v-if="preview.hasImage" class="lightbox-media" :class="{ 'is-inactive': preview.isActive === false }">
               <MenuImage v-if="preview.hasImage" class="lightbox-blur"
                          :class="{ 'is-fallback': fullFailed }"
                          :src="thumbUrl(preview)" :alt="preview.name" eager/>
@@ -334,7 +331,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api, { API_BASE } from '../api/api'
 import ProductRow from '../components/MenuProductRow.vue'
@@ -407,13 +404,15 @@ function fmt(v) {
 function openCategory(c) {
   activeCategory.value = c
   window.scrollTo({ top: 0, behavior: 'smooth' })
+  // Seçili kategori çipi görünür alana kaysın (uzun kategori listelerinde)
+  nextTick(() => document.querySelector('.cat-chip.is-on')?.scrollIntoView({ inline: 'center', block: 'nearest' }))
 }
 
 function openPreview(p) {
   preview.value = p
   fullLoaded.value = false
   fullFailed.value = false
-  previewFullUrl.value = fullUrl(p)
+  previewFullUrl.value = p.hasImage ? fullUrl(p) : ''
   // Arkadaki menü kaymasın
   document.body.style.overflow = 'hidden'
 }
@@ -431,6 +430,20 @@ function closePreview() {
 }
 function onKeydown(e) {
   if (e.key === 'Escape') closePreview()
+}
+
+// Başlıktaki rozet: işletme adının baş harfleri ("Yunus Demo Market" → "YD")
+const initials = computed(() => (menu.value.businessName || '')
+  .split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toLocaleUpperCase('tr')).join(''))
+
+// Menüyü paylaş: telefonda paylaşım penceresi, yoksa bağlantı panoya
+async function shareMenu() {
+  const url = window.location.href.split('?')[0]
+  try {
+    if (navigator.share) { await navigator.share({ title: menu.value.businessName, url }); return }
+    await navigator.clipboard.writeText(url)
+    showToast('Menü bağlantısı kopyalandı')
+  } catch { /* kullanıcı vazgeçti */ }
 }
 
 function scrollToTop() {
@@ -659,7 +672,7 @@ onUnmounted(() => {
 */
 :global(body:has(.menu-page)),
 :global(.theme-dark main:has(.menu-page)) {
-  background: #FFF8F0 !important;
+  background: #F7F4EE !important;
 }
 
 /* Telefon/tarayıcı sistem genelinde koyu temadaysa bazı tarayıcılar açık
@@ -670,105 +683,148 @@ onUnmounted(() => {
 
 .menu-page {
   color-scheme: only light;
-  --brand: #D97706;
-  --brand-dark: #92400E;
-  --ink: #1F2937;
-  --ink-muted: #8B8378;
-  --cream: #FFF8F0;
+  /* YenPOS tonları: sıcak açık zemin, lacivert yazı, yeşil vurgu */
+  --brand: #16A34A;
+  --brand-dark: #15803D;
+  --brand-soft: #E3F4E8;
+  --ink: #13223A;
+  --ink-muted: #7B8089;
+  --navy: #13223A;
+  --cream: #F7F4EE;
+  --soft: #EDE8DF;
   background: var(--cream);
   color: var(--ink);
   font-family: inherit;
   position: relative;
   z-index: 0;
 }
-.menu-surface { background: white; }
-.search-input {
-  background: white; border: 1px solid rgba(0,0,0,0.1);
-  transition: box-shadow .15s ease, border-color .15s ease;
-}
-.search-input:focus {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(217,119,6,0.15);
-}
-/* style.css'teki global ".theme-dark input {...}" kuralı çıplak <input>
-   etiketini hedefliyor. Not: Vue scoped CSS'inde :global() seçicinin
-   TAMAMINI sarmalı, yoksa kural derlemeye hiç girmiyor. */
-:global(.theme-dark .search-input) {
-  background: white !important;
-  color: #1F2937 !important;
-  border-color: rgba(0,0,0,0.1) !important;
-}
+.menu-surface { background: var(--cream); }
 .text-ink { color: var(--ink); }
 .text-inkmuted { color: var(--ink-muted); }
-.bg-cream\/95 { background-color: rgba(255, 248, 240, 0.95); }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Hero */
-.hero { background: linear-gradient(135deg, #1F2937 0%, #111827 100%); }
-.hero-glow {
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(217,119,6,0.35), transparent 60%);
-  pointer-events: none;
+/* Başlık */
+.menu-head {
+  max-width: 672px; margin: 0 auto; padding: 16px 16px 6px;
+  display: flex; align-items: center; gap: 12px;
 }
-.hero-chip {
-  display: inline-flex; align-items: center;
-  font-size: 12px; font-weight: 700; color: white;
-  background: rgba(255,255,255,0.12);
-  padding: 6px 12px; border-radius: 999px;
-  text-decoration: none;
+.biz-badge {
+  width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--navy); color: #fff; font-size: 20px; font-weight: 900; letter-spacing: .5px;
+  box-shadow: inset 0 -3px 0 var(--brand);
 }
-.hero-chip:hover { background: rgba(255,255,255,0.2); }
+.biz-text { flex: 1; min-width: 0; }
+.biz-name {
+  font-size: 18px; line-height: 1.2; font-weight: 800; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.biz-sub { font-size: 12.5px; color: var(--ink-muted); margin-top: 2px; }
+.head-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.round-btn {
+  width: 42px; height: 42px; border-radius: 999px; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--soft); color: var(--ink); text-decoration: none;
+  transition: transform .12s ease, background .12s ease;
+}
+.round-btn:active { transform: scale(.94); }
+.round-btn.is-dark { background: var(--navy); color: #fff; width: 46px; height: 46px; flex-shrink: 0; }
 
-/* Öne çıkanlar */
-.featured-card {
-  flex: 0 0 132px; background: white; border-radius: 16px;
-  overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+/* Arama */
+.search-bar { background: rgba(247, 244, 238, 0.94); backdrop-filter: blur(8px); }
+.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--ink-muted); display: flex; }
+.search-input {
+  height: 48px; font-size: 14.5px;
+  background: var(--soft); border: 1.5px solid transparent; color: var(--ink);
+  transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
 }
-.featured-media { height: 92px; background: #F3ECE3; }
-.featured-media .featured-img { width: 100%; height: 100%; }
+.search-input::placeholder { color: var(--ink-muted); opacity: .8; }
+.search-input:focus { background: #fff; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
+/* style.css'teki global ".theme-dark input {...}" kuralı çıplak <input>
+   etiketini hedefliyor. Not: Vue scoped CSS'inde :global() seçicinin
+   TAMAMINI sarmalı, yoksa kural derlemeye hiç girmiyor. */
+:global(.theme-dark .search-input) {
+  background: #EDE8DF !important;
+  color: #13223A !important;
+  border-color: transparent !important;
+}
+
+.section-head { font-size: 15px; font-weight: 800; color: var(--ink); margin: 2px 2px 12px; }
+
+/* Öne çıkanlar: halkalı yuvarlak fotoğraf */
+.featured-item {
+  flex: 0 0 78px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none; border: none; padding: 0; cursor: pointer;
+}
+.featured-ring {
+  width: 76px; height: 76px; border-radius: 999px; padding: 3px;
+  background: conic-gradient(var(--brand), #4ADE80, var(--brand));
+  display: block; position: relative;
+}
+.featured-ring .featured-img, .featured-letter {
+  width: 100%; height: 100%; border-radius: 999px; border: 3px solid var(--cream); display: block;
+  object-fit: cover; background: var(--soft);
+}
+.featured-letter { display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; color: var(--ink); }
+.featured-name {
+  font-size: 11.5px; font-weight: 700; color: var(--ink); line-height: 1.2; text-align: center;
+  width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.featured-price { font-size: 11px; font-weight: 800; color: var(--brand-dark); margin-top: -3px; }
+.featured-item.is-off .featured-ring { filter: grayscale(1); opacity: .6; }
+.featured-item:active .featured-ring { transform: scale(.96); }
 
 /* Kategori kartları */
 .category-card {
-  position: relative; height: 108px; border-radius: 18px; overflow: hidden;
-  background-size: cover; background-position: center;
+  position: relative; height: 132px; border-radius: 22px; overflow: hidden;
   display: flex; align-items: flex-end; text-align: left;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 14px rgba(19,34,58,0.10);
   transition: transform .12s ease;
 }
+.category-card.is-wide { grid-column: span 2; height: 176px; }
 .category-card:active { transform: scale(0.98); }
 /* Kategori görseli artık ayrı indiğinden kartın arka planı yerine
    üstüne serilen bir katman. Görsel yoksa kartın kendi rengi kalır. */
 .category-img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .category-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);
+  background: linear-gradient(to top, rgba(10,18,32,0.78) 0%, rgba(10,18,32,0.2) 55%, transparent 100%);
 }
 .category-label {
-  position: relative; padding: 10px 12px; width: 100%;
-  color: white; font-weight: 800; font-size: 14px; line-height: 1.2;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  position: relative; padding: 12px 14px; width: 100%;
+  color: white; font-weight: 800; font-size: 17px; line-height: 1.15;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.45);
 }
+.category-card.is-wide .category-label { font-size: 22px; padding: 14px 18px; }
 .category-count {
-  display: block; font-size: 10.5px; font-weight: 600;
-  opacity: .85; margin-top: 2px;
+  position: absolute; top: 10px; right: 10px;
+  font-size: 11px; font-weight: 700; color: #fff;
+  background: rgba(10,18,32,0.55); backdrop-filter: blur(4px);
+  padding: 4px 9px; border-radius: 999px;
 }
 
-/* Geri bağlantısı */
-.back-link {
-  font-size: 13px; font-weight: 700; color: var(--brand-dark);
-  padding: 4px 0;
+/* Kategori içi: yol, geri düğmesi, çipler */
+.crumbs { font-size: 12.5px; color: var(--ink-muted); margin: 0 2px 10px; }
+.crumbs button { color: var(--ink-muted); font-weight: 600; }
+.crumbs span { color: var(--ink); font-weight: 700; }
+.cat-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.cat-chips { display: flex; gap: 8px; overflow-x: auto; flex: 1; padding: 2px; }
+.cat-chip {
+  flex-shrink: 0; height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid rgba(19,34,58,0.08); background: #fff; color: var(--ink);
+  font-size: 13.5px; font-weight: 700; white-space: nowrap;
 }
+.cat-chip.is-on { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-dark); }
+
 
 /* Öne çıkan karttaki fiyat (ürün satırı stilleri MenuProductRow.vue'da) */
 .price-tag { font-weight: 800; color: var(--brand-dark); }
 
 /* Skeleton */
-.hero-skel { height: 160px; background: linear-gradient(135deg,#1F2937,#111827); }
 .skel {
-  background: linear-gradient(90deg, #EFE7DA 25%, #F7F1E8 37%, #EFE7DA 63%);
+  background: linear-gradient(90deg, #EAE4DA 25%, #F3EFE8 37%, #EAE4DA 63%);
   background-size: 400% 100%;
   animation: shimmer 1.4s ease infinite;
 }
@@ -793,48 +849,59 @@ onUnmounted(() => {
    isimlerini eziyor; burada kendi isimlerimizi kullanıyoruz.       */
 .lightbox {
   position: fixed; inset: 0; z-index: 60;
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px;
-  background: rgba(28, 20, 12, 0.78);
-  backdrop-filter: blur(3px);
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(10, 18, 32, 0.55);
+  backdrop-filter: blur(2px);
 }
 .lightbox-inner {
-  position: relative; width: 100%; max-width: 420px;
-  background: #FFFDFA; border-radius: 20px; overflow: hidden;
-  box-shadow: 0 18px 50px rgba(0,0,0,0.4);
-  max-height: 90vh; display: flex; flex-direction: column;
+  position: relative; width: 100%; max-width: 560px;
+  background: #FFFDF9; border-radius: 26px 26px 0 0; overflow: hidden;
+  box-shadow: 0 -12px 40px rgba(0,0,0,0.25);
+  max-height: 92vh; display: flex; flex-direction: column;
+  animation: sheet-up .22s ease-out;
+}
+@keyframes sheet-up { from { transform: translateY(40px); opacity: .6 } to { transform: none; opacity: 1 } }
+@media (min-width: 640px) {
+  .lightbox { align-items: center; padding: 20px; }
+  .lightbox-inner { border-radius: 26px; max-width: 460px; }
+}
+.lightbox-grip {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 3;
+  width: 44px; height: 5px; border-radius: 99px; background: rgba(255,255,255,0.85);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 .lightbox-media {
-  position: relative; width: 100%; height: 62vh;
-  background: #F3ECE3; overflow: hidden;
+  position: relative; width: 100%; height: 46vh;
+  background: var(--soft); overflow: hidden; flex-shrink: 0;
 }
 .lightbox-media img {
   position: absolute; inset: 0;
   width: 100%; height: 100%; display: block;
 }
-.lightbox-full { object-fit: contain; }
+.lightbox-full { object-fit: cover; }
 /* Tam çözünürlüklü fotoğraf inene kadar küçük görsel bulanık dursun —
    boş gri bir kutu görmektense. */
 .lightbox-blur { object-fit: cover; filter: blur(12px); transform: scale(1.08); }
-/* Tam fotoğraf gelmezse küçük görsel net ve kırpılmadan gösterilir. */
-.lightbox-blur.is-fallback { filter: none; transform: none; object-fit: contain; }
+/* Tam fotoğraf gelmezse küçük görsel net gösterilir. */
+.lightbox-blur.is-fallback { filter: none; transform: none; object-fit: cover; }
 .lightbox-full { opacity: 0; transition: opacity .25s ease; }
 .lightbox-full.is-ready { opacity: 1; }
 .lightbox-media.is-inactive { filter: grayscale(1); opacity: .6; }
 .lightbox-close {
-  position: absolute; top: 10px; right: 10px; z-index: 2;
-  height: 30px; padding: 0 12px; border-radius: 999px; border: none;
-  background: rgba(0,0,0,0.5); color: white;
-  font-size: 12px; font-weight: 700; line-height: 1; cursor: pointer;
+  position: absolute; top: 12px; right: 12px; z-index: 3;
+  width: 40px; height: 40px; border-radius: 999px; border: none;
+  background: rgba(255,255,255,0.92); color: var(--ink);
+  font-size: 16px; font-weight: 800; line-height: 1; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
-.lightbox-info { padding: 14px 16px 16px; overflow-y: auto; }
-.lightbox-name { font-size: 17px; font-weight: 800; color: #1F2937; line-height: 1.25; }
-.lightbox-desc { font-size: 13px; color: #8B8378; margin-top: 5px; line-height: 1.45; }
-.lightbox-allergens { font-size: 11.5px; color: #8B8378; margin-top: 7px; opacity: .9; }
+.lightbox-info { padding: 18px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; }
+.lightbox-name { font-size: 22px; font-weight: 800; color: var(--ink); line-height: 1.2; padding-right: 44px; }
+.lightbox-desc { font-size: 14px; color: var(--ink-muted); margin-top: 8px; line-height: 1.5; }
+.lightbox-allergens { font-size: 12px; color: var(--ink-muted); margin-top: 10px; }
 .lightbox-foot {
   display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 10px;
 }
-.lightbox-price { font-size: 17px; font-weight: 800; color: #92400E; }
+.lightbox-price { font-size: 20px; font-weight: 800; color: var(--brand-dark); }
 .lightbox-unavailable {
   font-size: 11px; font-weight: 700; color: #9CA3AF;
   background: #F3F4F6; padding: 3px 9px; border-radius: 999px;
@@ -851,8 +918,9 @@ onUnmounted(() => {
 /* ── Masadan sipariş ───────────────────────────────────────────── */
 .order-banner {
   font-size: 13px; text-align: center; padding: 10px 16px;
+  width: calc(100% - 32px); max-width: 640px; margin: 8px auto 0; border-radius: 14px;
 }
-.order-banner.is-ok   { background: #FEF3C7; color: #78350F; }
+.order-banner.is-ok   { background: #E3F4E8; color: #14532D; }
 .order-banner.is-warn { background: #F3F4F6; color: #4B5563; }
 .status-pill {
   display: flex; align-items: center; gap: 8px; width: calc(100% - 32px); max-width: 640px;
@@ -888,8 +956,7 @@ onUnmounted(() => {
 .featured-add, .lightbox-add {
   border: none; background: var(--brand); color: white; font-weight: 800; cursor: pointer;
 }
-.featured-add { margin-top: 6px; width: 100%; height: 28px; border-radius: 999px; font-size: 12px; }
-.lightbox-add { margin-left: auto; height: 36px; padding: 0 18px; border-radius: 999px; font-size: 13.5px; }
+.lightbox-add { margin-left: auto; height: 46px; padding: 0 22px; border-radius: 999px; font-size: 15px; }
 
 .toast {
   position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%); z-index: 80;
@@ -901,7 +968,7 @@ onUnmounted(() => {
   max-width: 560px; margin: 0 auto;
   display: flex; align-items: center; gap: 12px;
   height: 56px; padding: 0 18px; border-radius: 18px; border: none;
-  background: var(--brand); color: white; box-shadow: 0 8px 24px rgba(146,64,14,0.35);
+  background: var(--brand); color: white; box-shadow: 0 8px 24px rgba(21,128,61,0.35);
 }
 .cart-count {
   min-width: 26px; height: 26px; padding: 0 6px; border-radius: 999px;
@@ -914,7 +981,7 @@ onUnmounted(() => {
 
 .sheet-backdrop {
   position: fixed; inset: 0; z-index: 70;
-  background: rgba(28, 20, 12, 0.55);
+  background: rgba(10, 18, 32, 0.55);
   display: flex; align-items: flex-end; justify-content: center;
 }
 .sheet {
@@ -926,7 +993,7 @@ onUnmounted(() => {
 .sheet-title { font-size: 18px; font-weight: 800; color: var(--ink); }
 .sheet-close {
   height: 30px; padding: 0 12px; border-radius: 999px; border: none;
-  background: #F3ECE3; color: var(--ink); font-size: 12px; font-weight: 700;
+  background: #EDE8DF; color: var(--ink); font-size: 12px; font-weight: 700;
 }
 .sheet-body { padding: 0 18px 12px; overflow-y: auto; }
 .sheet-foot { padding: 12px 18px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(0,0,0,0.06); }
@@ -935,7 +1002,7 @@ onUnmounted(() => {
   background: var(--brand); color: white; font-size: 15px; font-weight: 800;
 }
 .add-main:disabled { background: #D6CFC5; }
-.add-main.is-muted { background: #F3ECE3; color: var(--ink); }
+.add-main.is-muted { background: #EDE8DF; color: var(--ink); }
 .empty-cart { padding: 24px 0; text-align: center; color: var(--ink-muted); }
 .cart-line {
   display: flex; gap: 12px; align-items: center;
@@ -945,7 +1012,7 @@ onUnmounted(() => {
 .cart-line-name { font-size: 14px; font-weight: 700; color: var(--ink); }
 .cart-line-detail { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
 .cart-line-price { font-size: 13px; font-weight: 800; color: var(--brand-dark); margin-top: 3px; }
-.qty { display: flex; align-items: center; gap: 4px; background: #F3ECE3; border-radius: 999px; padding: 3px; }
+.qty { display: flex; align-items: center; gap: 4px; background: #EDE8DF; border-radius: 999px; padding: 3px; }
 .qty button {
   width: 32px; height: 32px; border-radius: 999px; border: none;
   background: white; color: var(--ink); font-size: 17px; font-weight: 800;
@@ -959,7 +1026,7 @@ onUnmounted(() => {
   border: 1px solid rgba(0,0,0,0.12); background: white !important; color: #1F2937 !important;
   font-size: 14px; outline: none;
 }
-.text-field:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(217,119,6,0.15); }
+.text-field:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
 .order-error {
   margin-top: 12px; padding: 10px 12px; border-radius: 12px;
   background: #FEF2F2; color: #991B1B; font-size: 13px;
@@ -973,6 +1040,4 @@ onUnmounted(() => {
 .status-text { font-size: 13px; margin-top: 4px; line-height: 1.45; }
 .status-total { text-align: right; padding: 12px 0 4px; font-size: 14px; color: var(--ink); }
 
-.featured-card.is-clickable { cursor: pointer; transition: transform .12s ease; }
-.featured-card.is-clickable:active { transform: scale(.97); }
 </style>
