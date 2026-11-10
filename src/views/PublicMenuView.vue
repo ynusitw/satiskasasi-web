@@ -718,8 +718,10 @@ onUnmounted(() => {
 }
 .biz-text { flex: 1; min-width: 0; }
 .biz-name {
-  font-size: 18px; line-height: 1.2; font-weight: 800; color: var(--ink);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 17px; line-height: 1.2; font-weight: 800; color: var(--ink);
+  /* Uzun işletme adı iki satıra iner (dar telefonda kesilmesin) */
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .biz-sub { font-size: 12.5px; color: var(--ink-muted); margin-top: 2px; }
 .head-actions { display: flex; gap: 8px; flex-shrink: 0; }
