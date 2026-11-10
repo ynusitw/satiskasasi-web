@@ -3,6 +3,7 @@
 .crm-area  { @apply w-full px-3 py-2.5 border border-gray-200 rounded-lg text-[13.5px] bg-white leading-relaxed; }
 .crm-card  { @apply bg-white rounded-2xl shadow-sm; }
 .crm-label { @apply flex flex-col gap-1 text-[13px]; }
+.crm-check { width: 18px; height: 18px; accent-color: #DC2626; cursor: pointer; flex-shrink: 0; }
 .crm-label > span:first-child { @apply text-muted; }
 
 /* Koyu tema: panelin koyu tema kuralları sınıf adına bakar (.bg-white vb.);

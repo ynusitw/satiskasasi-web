@@ -183,9 +183,9 @@ const routes = [
     meta: { superAdminOnly: true }
   },
   // Satış CRM'i (önceden crm.yenpos.com; veriler artık sunucuda)
-  { path: '/superadmin/crm',             component: () => import('../views/crm/CrmBugun.vue'),       meta: { superAdminOnly: true } },
+  { path: '/superadmin/crm',             component: () => import('../views/crm/CrmMusteriler.vue'),  meta: { superAdminOnly: true } },
   { path: '/superadmin/crm/aranacaklar', component: () => import('../views/crm/CrmAranacaklar.vue'), meta: { superAdminOnly: true } },
-  { path: '/superadmin/crm/adaylar',     component: () => import('../views/crm/CrmMusteriler.vue'),  meta: { superAdminOnly: true } },
+  { path: '/superadmin/crm/adaylar',     redirect: '/superadmin/crm' },   // eski adres (Bugün sayfası kaldırıldı)
   { path: '/superadmin/crm/bul',         component: () => import('../views/crm/CrmBul.vue'),        meta: { superAdminOnly: true } },
   { path: '/superadmin/crm/sablonlar',   component: () => import('../views/crm/CrmSablonlar.vue'),   meta: { superAdminOnly: true } },
   { path: '/superadmin/crm/ayarlar',     component: () => import('../views/crm/CrmAyarlar.vue'),     meta: { superAdminOnly: true } },

@@ -2,8 +2,20 @@
   <div class="p-4 sm:p-6 lg:p-8 max-w-6xl">
     <div class="flex flex-wrap items-end gap-3 mb-5">
       <div class="flex-1 min-w-60">
+        <p class="text-sm font-semibold text-accent capitalize">{{ today }}</p>
         <h1 class="page-title">Müşteri adayları</h1>
-        <p class="page-subtitle">WhatsApp'tan gelen yanıtları buradan işaretleyin; RET yazanlara bir daha mesaj gitmez.</p>
+        <p class="page-subtitle">Şablon mesaj, arama ve durum takibi tek yerde. RET yazanlara bir daha mesaj gitmez.</p>
+      </div>
+      <div v-if="crm.loaded" class="w-full sm:w-64">
+        <div class="flex justify-between text-sm mb-2">
+          <span class="text-muted">Bugün gönderilen</span>
+          <span class="font-semibold text-primary">{{ queue.sent }} / {{ crm.settings.dailyLimit }}</span>
+        </div>
+        <div class="h-3 rounded-full bg-gray-100 overflow-hidden" role="progressbar"
+             :aria-valuenow="queue.sent" :aria-valuemax="crm.settings.dailyLimit" aria-label="Bugün gönderilen mesaj">
+          <div class="h-full bg-accent rounded-full transition-all"
+               :style="{ width: `${Math.min(100, queue.sent / Math.max(1, crm.settings.dailyLimit) * 100)}%` }"></div>
+        </div>
       </div>
       <button class="btn-secondary" :disabled="!filtered.length" @click="downloadCsv">CSV indir ({{ filtered.length }})</button>
     </div>
@@ -13,13 +25,47 @@
     <div v-if="!crm.loaded" class="py-16 text-center text-sm text-muted">Yükleniyor...</div>
 
     <template v-else>
+      <p v-if="offHours" class="mb-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm">
+        Şu an mesai dışı ({{ crm.settings.workStart }}:00–{{ crm.settings.workEnd }}:00). İşletmeler genelde mesaileri
+        içinde gelen mesajlara daha iyi dönüyor.
+      </p>
+
+      <!-- Kampanya afişi -->
+      <section class="crm-card p-3 md:p-4 flex flex-wrap items-center gap-3 mb-4">
+        <img :src="POSTER_URL" alt="Kampanya afişi" class="w-12 rounded-md border border-gray-100 hidden sm:block"/>
+        <p class="flex-1 min-w-56 text-sm text-muted leading-relaxed">
+          <span class="font-semibold text-primary">Kampanya afişi.</span>
+          <template v-if="crm.settings.autoCopyPoster">
+            "WhatsApp'ta aç" afişi panoya kopyalar; mesajdan sonra sohbette
+            <kbd class="mx-0.5 rounded bg-gray-100 px-1.5 font-mono text-xs">Ctrl+V</kbd> ve Enter.
+          </template>
+          <template v-else>Mesajdaki bağlantı WhatsApp'ta afiş önizlemesiyle açılır.</template>
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn-secondary btn-sm" :disabled="posterState === 'busy'" @click="copyPosterNow">
+            {{ posterState === 'ok' ? 'Kopyalandı' : posterState === 'err' ? 'Kopyalanamadı' : 'Afişi kopyala' }}
+          </button>
+          <a class="btn-secondary btn-sm" :href="POSTER_URL" download="yenpos-kampanya.png">İndir</a>
+          <a class="btn-ghost btn-sm" :href="link" target="_blank" rel="noopener">Kampanya sayfası</a>
+        </div>
+      </section>
+
       <div class="flex gap-1.5 overflow-x-auto pb-2 mb-3 no-scrollbar" role="tablist" aria-label="Duruma göre filtre">
+        <button role="tab" :aria-selected="status === 'sira'" :class="status === 'sira' ? 'chip-accent' : 'chip-neutral'"
+                class="flex-shrink-0" title="Bugün mesaj atılacaklar: önce takip zamanı gelenler, sonra yeniler; günlük sınıra kadar"
+                @click="status = 'sira'; shown = 50">
+          Sıradakiler <span class="opacity-70 ml-1">{{ queue.items.length }}</span>
+        </button>
         <button v-for="s in ['hepsi', ...STATUSES]" :key="s" role="tab" :aria-selected="status === s"
                 :class="status === s ? 'chip-accent' : 'chip-neutral'" class="flex-shrink-0"
                 @click="status = s; shown = 50">
           {{ s === 'hepsi' ? 'Hepsi' : STATUS_LABEL[s] }} <span class="opacity-70 ml-1">{{ statusCounts[s] ?? 0 }}</span>
         </button>
       </div>
+      <p v-if="status === 'sira' && queue.items.length" class="text-sm text-muted mb-3">
+        Bugün WhatsApp'tan yazılacaklar: önce takip zamanı gelenler, sonra yeniler. Günlük sınıra
+        {{ queue.remaining }} mesaj kaldı. Satırdaki <b>Mesaj</b> ile şablon mesajı açın.
+      </p>
       <div class="flex flex-wrap gap-3 mb-4">
         <label class="flex-1 min-w-60">
           <span class="sr-only">Ara</span>
@@ -46,6 +92,24 @@
 
       <div v-if="!crm.leads.length" class="crm-card p-8 text-center text-sm text-muted">
         Henüz işletme yok. "İşletme bul" sayfasından ekleyin.
+      </div>
+      <div v-else-if="status === 'sira' && !queue.items.length" class="crm-card p-8 text-center">
+        <template v-if="queue.remaining === 0">
+          <p class="text-xl font-bold text-primary">Bugünlük hedef tamam</p>
+          <p class="text-sm text-muted mt-2 max-w-md mx-auto">
+            Numaranızın güvenliği için günlük sınırı aşmamanız iyi olur. Gelen yanıtları durum sütunundan işaretleyin.
+          </p>
+        </template>
+        <template v-else>
+          <p class="text-xl font-bold text-primary">Sırada işletme yok</p>
+          <p class="text-sm text-muted mt-2 max-w-md mx-auto">
+            WhatsApp'a uygun (cep telefonlu) yeni işletme kalmadı. Yeni bir ilçe tarayın ya da liste yükleyin.
+          </p>
+        </template>
+        <div class="flex flex-wrap justify-center gap-2 mt-4">
+          <RouterLink to="/superadmin/crm/bul" class="btn-primary">İşletme bul</RouterLink>
+          <button class="btn-secondary" @click="status = 'hepsi'">Tüm adayları göster</button>
+        </div>
       </div>
       <div v-else class="crm-card overflow-x-auto">
         <table class="w-full text-sm">
@@ -97,18 +161,25 @@
                 <td class="px-4 py-3 text-muted whitespace-nowrap">{{ lastContact(l) }}</td>
                 <td class="px-4 py-3">
                   <div class="flex gap-2 justify-end">
-                    <a v-if="l.phone && l.phoneType === 'mobile'" class="btn-secondary btn-sm"
-                       :href="whatsappUrl(l.phone, '', crm.settings.openWith)" target="_blank" rel="noopener">Sohbet</a>
+                    <button v-if="canMessage(l)" class="btn-sm" :class="isOpen(l, 'mesaj') ? 'btn-secondary' : 'btn-primary'"
+                            :aria-expanded="isOpen(l, 'mesaj')" :aria-label="`${l.name} şablon mesaj`" @click="toggleOpen(l, 'mesaj')">
+                      {{ isOpen(l, 'mesaj') ? 'Kapat' : 'Mesaj' }}
+                    </button>
                     <a v-if="l.phone" class="btn-secondary btn-sm" :href="`tel:${l.phone}`">Ara</a>
                     <a class="btn-secondary btn-sm" :href="mapUrl(l)" target="_blank" rel="noopener">Harita</a>
-                    <button class="btn-ghost btn-sm" :aria-expanded="open === l.id" @click="open = open === l.id ? null : l.id">
-                      {{ open === l.id ? 'Kapat' : 'Detay' }}
+                    <button class="btn-ghost btn-sm" :aria-expanded="isOpen(l, 'detay')" @click="toggleOpen(l, 'detay')">
+                      {{ isOpen(l, 'detay') ? 'Kapat' : 'Detay' }}
                     </button>
                     <button class="btn-ghost btn-sm text-red-600" :aria-label="`${l.name} sil`" @click="remove(l)">Sil</button>
                   </div>
                 </td>
               </tr>
-              <tr v-if="open === l.id" class="bg-gray-50/60">
+              <tr v-if="isOpen(l, 'mesaj')" class="bg-gray-50/60">
+                <td colspan="6" class="px-4 py-4">
+                  <CrmMessageCard embedded :lead="l" :kind="kindFor(l)" :link="link" @done="openId = null"/>
+                </td>
+              </tr>
+              <tr v-if="isOpen(l, 'detay')" class="bg-gray-50/60">
                 <td colspan="6" class="px-4 py-4">
                   <div class="grid md:grid-cols-2 gap-4">
                     <label class="crm-label">
@@ -123,7 +194,11 @@
                           <span class="font-mono text-muted">{{ when(h.at) }}</span> {{ historyText(h) }}
                         </li>
                       </ul>
-                      <a v-if="l.website" class="text-accent underline" :href="l.website" target="_blank" rel="noopener">Web sitesi</a>
+                      <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                        <a v-if="l.phone && l.phoneType === 'mobile'" class="text-accent underline"
+                           :href="whatsappUrl(l.phone, '', crm.settings.openWith)" target="_blank" rel="noopener">WhatsApp sohbetini aç (mesajsız)</a>
+                        <a v-if="l.website" class="text-accent underline" :href="l.website" target="_blank" rel="noopener">Web sitesi</a>
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -144,14 +219,46 @@
 import { computed, onMounted, ref } from 'vue'
 import { uiConfirm } from '../../utils/dialog'
 import { crm, loadCrm, crmActions } from '../../crm/store'
-import { STATUSES, STATUS_LABEL, SEGMENT_LABEL, addressOf, mapUrl, webSearchUrl, formatPhone, whatsappUrl } from '../../crm/logic'
+import { STATUSES, STATUS_LABEL, SEGMENT_LABEL, addressOf, mapUrl, webSearchUrl, formatPhone, whatsappUrl,
+         todayQueue, POSTER_URL, copyPoster, preloadPoster } from '../../crm/logic'
+import CrmMessageCard from './CrmMessageCard.vue'
 import '../../crm/crm.css'
 
-const status = ref('hepsi')
+// CRM'in ana sayfası (eski "Bugün" sayfası buraya katıldı): "Sıradakiler" bugünün WhatsApp sırası
+const today = new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })
+// Ayarlar gelmeden (ilk yükleme) sıra boş sayılır
+const queue = computed(() => crm.loaded && crm.settings ? todayQueue(crm) : { items: [], remaining: 0, sent: 0 })
+const queueKind = computed(() => new Map(queue.value.items.map(it => [it.lead.id, it.kind])))
+const link = computed(() => crm.settings?.landingUrl?.trim() || 'https://yenpos.com/kampanya')
+const offHours = computed(() => {
+  const h = new Date().getHours()
+  return h < crm.settings.workStart || h >= crm.settings.workEnd
+})
+const posterState = ref('')
+async function copyPosterNow() {
+  posterState.value = 'busy'
+  posterState.value = (await copyPoster()) ? 'ok' : 'err'
+}
+
+// Şablon mesaj: cep telefonu olan, RET / geçersiz olmayan; daha önce yazıldıysa takip şablonu
+const canMessage = l => !!l.phone && l.phoneType === 'mobile' && l.status !== 'ret' && l.status !== 'gecersiz'
+const kindFor = l => queueKind.value.get(l.id)
+  ?? (l.history.some(h => h.type === 'mesaj' || h.type === 'takip') ? 'takip' : 'ilk')
+
+// Satırın altında açılan panel: 'mesaj' (şablon) ya da 'detay' (not, geçmiş)
+const openId = ref(null)
+const openMode = ref('')
+const isOpen = (l, mode) => openId.value === l.id && openMode.value === mode
+function toggleOpen(l, mode) {
+  if (isOpen(l, mode)) { openId.value = null; return }
+  openId.value = l.id
+  openMode.value = mode
+}
+
+const status = ref('sira')
 const phoneFilter = ref('hepsi')
 const search = ref('')
 const shown = ref(50)
-const open = ref(null)
 const error = ref('')
 const selected = ref(new Set())
 const deleting = ref('')
@@ -167,11 +274,13 @@ const statusCounts = computed(() => {
 
 const filtered = computed(() => {
   const q = norm(search.value.trim())
-  return crm.leads
-    .filter(l => status.value === 'hepsi' || l.status === status.value)
+  const base = status.value === 'sira'
+    ? queue.value.items.map(it => it.lead)                     // sıra düzeninde
+    : crm.leads.filter(l => status.value === 'hepsi' || l.status === status.value)
+      .sort((a, b) => String(b.lastContactAt ?? b.createdAt).localeCompare(String(a.lastContactAt ?? a.createdAt)))
+  return base
     .filter(l => phoneFilter.value === 'hepsi' || (phoneFilter.value === 'yok' ? !l.phone : l.phoneType === phoneFilter.value))
     .filter(l => !q || norm(`${l.name} ${l.category} ${l.district} ${l.neighborhood} ${l.address} ${l.phone ?? ''}`).includes(q))
-    .sort((a, b) => String(b.lastContactAt ?? b.createdAt).localeCompare(String(a.lastContactAt ?? a.createdAt)))
 })
 
 const lastContact = l => l.lastContactAt
@@ -198,7 +307,7 @@ function saveNotes(l, value) {
 async function remove(l) {
   if (!await uiConfirm(`${l.name} listeden silinsin mi? Bu işlem geri alınamaz.`)) return
   await act(() => crmActions.remove(l.id))
-  if (open.value === l.id) open.value = null
+  if (openId.value === l.id) openId.value = null
   if (selected.value.has(l.id)) toggle(l.id, false)
 }
 
@@ -232,7 +341,7 @@ async function removeSelected() {
   }
   deleting.value = ''
   selected.value = new Set([...selected.value].filter(id => crm.leads.some(l => l.id === id)))
-  if (open.value && !crm.leads.some(l => l.id === open.value)) open.value = null
+  if (openId.value && !crm.leads.some(l => l.id === openId.value)) openId.value = null
   if (failed) error.value = `${failed} işletme silinemedi. Tekrar deneyin.`
 }
 
@@ -247,11 +356,10 @@ function downloadCsv() {
   URL.revokeObjectURL(a.href)
 }
 
-onMounted(() => loadCrm(true))
+onMounted(() => { loadCrm(true); preloadPoster() })
 </script>
 
 <style scoped>
-.crm-check { width: 18px; height: 18px; accent-color: #DC2626; cursor: pointer; }
 /* Ada yanında küçük büyüteç; dokunma alanı 32 px */
 .web-search {
   display: inline-flex; align-items: center; justify-content: center;

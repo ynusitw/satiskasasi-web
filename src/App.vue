@@ -376,9 +376,8 @@ const navSections = computed(() => {
       // YenPOS'un kendi satış CRM'i (önceden crm.yenpos.com)
       title: 'Satış (CRM)',
       items: [
-        { to: '/superadmin/crm',             label: 'Bugün'             },
+        { to: '/superadmin/crm',             label: 'Müşteri Adayları'  },
         { to: '/superadmin/crm/aranacaklar', label: 'Aranacaklar'       },
-        { to: '/superadmin/crm/adaylar',     label: 'Müşteri Adayları'  },
         { to: '/superadmin/crm/bul',         label: 'İşletme Bul'       },
         { to: '/superadmin/crm/sablonlar',   label: 'Mesaj Şablonları'  },
         { to: '/superadmin/crm/ayarlar',     label: 'CRM Ayarları'      },

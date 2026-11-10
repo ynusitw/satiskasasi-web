@@ -1,7 +1,12 @@
 <template>
-  <!-- Kuyruktaki tek işletme: şablondan doldurulmuş mesaj, WhatsApp'ta aç, gönderildi işareti -->
-  <article class="crm-card p-4 md:p-5 flex flex-col gap-3">
-    <header class="flex flex-wrap items-start gap-x-3 gap-y-1">
+  <!-- Tek işletmeye şablon mesaj: şablondan doldurulmuş metin, WhatsApp'ta aç, gönderildi işareti.
+       Müşteri Adayları'nda satırın altında açılır (başlıksız); iş bitince "done" ile kapanır. -->
+  <article class="flex flex-col gap-3" :class="embedded ? '' : 'crm-card p-4 md:p-5'" :data-lead-id="lead.id">
+    <div v-if="embedded" class="flex flex-wrap items-center gap-2">
+      <span class="text-sm font-semibold text-primary">{{ kind === 'takip' ? 'Takip mesajı' : 'İlk mesaj' }}</span>
+      <span v-if="template" class="text-xs text-muted">· şablon: {{ template.name }}</span>
+    </div>
+    <header v-else class="flex flex-wrap items-start gap-x-3 gap-y-1">
       <div class="min-w-0 flex-1">
         <h3 class="text-lg font-bold text-primary leading-tight truncate">{{ lead.name }}</h3>
         <p class="text-sm text-muted">{{ lead.category }}</p>
@@ -33,8 +38,8 @@
         </p>
         <p class="text-muted">Mesajı WhatsApp'ta gönderdiniz mi?</p>
       </div>
-      <button class="btn-primary" :disabled="busy" @click="act(() => crmActions.markSent(lead.id, text))">Gönderdim</button>
-      <button class="btn-secondary" :disabled="busy" @click="act(() => crmActions.setStatus(lead.id, 'gecersiz'))">Numara WhatsApp'ta yok</button>
+      <button class="btn-primary" :disabled="busy" @click="act(() => crmActions.markSent(lead.id, text), true)">Gönderdim</button>
+      <button class="btn-secondary" :disabled="busy" @click="act(() => crmActions.setStatus(lead.id, 'gecersiz'), true)">Numara WhatsApp'ta yok</button>
       <button class="btn-ghost" @click="opened = false">Vazgeç</button>
     </div>
 
@@ -48,8 +53,9 @@
         {{ aiBusy ? 'Yazılıyor…' : 'AI ile kişiselleştir' }}
       </button>
       <span class="flex-1"></span>
-      <button class="btn-ghost" :disabled="busy" @click="act(() => crmActions.skip(lead.id, 1))">Yarına ertele</button>
-      <button class="btn-danger" :disabled="busy" @click="act(() => crmActions.setStatus(lead.id, 'ret'))">Listeden çıkar</button>
+      <button class="btn-ghost" :disabled="busy" @click="act(() => crmActions.skip(lead.id, 1), true)">Yarına ertele</button>
+      <button class="btn-danger" :disabled="busy" title="Durumu 'RET / istemiyor' yapar; bir daha mesaj sırasına girmez"
+              @click="act(() => crmActions.setStatus(lead.id, 'ret'), true)">Listeden çıkar</button>
     </div>
   </article>
 </template>
@@ -61,7 +67,8 @@ import { crm, crmActions } from '../../crm/store'
 import { SEGMENT_LABEL, addressOf, mapUrl, formatPhone, whatsappUrl, pickTemplate, fillTemplate,
          templatesFor, copyPoster, EN_OPT_OUT } from '../../crm/logic'
 
-const props = defineProps({ lead: Object, kind: String, link: String })
+const props = defineProps({ lead: Object, kind: String, link: String, embedded: Boolean })
+const emit = defineEmits(['done'])
 
 const offset = ref(0)
 const english = ref(false)        // İngilizce şablon yalnız elle seçilir
@@ -105,10 +112,13 @@ function openWhatsApp() {
   opened.value = true
 }
 
-async function act(fn) {
+async function act(fn, closeAfter = false) {
   busy.value = true
   error.value = ''
-  try { await fn() } catch (e) { error.value = e.response?.data?.message || 'Kaydedilemedi. Bağlantıyı kontrol edin.' }
+  try {
+    await fn()
+    if (closeAfter) emit('done')
+  } catch (e) { error.value = e.response?.data?.message || 'Kaydedilemedi. Bağlantıyı kontrol edin.' }
   finally { busy.value = false }
 }
 
