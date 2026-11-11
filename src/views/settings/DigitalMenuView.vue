@@ -4,7 +4,7 @@
     <p class="text-muted text-sm mt-1 mb-6">
       Bu QR kodu masalarınıza koyun — müşterileriniz telefonlarıyla okutup
       menünüzü (ürün ve fiyatları) görüntüleyebilir. Masadan sipariş almak için
-      aşağıdaki "Masadan Sipariş" bölümünü açıp masaya özel QR kodlarını kullanın.
+      "Masadan Sipariş" sekmesindeki masaya özel QR kodlarını kullanın.
     </p>
 
     <div v-if="loading" class="text-muted">Yükleniyor...</div>
@@ -16,386 +16,410 @@
       <button class="ml-2 underline font-semibold" @click="loadConfig">Tekrar dene</button>
     </div>
 
-    <!-- Kartlar geniş ekranda iki sütuna yayılır; dar ekranda alt alta iner -->
-    <div v-if="!loading && slug" class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-      <!-- QR + bağlantı -->
-      <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-8 flex flex-col items-center">
-        <img :src="qrUrl" :alt="menuUrl" width="220" height="220"
-             class="rounded-xl border border-gray-100"/>
+    <!-- Sekmeler: bağlantı / içerik / masadan sipariş / geçmiş (seçili sekme adreste: ?sekme=) -->
+    <div v-if="!loading && slug">
+      <div class="flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto dm-tabs" role="tablist" aria-label="Dijital menü bölümleri">
+        <button v-for="t in tabs" :key="t.id" type="button" role="tab" :aria-selected="tab === t.id"
+                class="px-4 py-2.5 -mb-px border-b-2 text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-2"
+                :class="tab === t.id ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-primary'"
+                @click="setTab(t.id)">
+          {{ t.label }}
+          <span v-if="t.badge" class="text-[10.5px] font-bold px-2 py-0.5 rounded-full"
+                :class="t.badgeOn ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-muted'">{{ t.badge }}</span>
+        </button>
+      </div>
 
-        <div class="mt-6 w-full">
-          <label class="block text-sm font-semibold text-primary mb-1.5">Menü Bağlantısı</label>
-          <div class="flex gap-2">
-            <input :value="menuUrl" readonly
-                   class="flex-1 px-3 border border-gray-200 rounded-lg text-[13.5px] bg-gray-50 text-muted h-10"/>
-            <button @click="copyLink"
-                    class="btn-primary btn-lg whitespace-nowrap">
-              {{ copied ? 'Kopyalandı' : 'Kopyala' }}
+      <!-- ① Menü bağlantısı: QR + görünürlük -->
+      <div v-show="tab === 'baglanti'" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <!-- QR + bağlantı -->
+        <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-8 flex flex-col items-center">
+          <img :src="qrUrl" :alt="menuUrl" width="220" height="220"
+               class="rounded-xl border border-gray-100"/>
+
+          <div class="mt-6 w-full">
+            <label class="block text-sm font-semibold text-primary mb-1.5">Menü Bağlantısı</label>
+            <div class="flex gap-2">
+              <input :value="menuUrl" readonly
+                     class="flex-1 px-3 border border-gray-200 rounded-lg text-[13.5px] bg-gray-50 text-muted h-10"/>
+              <button @click="copyLink"
+                      class="btn-primary btn-lg whitespace-nowrap">
+                {{ copied ? 'Kopyalandı' : 'Kopyala' }}
+              </button>
+            </div>
+          </div>
+
+          <a :href="menuUrl" target="_blank"
+             class="mt-4 text-sm text-accent hover:underline">
+            Menüyü önizle
+          </a>
+        </div>
+
+        <!-- Görünürlük Ayarları -->
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+          <h2 class="section-title mb-1">Görünürlük Ayarları</h2>
+          <p class="text-xs text-muted mb-4">
+            Firma adının altında hangi iletişim bilgilerinin gösterileceğini seçin.
+          </p>
+
+          <label class="flex items-center justify-between p-3 rounded-xl
+                         bg-gray-50 border border-gray-100 cursor-pointer mb-3">
+            <div>
+              <div class="text-sm font-semibold">Adresi Göster</div>
+              <div class="text-xs text-muted">Menüde firma adresi görünsün</div>
+            </div>
+            <button @click="toggleVisibility('showAddressOnMenu')"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full
+                           transition-colors duration-200 flex-shrink-0"
+                    :class="settings.showAddressOnMenu ? 'bg-accent' : 'bg-gray-300'">
+              <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                           transition-transform duration-200"
+                    :class="settings.showAddressOnMenu ? 'translate-x-6' : 'translate-x-1'"/>
             </button>
-          </div>
-        </div>
-
-        <a :href="menuUrl" target="_blank"
-           class="mt-4 text-sm text-accent hover:underline">
-          Menüyü önizle
-        </a>
-      </div>
-
-      <!-- Görünürlük Ayarları -->
-      <div class="bg-white rounded-2xl shadow-sm p-6">
-        <h2 class="section-title mb-1">Görünürlük Ayarları</h2>
-        <p class="text-xs text-muted mb-4">
-          Firma adının altında hangi iletişim bilgilerinin gösterileceğini seçin.
-        </p>
-
-        <label class="flex items-center justify-between p-3 rounded-xl
-                       bg-gray-50 border border-gray-100 cursor-pointer mb-3">
-          <div>
-            <div class="text-sm font-semibold">Adresi Göster</div>
-            <div class="text-xs text-muted">Menüde firma adresi görünsün</div>
-          </div>
-          <button @click="toggleVisibility('showAddressOnMenu')"
-                  class="relative inline-flex h-6 w-11 items-center rounded-full
-                         transition-colors duration-200 flex-shrink-0"
-                  :class="settings.showAddressOnMenu ? 'bg-accent' : 'bg-gray-300'">
-            <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
-                         transition-transform duration-200"
-                  :class="settings.showAddressOnMenu ? 'translate-x-6' : 'translate-x-1'"/>
-          </button>
-        </label>
-
-        <label class="flex items-center justify-between p-3 rounded-xl
-                       bg-gray-50 border border-gray-100 cursor-pointer">
-          <div>
-            <div class="text-sm font-semibold">Telefonu Göster</div>
-            <div class="text-xs text-muted">Menüde telefon numarası görünsün</div>
-          </div>
-          <button @click="toggleVisibility('showPhoneOnMenu')"
-                  class="relative inline-flex h-6 w-11 items-center rounded-full
-                         transition-colors duration-200 flex-shrink-0"
-                  :class="settings.showPhoneOnMenu ? 'bg-accent' : 'bg-gray-300'">
-            <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
-                         transition-transform duration-200"
-                  :class="settings.showPhoneOnMenu ? 'translate-x-6' : 'translate-x-1'"/>
-          </button>
-        </label>
-
-        <div class="text-xs mt-3" :class="visError ? 'text-danger' : 'text-muted'">
-          {{ visError ? visError : (visSaving ? 'Kaydediliyor...' : (visSaved ? 'Kaydedildi' : '')) }}
-        </div>
-      </div>
-
-      <!-- Bunları Beğenebilirsiniz -->
-      <div class="bg-white rounded-2xl shadow-sm p-6">
-        <div class="flex items-start justify-between gap-4 mb-1">
-          <h2 class="section-title">Bunları Beğenebilirsiniz</h2>
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
-                :class="featuredIds.length >= featuredLimit
-                  ? 'bg-accent/10 text-accent' : 'bg-gray-100 text-muted'">
-            {{ featuredIds.length }} / {{ featuredLimit }}
-          </span>
-        </div>
-        <p class="text-xs text-muted mb-4">
-          Menünün en üstünde öne çıkarılacak ürünler. En fazla {{ featuredLimit }} ürün seçebilirsiniz.
-        </p>
-
-        <input v-model="productSearch" placeholder="Ürün ara..."
-               class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] mb-3 h-10 bg-white"/>
-
-        <div class="max-h-72 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-50">
-          <label v-for="p in filteredProducts" :key="p.id"
-                 class="flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors"
-                 :class="isFeatured(p.id) ? 'bg-accent/5' : 'hover:bg-gray-50'">
-            <input type="checkbox" :checked="isFeatured(p.id)"
-                   :disabled="!isFeatured(p.id) && featuredIds.length >= featuredLimit"
-                   @change="toggleFeatured(p.id)"
-                   class="w-4 h-4 accent-accent flex-shrink-0 disabled:opacity-30"/>
-            <div class="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-              <img v-if="p.imageBase64" :src="p.imageBase64" :alt="p.name"
-                   class="w-full h-full object-cover"/>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-semibold text-primary truncate">{{ p.name }}</div>
-              <div class="text-xs text-muted">{{ fmt(p.price) }}</div>
-            </div>
-            <span v-if="isEffectivelyHidden(p)"
-                  class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">
-              QR'da gizli
-            </span>
-            <span v-else-if="!p.isActive"
-                  class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">
-              Pasif
-            </span>
           </label>
 
-          <div v-if="filteredProducts.length === 0" class="px-3 py-6 text-center text-sm text-muted">
-            Ürün bulunamadı
+          <label class="flex items-center justify-between p-3 rounded-xl
+                         bg-gray-50 border border-gray-100 cursor-pointer">
+            <div>
+              <div class="text-sm font-semibold">Telefonu Göster</div>
+              <div class="text-xs text-muted">Menüde telefon numarası görünsün</div>
+            </div>
+            <button @click="toggleVisibility('showPhoneOnMenu')"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full
+                           transition-colors duration-200 flex-shrink-0"
+                    :class="settings.showPhoneOnMenu ? 'bg-accent' : 'bg-gray-300'">
+              <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                           transition-transform duration-200"
+                    :class="settings.showPhoneOnMenu ? 'translate-x-6' : 'translate-x-1'"/>
+            </button>
+          </label>
+
+          <div class="text-xs mt-3" :class="visError ? 'text-danger' : 'text-muted'">
+            {{ visError ? visError : (visSaving ? 'Kaydediliyor...' : (visSaved ? 'Kaydedildi' : '')) }}
           </div>
         </div>
       </div>
 
-      <!-- Kategori Görselleri -->
-      <div class="bg-white rounded-2xl shadow-sm p-6">
-        <div class="flex items-start justify-between gap-3 mb-1">
-          <h2 class="section-title">Kategori Görselleri</h2>
-
-          <!-- Başka bir firmaya taşımak için: görseller yeniden
-               sıkıştırılmadan, olduğu gibi aktarılır. -->
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <button @click="exportCategoryImages" :disabled="imgBusy"
-                    class="px-3 py-1.5 border border-gray-200 text-muted rounded-lg
-                           text-xs font-semibold hover:border-accent hover:text-accent
-                           disabled:opacity-50">
-              Dışa Aktar
-            </button>
-            <button @click="categoryZipInput?.click()" :disabled="imgBusy"
-                    class="px-3 py-1.5 border border-gray-200 text-muted rounded-lg
-                           text-xs font-semibold hover:border-success hover:text-success
-                           disabled:opacity-50">
-              İçe Aktar
-            </button>
-            <input ref="categoryZipInput" type="file" accept=".zip"
-                   class="hidden" @change="importCategoryImages"/>
-          </div>
-        </div>
-
-        <p class="text-xs text-muted mb-3">
-          Menü açılışında kategoriler kart olarak gösterilir. Buraya yüklediğiniz
-          görseller <strong>sadece dijital menüde</strong> kullanılır, kasayı etkilemez.
-        </p>
-
-        <label class="flex items-center gap-2 text-xs text-muted cursor-pointer mb-4 select-none">
-          <input type="checkbox" v-model="overwriteCategoryImages" class="w-4 h-4"/>
-          İçe aktarırken mevcut görsellerin üzerine yaz
-        </label>
-
-        <div class="space-y-3">
-          <div v-for="c in categories" :key="c.id"
-               class="flex items-center gap-3 p-3 rounded-xl border border-gray-100">
-            <div class="w-24 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0
-                        flex items-center justify-center">
-              <img v-if="c.menuImageBase64" :src="c.menuImageBase64" :alt="c.name"
-                   class="w-full h-full object-cover"/>
-              <span v-else class="text-[10px] text-muted">Görsel yok</span>
+      <!-- ② Menü içeriği: öne çıkanlar, gizlenenler, kategori görselleri -->
+      <div v-show="tab === 'icerik'">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start mb-6">
+          <!-- Öne Çıkanlar (menüde en üstte, halkalı) -->
+          <div class="bg-white rounded-2xl shadow-sm p-6">
+            <div class="flex items-start justify-between gap-4 mb-1">
+              <h2 class="section-title">Öne Çıkanlar</h2>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+                    :class="featuredIds.length >= featuredLimit
+                      ? 'bg-accent/10 text-accent' : 'bg-gray-100 text-muted'">
+                {{ featuredIds.length }} / {{ featuredLimit }}
+              </span>
             </div>
-            <div class="flex-1 min-w-0">
-              <div class="text-sm font-semibold text-primary truncate">{{ c.name }}</div>
-              <div class="flex gap-3 mt-1">
-                <button @click="pickCategoryImage(c.id)"
-                        class="text-xs font-bold text-accent hover:underline">
-                  {{ c.menuImageBase64 ? 'Değiştir' : 'Görsel Yükle' }}
-                </button>
-                <button v-if="c.menuImageBase64" @click="c.menuImageBase64 = null"
-                        class="text-xs font-bold text-danger hover:underline">
-                  Kaldır
-                </button>
-              </div>
-            </div>
-          </div>
+            <p class="text-xs text-muted mb-4">
+              Menünün en üstünde öne çıkarılacak ürünler. En fazla {{ featuredLimit }} ürün seçebilirsiniz.
+            </p>
 
-          <div v-if="categories.length === 0" class="text-sm text-muted text-center py-4">
-            Henüz kategori tanımlanmamış
-          </div>
-        </div>
+            <input v-model="productSearch" placeholder="Ürün ara..."
+                   class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] mb-3 h-10 bg-white"/>
 
-        <input ref="categoryFileInput" type="file" accept="image/*"
-               class="hidden" @change="onCategoryFileChange"/>
-      </div>
-
-      <!-- QR Menüde Gösterilenler — tam genişlik -->
-      <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-        <div class="flex flex-wrap items-start justify-between gap-3 mb-1">
-          <h2 class="section-title">QR Menüde Gösterilenler</h2>
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
-                :class="hiddenSummary.total ? 'bg-accent/10 text-accent' : 'bg-gray-100 text-muted'">
-            {{ hiddenSummary.total
-                ? `${hiddenSummary.cats} grup, ${hiddenSummary.prods} ürün gizli`
-                : 'Hepsi görünüyor' }}
-          </span>
-        </div>
-        <p class="text-xs text-muted mb-4">
-          Kapattığınız ürün grupları ve ürünler <strong>yalnızca QR menüde</strong> görünmez
-          ve QR'dan sipariş edilemez. Kasada ve garson ekranında satılmaya devam eder.
-        </p>
-
-        <input v-model="visSearch" placeholder="Grup veya ürün ara..."
-               class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] mb-3 h-10 bg-white"/>
-
-        <div class="border border-gray-100 rounded-xl divide-y divide-gray-100">
-          <div v-for="g in visibilityGroups" :key="g.id">
-            <!-- Grup satırı -->
-            <div class="flex items-center gap-3 px-3 py-2.5"
-                 :class="isCatHidden(g.id) ? 'bg-gray-50' : ''">
-              <button @click="toggleExpand(g.id)"
-                      class="flex-1 min-w-0 flex items-center gap-2 text-left">
-                <svg class="w-4 h-4 text-muted flex-shrink-0 transition-transform"
-                     :class="g.open ? 'rotate-90' : ''" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M7.3 14.7a1 1 0 0 1 0-1.4L10.6 10 7.3 6.7a1 1 0 1 1 1.4-1.4l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 0 1-1.4 0z" clip-rule="evenodd"/>
-                </svg>
-                <span class="min-w-0">
-                  <span class="block text-sm font-semibold truncate"
-                        :class="isCatHidden(g.id) ? 'text-muted line-through' : 'text-primary'">
-                    {{ g.name }}
-                  </span>
-                  <span class="block text-xs text-muted">
-                    {{ isCatHidden(g.id)
-                        ? 'Grup QR menüde gizli'
-                        : `${g.visibleCount} / ${g.products.length} ürün görünüyor` }}
-                  </span>
-                </span>
-              </button>
-              <button v-if="g.id !== null" @click="toggleCatHidden(g.id)"
-                      :aria-label="isCatHidden(g.id) ? 'Grubu göster' : 'Grubu gizle'"
-                      class="relative inline-flex h-6 w-11 items-center rounded-full
-                             transition-colors duration-200 flex-shrink-0"
-                      :class="isCatHidden(g.id) ? 'bg-gray-300' : 'bg-accent'">
-                <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
-                             transition-transform duration-200"
-                      :class="isCatHidden(g.id) ? 'translate-x-1' : 'translate-x-6'"/>
-              </button>
-            </div>
-
-            <!-- Grubun ürünleri -->
-            <div v-if="g.open" class="bg-gray-50 divide-y divide-gray-100">
-              <div v-for="p in g.products" :key="p.id"
-                   class="flex items-center gap-3 pl-9 pr-3 py-2"
-                   :class="isCatHidden(g.id) ? 'opacity-50' : ''">
-                <div class="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+            <div class="max-h-[26rem] overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-50">
+              <label v-for="p in filteredProducts" :key="p.id"
+                     class="flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors"
+                     :class="isFeatured(p.id) ? 'bg-accent/5' : 'hover:bg-gray-50'">
+                <input type="checkbox" :checked="isFeatured(p.id)"
+                       :disabled="!isFeatured(p.id) && featuredIds.length >= featuredLimit"
+                       @change="toggleFeatured(p.id)"
+                       class="w-4 h-4 accent-accent flex-shrink-0 disabled:opacity-30"/>
+                <div class="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                   <img v-if="p.imageBase64" :src="p.imageBase64" :alt="p.name"
                        class="w-full h-full object-cover"/>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm truncate"
-                       :class="isProdHidden(p.id) ? 'text-muted line-through' : 'text-primary font-medium'">
-                    {{ p.name }}
+                  <div class="text-sm font-semibold text-primary truncate">{{ p.name }}</div>
+                  <div class="text-xs text-muted">{{ fmt(p.price) }}</div>
+                </div>
+                <span v-if="isEffectivelyHidden(p)"
+                      class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">
+                  QR'da gizli
+                </span>
+                <span v-else-if="!p.isActive"
+                      class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">
+                  Pasif
+                </span>
+              </label>
+
+              <div v-if="filteredProducts.length === 0" class="px-3 py-6 text-center text-sm text-muted">
+                Ürün bulunamadı
+              </div>
+            </div>
+          </div>
+
+          <!-- QR Menüde Gösterilenler — tam genişlik -->
+          <div class="bg-white rounded-2xl shadow-sm p-6">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-1">
+              <h2 class="section-title">QR Menüde Gösterilenler</h2>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+                    :class="hiddenSummary.total ? 'bg-accent/10 text-accent' : 'bg-gray-100 text-muted'">
+                {{ hiddenSummary.total
+                    ? `${hiddenSummary.cats} grup, ${hiddenSummary.prods} ürün gizli`
+                    : 'Hepsi görünüyor' }}
+              </span>
+            </div>
+            <p class="text-xs text-muted mb-4">
+              Kapattığınız ürün grupları ve ürünler <strong>yalnızca QR menüde</strong> görünmez
+              ve QR'dan sipariş edilemez. Kasada ve garson ekranında satılmaya devam eder.
+            </p>
+
+            <input v-model="visSearch" placeholder="Grup veya ürün ara..."
+                   class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] mb-3 h-10 bg-white"/>
+
+            <div class="border border-gray-100 rounded-xl divide-y divide-gray-100 max-h-[26rem] overflow-y-auto">
+              <div v-for="g in visibilityGroups" :key="g.id">
+                <!-- Grup satırı -->
+                <div class="flex items-center gap-3 px-3 py-2.5"
+                     :class="isCatHidden(g.id) ? 'bg-gray-50' : ''">
+                  <button @click="toggleExpand(g.id)"
+                          class="flex-1 min-w-0 flex items-center gap-2 text-left">
+                    <svg class="w-4 h-4 text-muted flex-shrink-0 transition-transform"
+                         :class="g.open ? 'rotate-90' : ''" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M7.3 14.7a1 1 0 0 1 0-1.4L10.6 10 7.3 6.7a1 1 0 1 1 1.4-1.4l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 0 1-1.4 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="min-w-0">
+                      <span class="block text-sm font-semibold truncate"
+                            :class="isCatHidden(g.id) ? 'text-muted line-through' : 'text-primary'">
+                        {{ g.name }}
+                      </span>
+                      <span class="block text-xs text-muted">
+                        {{ isCatHidden(g.id)
+                            ? 'Grup QR menüde gizli'
+                            : `${g.visibleCount} / ${g.products.length} ürün görünüyor` }}
+                      </span>
+                    </span>
+                  </button>
+                  <button v-if="g.id !== null" @click="toggleCatHidden(g.id)"
+                          :aria-label="isCatHidden(g.id) ? 'Grubu göster' : 'Grubu gizle'"
+                          class="relative inline-flex h-6 w-11 items-center rounded-full
+                                 transition-colors duration-200 flex-shrink-0"
+                          :class="isCatHidden(g.id) ? 'bg-gray-300' : 'bg-accent'">
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                                 transition-transform duration-200"
+                          :class="isCatHidden(g.id) ? 'translate-x-1' : 'translate-x-6'"/>
+                  </button>
+                </div>
+
+                <!-- Grubun ürünleri -->
+                <div v-if="g.open" class="bg-gray-50 divide-y divide-gray-100">
+                  <div v-for="p in g.products" :key="p.id"
+                       class="flex items-center gap-3 pl-9 pr-3 py-2"
+                       :class="isCatHidden(g.id) ? 'opacity-50' : ''">
+                    <div class="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      <img v-if="p.imageBase64" :src="p.imageBase64" :alt="p.name"
+                           class="w-full h-full object-cover"/>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm truncate"
+                           :class="isProdHidden(p.id) ? 'text-muted line-through' : 'text-primary font-medium'">
+                        {{ p.name }}
+                      </div>
+                      <div class="text-xs text-muted">
+                        {{ fmt(p.price) }}<span v-if="!p.isActive"> · Pasif</span>
+                      </div>
+                    </div>
+                    <button @click="toggleProdHidden(p.id)" :disabled="isCatHidden(g.id)"
+                            :aria-label="isProdHidden(p.id) ? 'Ürünü göster' : 'Ürünü gizle'"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full
+                                   transition-colors duration-200 flex-shrink-0 disabled:cursor-not-allowed"
+                            :class="isProdHidden(p.id) ? 'bg-gray-300' : 'bg-accent'">
+                      <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                                   transition-transform duration-200"
+                            :class="isProdHidden(p.id) ? 'translate-x-1' : 'translate-x-6'"/>
+                    </button>
                   </div>
-                  <div class="text-xs text-muted">
-                    {{ fmt(p.price) }}<span v-if="!p.isActive"> · Pasif</span>
+                  <div v-if="g.products.length === 0" class="pl-9 pr-3 py-3 text-xs text-muted">
+                    Bu grupta ürün yok
                   </div>
                 </div>
-                <button @click="toggleProdHidden(p.id)" :disabled="isCatHidden(g.id)"
-                        :aria-label="isProdHidden(p.id) ? 'Ürünü göster' : 'Ürünü gizle'"
-                        class="relative inline-flex h-6 w-11 items-center rounded-full
-                               transition-colors duration-200 flex-shrink-0 disabled:cursor-not-allowed"
-                        :class="isProdHidden(p.id) ? 'bg-gray-300' : 'bg-accent'">
-                  <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
-                               transition-transform duration-200"
-                        :class="isProdHidden(p.id) ? 'translate-x-1' : 'translate-x-6'"/>
-                </button>
               </div>
-              <div v-if="g.products.length === 0" class="pl-9 pr-3 py-3 text-xs text-muted">
-                Bu grupta ürün yok
+
+              <div v-if="visibilityGroups.length === 0" class="px-3 py-6 text-center text-sm text-muted">
+                {{ visSearch ? 'Eşleşen grup veya ürün yok' : 'Henüz ürün grubu tanımlanmamış' }}
               </div>
             </div>
-          </div>
-
-          <div v-if="visibilityGroups.length === 0" class="px-3 py-6 text-center text-sm text-muted">
-            {{ visSearch ? 'Eşleşen grup veya ürün yok' : 'Henüz ürün grubu tanımlanmamış' }}
-          </div>
-        </div>
-        <p class="text-xs text-muted mt-3">
-          Değişiklikler aşağıdaki <strong>Menü Ayarlarını Kaydet</strong> ile kaydedilir.
-        </p>
-      </div>
-
-      <!-- Kaydet — iki sütunun altında tam genişlik -->
-      <div class="xl:col-span-2 flex items-center justify-end gap-3 pb-4">
-        <span class="text-sm" :class="configError ? 'text-danger' : 'text-muted'">
-          {{ configError ? configError : (configSaved ? 'Menü ayarları kaydedildi' : '') }}
-        </span>
-        <button @click="saveConfig" :disabled="configSaving"
-                class="btn-primary btn-lg disabled:opacity-50">
-          {{ configSaving ? 'Kaydediliyor...' : 'Menü Ayarlarını Kaydet' }}
-        </button>
-      </div>
-
-      <!-- ── Masadan Sipariş ─────────────────────────────────────────── -->
-      <div v-if="qrAvailable" class="xl:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h2 class="section-title">Masadan Sipariş</h2>
-            <p class="text-xs text-muted mt-1 max-w-2xl">
-              Açıkken masaya özel QR kodunu okutan müşteri menüden sepet oluşturup sipariş
-              gönderebilir. Sipariş kasaya düşer; kasiyer onaylayınca masaya eklenir ve mutfak
-              fişi basılır. Fiyatlar sunucuda hesaplanır, onaylanmayan siparişler 30 dakikada düşer.
+            <p class="text-xs text-muted mt-3">
+              Değişiklikler alttaki <strong>Menü Ayarlarını Kaydet</strong> ile kaydedilir.
             </p>
           </div>
-          <button @click="toggleQrOrdering" :disabled="qrSaving || !auth.isAdmin"
-                  :title="auth.isAdmin ? '' : 'Yalnızca yönetici değiştirebilir'"
-                  class="relative inline-flex h-6 w-11 items-center rounded-full
-                         transition-colors duration-200 flex-shrink-0 mt-1 disabled:opacity-50"
-                  :class="qrEnabled ? 'bg-accent' : 'bg-gray-300'">
-            <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
-                         transition-transform duration-200"
-                  :class="qrEnabled ? 'translate-x-6' : 'translate-x-1'"/>
+        </div>
+        <!-- Kategori Görselleri -->
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+          <div class="flex items-start justify-between gap-3 mb-1">
+            <h2 class="section-title">Kategori Görselleri</h2>
+
+            <!-- Başka bir firmaya taşımak için: görseller yeniden
+                 sıkıştırılmadan, olduğu gibi aktarılır. -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button @click="exportCategoryImages" :disabled="imgBusy"
+                      class="px-3 py-1.5 border border-gray-200 text-muted rounded-lg
+                             text-xs font-semibold hover:border-accent hover:text-accent
+                             disabled:opacity-50">
+                Dışa Aktar
+              </button>
+              <button @click="categoryZipInput?.click()" :disabled="imgBusy"
+                      class="px-3 py-1.5 border border-gray-200 text-muted rounded-lg
+                             text-xs font-semibold hover:border-success hover:text-success
+                             disabled:opacity-50">
+                İçe Aktar
+              </button>
+              <input ref="categoryZipInput" type="file" accept=".zip"
+                     class="hidden" @change="importCategoryImages"/>
+            </div>
+          </div>
+
+          <p class="text-xs text-muted mb-3">
+            Menü açılışında kategoriler kart olarak gösterilir. Buraya yüklediğiniz
+            görseller <strong>sadece dijital menüde</strong> kullanılır, kasayı etkilemez.
+          </p>
+
+          <label class="flex items-center gap-2 text-xs text-muted cursor-pointer mb-4 select-none">
+            <input type="checkbox" v-model="overwriteCategoryImages" class="w-4 h-4"/>
+            İçe aktarırken mevcut görsellerin üzerine yaz
+          </label>
+
+          <div class="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+            <div v-for="c in categories" :key="c.id"
+                 class="flex items-center gap-3 p-3 rounded-xl border border-gray-100">
+              <div class="w-24 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0
+                          flex items-center justify-center">
+                <img v-if="c.menuImageBase64" :src="c.menuImageBase64" :alt="c.name"
+                     class="w-full h-full object-cover"/>
+                <span v-else class="text-[10px] text-muted">Görsel yok</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-primary truncate">{{ c.name }}</div>
+                <div class="flex gap-3 mt-1">
+                  <button @click="pickCategoryImage(c.id)"
+                          class="text-xs font-bold text-accent hover:underline">
+                    {{ c.menuImageBase64 ? 'Değiştir' : 'Görsel Yükle' }}
+                  </button>
+                  <button v-if="c.menuImageBase64" @click="c.menuImageBase64 = null"
+                          class="text-xs font-bold text-danger hover:underline">
+                    Kaldır
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="categories.length === 0" class="sm:col-span-2 xl:col-span-3 2xl:col-span-4 text-sm text-muted text-center py-4">
+              Henüz kategori tanımlanmamış
+            </div>
+          </div>
+
+          <input ref="categoryFileInput" type="file" accept="image/*"
+                 class="hidden" @change="onCategoryFileChange"/>
+        </div>
+
+        <!-- Kaydet — sekmenin altında, kaydırırken görünür kalır -->
+        <div class="sticky bottom-3 z-10 mt-6 bg-white rounded-2xl shadow-md px-5 py-3 flex flex-wrap items-center justify-end gap-3">
+          <span class="text-sm" :class="configError ? 'text-danger' : 'text-muted'">
+            {{ configError ? configError : (configSaved ? 'Menü ayarları kaydedildi' : '') }}
+          </span>
+          <button @click="saveConfig" :disabled="configSaving"
+                  class="btn-primary btn-lg disabled:opacity-50">
+            {{ configSaving ? 'Kaydediliyor...' : 'Menü Ayarlarını Kaydet' }}
           </button>
         </div>
-        <div v-if="qrError" class="text-xs text-danger mt-2">{{ qrError }}</div>
+      </div>
 
-        <template v-if="qrEnabled">
-          <!-- Garson çağır / Hesap iste -->
-          <div class="flex items-start justify-between gap-4 mt-5 p-4 rounded-xl border border-gray-100">
+      <!-- ③ Masadan sipariş: aç/kapa, garson çağırma, masa QR kodları -->
+      <div v-if="qrAvailable" v-show="tab === 'masa'">
+        <!-- ── Masadan Sipariş ─────────────────────────────────────────── -->
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+          <div class="flex items-start justify-between gap-4">
             <div>
-              <div class="text-sm font-semibold text-primary">Garson çağırma ve hesap isteme</div>
-              <div class="text-xs text-muted mt-0.5 max-w-2xl">
-                Müşteri menüdeki "Garson çağır" ya da "Hesap iste" (nakit / kart) düğmesine basar; kasada
-                bildirim ve masa kartında rozet çıkar, garson telefonunda masanın üstünde görünür.
-                Hesap kapanınca kendiliğinden kapanır.
-              </div>
+              <h2 class="section-title">Masadan Sipariş</h2>
+              <p class="text-xs text-muted mt-1 max-w-2xl">
+                Açıkken masaya özel QR kodunu okutan müşteri menüden sepet oluşturup sipariş
+                gönderebilir. Sipariş kasaya düşer; kasiyer onaylayınca masaya eklenir ve mutfak
+                fişi basılır. Fiyatlar sunucuda hesaplanır, onaylanmayan siparişler 30 dakikada düşer.
+              </p>
             </div>
-            <button @click="toggleQrCalls" :disabled="qrSaving || !auth.isAdmin"
+            <button @click="toggleQrOrdering" :disabled="qrSaving || !auth.isAdmin"
                     :title="auth.isAdmin ? '' : 'Yalnızca yönetici değiştirebilir'"
-                    aria-label="Garson çağırma ve hesap isteme"
                     class="relative inline-flex h-6 w-11 items-center rounded-full
                            transition-colors duration-200 flex-shrink-0 mt-1 disabled:opacity-50"
-                    :class="qrCalls ? 'bg-accent' : 'bg-gray-300'">
+                    :class="qrEnabled ? 'bg-accent' : 'bg-gray-300'">
               <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
                            transition-transform duration-200"
-                    :class="qrCalls ? 'translate-x-6' : 'translate-x-1'"/>
+                    :class="qrEnabled ? 'translate-x-6' : 'translate-x-1'"/>
             </button>
           </div>
+          <div v-if="qrError" class="text-xs text-danger mt-2">{{ qrError }}</div>
 
-          <!-- Masa QR kodları -->
-          <div class="flex items-center justify-between gap-3 mt-6 mb-3">
-            <div>
-              <div class="text-sm font-semibold text-primary">Masa QR Kodları</div>
-              <div class="text-xs text-muted">
-                Her masanın kendi kodu var; masaya hangi kodun konduğu siparişin hangi masaya
-                düşeceğini belirler.
+          <template v-if="qrEnabled">
+            <!-- Garson çağır / Hesap iste -->
+            <div class="flex items-start justify-between gap-4 mt-5 p-4 rounded-xl border border-gray-100">
+              <div>
+                <div class="text-sm font-semibold text-primary">Garson çağırma ve hesap isteme</div>
+                <div class="text-xs text-muted mt-0.5 max-w-2xl">
+                  Müşteri menüdeki "Garson çağır" ya da "Hesap iste" (nakit / kart) düğmesine basar; kasada
+                  bildirim ve masa kartında rozet çıkar, garson telefonunda masanın üstünde görünür.
+                  Hesap kapanınca kendiliğinden kapanır.
+                </div>
+              </div>
+              <button @click="toggleQrCalls" :disabled="qrSaving || !auth.isAdmin"
+                      :title="auth.isAdmin ? '' : 'Yalnızca yönetici değiştirebilir'"
+                      aria-label="Garson çağırma ve hesap isteme"
+                      class="relative inline-flex h-6 w-11 items-center rounded-full
+                             transition-colors duration-200 flex-shrink-0 mt-1 disabled:opacity-50"
+                      :class="qrCalls ? 'bg-accent' : 'bg-gray-300'">
+                <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                             transition-transform duration-200"
+                      :class="qrCalls ? 'translate-x-6' : 'translate-x-1'"/>
+              </button>
+            </div>
+
+            <!-- Masa QR kodları -->
+            <div class="flex items-center justify-between gap-3 mt-6 mb-3">
+              <div>
+                <div class="text-sm font-semibold text-primary">Masa QR Kodları</div>
+                <div class="text-xs text-muted">
+                  Her masanın kendi kodu var; masaya hangi kodun konduğu siparişin hangi masaya
+                  düşeceğini belirler.
+                </div>
+              </div>
+              <button @click="printTableQrs" :disabled="!qrTables.length"
+                      class="btn-secondary whitespace-nowrap disabled:opacity-50">
+                Tümünü Yazdır
+              </button>
+            </div>
+
+            <div v-if="!qrTables.length" class="text-sm text-muted text-center py-6">
+              Henüz masa tanımlanmamış.
+            </div>
+            <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
+              <div v-for="t in qrTables" :key="t.id"
+                   class="border border-gray-100 rounded-xl p-3 flex flex-col items-center text-center">
+                <img v-if="t.token" :src="tableQrImage(t, 160)" :alt="t.name"
+                     width="120" height="120" class="rounded-lg"/>
+                <div v-else class="w-[120px] h-[120px] rounded-lg bg-gray-50 flex items-center
+                                    justify-center text-[11px] text-muted">Kod yok</div>
+                <div class="text-sm font-semibold text-primary mt-2 truncate w-full">{{ t.name }}</div>
+                <div class="text-[11px] text-muted truncate w-full">{{ t.section || ' ' }}</div>
+                <div class="flex gap-3 mt-1.5">
+                  <a v-if="t.token" :href="tableUrl(t)" target="_blank"
+                     class="text-xs font-bold text-accent hover:underline">Aç</a>
+                  <button v-if="auth.isAdmin" @click="regenerateToken(t)"
+                          class="text-xs font-bold text-muted hover:text-danger">
+                    {{ t.token ? 'Kodu Yenile' : 'Kod Oluştur' }}
+                  </button>
+                </div>
               </div>
             </div>
-            <button @click="printTableQrs" :disabled="!qrTables.length"
-                    class="btn-secondary whitespace-nowrap disabled:opacity-50">
-              Tümünü Yazdır
-            </button>
-          </div>
+          </template>
+        </div>
+      </div>
 
-          <div v-if="!qrTables.length" class="text-sm text-muted text-center py-6">
-            Henüz masa tanımlanmamış.
-          </div>
-          <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
-            <div v-for="t in qrTables" :key="t.id"
-                 class="border border-gray-100 rounded-xl p-3 flex flex-col items-center text-center">
-              <img v-if="t.token" :src="tableQrImage(t, 160)" :alt="t.name"
-                   width="120" height="120" class="rounded-lg"/>
-              <div v-else class="w-[120px] h-[120px] rounded-lg bg-gray-50 flex items-center
-                                  justify-center text-[11px] text-muted">Kod yok</div>
-              <div class="text-sm font-semibold text-primary mt-2 truncate w-full">{{ t.name }}</div>
-              <div class="text-[11px] text-muted truncate w-full">{{ t.section || ' ' }}</div>
-              <div class="flex gap-3 mt-1.5">
-                <a v-if="t.token" :href="tableUrl(t)" target="_blank"
-                   class="text-xs font-bold text-accent hover:underline">Aç</a>
-                <button v-if="auth.isAdmin" @click="regenerateToken(t)"
-                        class="text-xs font-bold text-muted hover:text-danger">
-                  {{ t.token ? 'Kodu Yenile' : 'Kod Oluştur' }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </template>
-
+      <!-- ④ Sipariş geçmişi -->
+      <div v-if="qrAvailable" v-show="tab === 'gecmis'" class="bg-white rounded-2xl shadow-sm p-6">
         <!-- Son siparişler -->
-        <div class="flex items-center justify-between mt-6 mb-3">
+        <div class="flex items-center justify-between mb-3">
           <div class="text-sm font-semibold text-primary">Son QR Siparişleri</div>
           <button @click="loadQrHistory" class="text-xs font-bold text-accent hover:underline">Yenile</button>
         </div>
@@ -443,6 +467,7 @@
 <script setup>
 import { uiAlert, uiConfirm } from '../../utils/dialog'
 import { ref, computed, reactive, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import api from '../../api/api'
 import { publicMenuUrl } from '../../site'
 import { useAuthStore } from '../../stores/auth'
@@ -760,6 +785,27 @@ async function importCategoryImages(e) {
 // Masaya sipariş hem QR menü hem masa modülü ister; ikisinden biri yoksa
 // bölüm hiç gösterilmez (uç 403 döner).
 const qrAvailable = computed(() => modules.has('qr_menu') && modules.has('tables'))
+
+// ── Sekmeler ─────────────────────────────────────────────────────────
+// Seçili sekme adreste tutulur (?sekme=masa): yenileyince / paylaşınca aynı sekme açılır.
+const route = useRoute()
+const router = useRouter()
+const tabs = computed(() => [
+  { id: 'baglanti', label: 'Menü Bağlantısı' },
+  { id: 'icerik',   label: 'Menü İçeriği' },
+  ...(qrAvailable.value ? [
+    { id: 'masa',   label: 'Masadan Sipariş', badge: qrEnabled.value ? 'Açık' : 'Kapalı', badgeOn: qrEnabled.value },
+    { id: 'gecmis', label: 'Sipariş Geçmişi' },
+  ] : []),
+])
+const tab = computed(() => {
+  const q = route.query.sekme
+  return tabs.value.some(t => t.id === q) ? q : 'baglanti'
+})
+function setTab(id) {
+  router.replace({ query: { ...route.query, sekme: id } })
+  if (id === 'gecmis') loadQrHistory()
+}
 const qrEnabled = ref(false)
 const qrCalls   = ref(true)    // QR menüde "Garson çağır" / "Hesap iste"
 const qrSaving  = ref(false)
