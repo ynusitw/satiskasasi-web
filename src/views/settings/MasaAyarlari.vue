@@ -68,96 +68,100 @@
 
     <!-- ── Masa Ayarları sekmesi: iptal açıklaması, masa süresi, iptalde onay ── -->
     <div v-if="aktif" v-show="tab === 'ayarlar'" class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start mb-6">
-      <!-- ── İptal açıklaması ───────────────────────────────────────────── -->
-      <div class="bg-white rounded-2xl shadow-sm p-6 border-2 transition-colors"
-           :class="iptalAciklamaZorunlu ? 'border-amber-300/60' : 'border-gray-100'">
-        <div class="flex items-start justify-between gap-6">
-          <div>
-            <div class="font-bold text-primary">İptal Açıklaması Zorunlu</div>
-            <p class="text-sm text-muted mt-0.5 max-w-lg">
-              Kasa, adisyondan kalem silerken ve masayı iptal ederken açıklama sorar.
-              Açıksa açıklama girilmeden işlem yapılamaz; kapalıyken açıklama boş geçilebilir.
-              Açıklamalar İptaller raporunda görünür.
-            </p>
-            <span class="inline-block mt-2 text-xs font-bold px-2.5 py-1 rounded-full transition-colors"
-                  :class="iptalAciklamaZorunlu ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'">
-              {{ iptalAciklamaZorunlu ? 'Zorunlu' : 'İsteğe bağlı' }}
-            </span>
+      <!-- Sol: iptal açıklaması + iptalde onay alt alta; sağ: masa süresi (kısa kartın altında boşluk kalmasın) -->
+      <div class="flex flex-col gap-6">
+        <!-- ── İptal açıklaması ───────────────────────────────────────────── -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border-2 transition-colors"
+             :class="iptalAciklamaZorunlu ? 'border-amber-300/60' : 'border-gray-100'">
+          <div class="flex items-start justify-between gap-6">
+            <div>
+              <div class="font-bold text-primary">İptal Açıklaması Zorunlu</div>
+              <p class="text-sm text-muted mt-0.5 max-w-lg">
+                Kasa, adisyondan kalem silerken ve masayı iptal ederken açıklama sorar.
+                Açıksa açıklama girilmeden işlem yapılamaz; kapalıyken açıklama boş geçilebilir.
+                Açıklamalar İptaller raporunda görünür.
+              </p>
+              <span class="inline-block mt-2 text-xs font-bold px-2.5 py-1 rounded-full transition-colors"
+                    :class="iptalAciklamaZorunlu ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'">
+                {{ iptalAciklamaZorunlu ? 'Zorunlu' : 'İsteğe bağlı' }}
+              </span>
+            </div>
+
+            <button @click="toggleIptalAciklama()"
+                    class="relative inline-flex h-7 items-center rounded-full flex-shrink-0
+                           transition-colors duration-300"
+                    style="width:3.25rem"
+                    :class="iptalAciklamaZorunlu ? 'bg-accent' : 'bg-gray-300'">
+              <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow-md
+                           transition-transform duration-300"
+                    :class="iptalAciklamaZorunlu ? 'translate-x-7' : 'translate-x-1'"/>
+            </button>
           </div>
-
-          <button @click="toggleIptalAciklama()"
-                  class="relative inline-flex h-7 items-center rounded-full flex-shrink-0
-                         transition-colors duration-300"
-                  style="width:3.25rem"
-                  :class="iptalAciklamaZorunlu ? 'bg-accent' : 'bg-gray-300'">
-            <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow-md
-                         transition-transform duration-300"
-                  :class="iptalAciklamaZorunlu ? 'translate-x-7' : 'translate-x-1'"/>
-          </button>
-        </div>
-      </div>
-
-      <!-- ── Masa süresi ─────────────────────────────────────────────────── -->
-      <div class="bg-white rounded-2xl shadow-sm p-6 border-2 transition-colors"
-           :class="sure.enabled || sure.idleWarnMinutes > 0 ? 'border-accent/30' : 'border-gray-100'">
-        <div class="flex items-start justify-between gap-6">
-          <div>
-            <div class="font-bold text-primary">Masa Süresi</div>
-            <p class="text-sm text-muted mt-0.5 max-w-lg">
-              Kasadaki masa seçim ekranında dolu masaların kartının sağ üstünde geçen süre görünür.
-            </p>
-          </div>
-          <button @click="sure.enabled = !sure.enabled; kaydetSure()"
-                  class="relative inline-flex h-7 items-center rounded-full flex-shrink-0
-                         transition-colors duration-300"
-                  style="width:3.25rem"
-                  :class="sure.enabled ? 'bg-accent' : 'bg-gray-300'">
-            <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow-md
-                         transition-transform duration-300"
-                  :class="sure.enabled ? 'translate-x-7' : 'translate-x-1'"/>
-          </button>
         </div>
 
-        <div v-if="sure.enabled" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label v-for="m in SURE_TURLERI" :key="m.value"
-                 class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors"
-                 :class="sure.mode === m.value ? 'border-accent bg-accent/5' : 'border-gray-200 hover:bg-gray-50'">
-            <input type="radio" name="sureTuru" :value="m.value" v-model="sure.mode" @change="kaydetSure()"
-                   class="mt-1 accent-accent"/>
-            <span>
-              <span class="block text-sm font-semibold text-primary">{{ m.label }}</span>
-              <span class="block text-xs text-muted mt-0.5">{{ m.hint }}</span>
-            </span>
-          </label>
-        </div>
-
-        <div class="mt-5 pt-4 border-t border-gray-100">
-          <div class="text-sm font-semibold text-primary">Sipariş gelmeyen masayı vurgula</div>
-          <p class="text-xs text-muted mt-0.5 max-w-lg">
-            Masaya bu süre boyunca yeni sipariş girilmezse kart kırmızıya döner (garson masaya uğrasın).
-            0 yazarsanız kapalıdır. Süre görünmese de çalışır.
+        <!-- ── İptalde onay: İşlem Yetkileri'ne taşındı ─────────────────────── -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border-2 border-gray-100">
+          <div class="font-bold text-primary">İptalde Onay</div>
+          <p class="text-sm text-muted mt-0.5 max-w-lg">
+            Masadan ürün silme ve masa iptalinin şifresiz mi, yönetici onayıyla mı yoksa özel
+            şifreyle mi yapılacağı artık
+            <router-link to="/settings/islem-yetkileri" class="text-accent font-semibold">İşlem Yetkileri</router-link>
+            sayfasından ayarlanır.
           </p>
-          <div class="flex items-center gap-2 mt-2">
-            <input v-model.number="sure.idleWarnMinutes" type="number" min="0" max="600"
-                   @change="kaydetSure()"
-                   class="w-24 h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white"/>
-            <span class="text-sm text-muted">dakika</span>
-            <span class="text-xs ml-2" :class="sureHata ? 'text-danger' : 'text-muted'">
-              {{ sureHata || (sureKaydedildi ? 'Kaydedildi' : '') }}
-            </span>
-          </div>
         </div>
       </div>
+      <div class="flex flex-col gap-6">
+        <!-- ── Masa süresi ─────────────────────────────────────────────────── -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border-2 transition-colors"
+             :class="sure.enabled || sure.idleWarnMinutes > 0 ? 'border-accent/30' : 'border-gray-100'">
+          <div class="flex items-start justify-between gap-6">
+            <div>
+              <div class="font-bold text-primary">Masa Süresi</div>
+              <p class="text-sm text-muted mt-0.5 max-w-lg">
+                Kasadaki masa seçim ekranında dolu masaların kartının sağ üstünde geçen süre görünür.
+              </p>
+            </div>
+            <button @click="sure.enabled = !sure.enabled; kaydetSure()"
+                    class="relative inline-flex h-7 items-center rounded-full flex-shrink-0
+                           transition-colors duration-300"
+                    style="width:3.25rem"
+                    :class="sure.enabled ? 'bg-accent' : 'bg-gray-300'">
+              <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow-md
+                           transition-transform duration-300"
+                    :class="sure.enabled ? 'translate-x-7' : 'translate-x-1'"/>
+            </button>
+          </div>
 
-      <!-- ── İptalde onay: İşlem Yetkileri'ne taşındı ─────────────────────── -->
-      <div class="bg-white rounded-2xl shadow-sm p-6 border-2 border-gray-100">
-        <div class="font-bold text-primary">İptalde Onay</div>
-        <p class="text-sm text-muted mt-0.5 max-w-lg">
-          Masadan ürün silme ve masa iptalinin şifresiz mi, yönetici onayıyla mı yoksa özel
-          şifreyle mi yapılacağı artık
-          <router-link to="/settings/islem-yetkileri" class="text-accent font-semibold">İşlem Yetkileri</router-link>
-          sayfasından ayarlanır.
-        </p>
+          <div v-if="sure.enabled" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label v-for="m in SURE_TURLERI" :key="m.value"
+                   class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors"
+                   :class="sure.mode === m.value ? 'border-accent bg-accent/5' : 'border-gray-200 hover:bg-gray-50'">
+              <input type="radio" name="sureTuru" :value="m.value" v-model="sure.mode" @change="kaydetSure()"
+                     class="mt-1 accent-accent"/>
+              <span>
+                <span class="block text-sm font-semibold text-primary">{{ m.label }}</span>
+                <span class="block text-xs text-muted mt-0.5">{{ m.hint }}</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="mt-5 pt-4 border-t border-gray-100">
+            <div class="text-sm font-semibold text-primary">Sipariş gelmeyen masayı vurgula</div>
+            <p class="text-xs text-muted mt-0.5 max-w-lg">
+              Masaya bu süre boyunca yeni sipariş girilmezse kart kırmızıya döner (garson masaya uğrasın).
+              0 yazarsanız kapalıdır. Süre görünmese de çalışır.
+            </p>
+            <div class="flex items-center gap-2 mt-2">
+              <input v-model.number="sure.idleWarnMinutes" type="number" min="0" max="600"
+                     @change="kaydetSure()"
+                     class="w-24 h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white"/>
+              <span class="text-sm text-muted">dakika</span>
+              <span class="text-xs ml-2" :class="sureHata ? 'text-danger' : 'text-muted'">
+                {{ sureHata || (sureKaydedildi ? 'Kaydedildi' : '') }}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
