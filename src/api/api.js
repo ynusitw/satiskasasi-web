@@ -138,6 +138,14 @@ export default {
   getNotificationSettings:   ()   => api.get('notifications/settings'),
   saveNotificationSettings:  (d)  => api.put('notifications/settings', d),
   sendTestNotification:      ()   => api.post('notifications/test'),
+  // Telefon bildirimleri (Web Push)
+  pushConfig:       ()          => api.get('push/config'),
+  pushDevices:      ()          => api.get('push/devices'),
+  pushSubscribe:    (d)         => api.post('push/subscribe', d),
+  pushUnsubscribe:  (d)         => api.post('push/unsubscribe', d),
+  pushSetTypes:     (id, types) => api.put(`push/devices/${id}`, { types }),
+  pushRemoveDevice: (id)        => api.delete(`push/devices/${id}`),
+  pushTest:         ()          => api.post('push/test', null, { timeout: 30000 }),
   // Son Z raporunun gün sonu özeti (e-posta görünümünü denemek için)
   sendDaySummaryTest:        ()   => api.post('notifications/day-summary/test', null, { timeout: 30000 }),
   previewDaySummary:         ()   => api.get('notifications/day-summary/preview', { timeout: 30000 }),

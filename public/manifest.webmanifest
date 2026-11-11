@@ -1,0 +1,15 @@
+{
+  "name": "YenPOS Panel",
+  "short_name": "YenPOS",
+  "description": "YenPOS yönetim paneli",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0A0F0D",
+  "theme_color": "#0A0F0D",
+  "lang": "tr",
+  "icons": [
+    { "src": "/brand/app-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/brand/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -11,6 +11,8 @@
       </div>
     </div>
 
+    <PushSettingsCard/>
+
     <!-- Süzgeç -->
     <div class="flex flex-wrap gap-1.5 mb-4">
       <button v-for="f in filters" :key="f.key" @click="filter = f.key"
@@ -62,6 +64,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '../api/api'
+import PushSettingsCard from '../components/PushSettingsCard.vue'
 import { useNotificationsStore } from '../stores/notifications'
 
 const store = useNotificationsStore()
