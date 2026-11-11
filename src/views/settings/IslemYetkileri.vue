@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 sm:p-6 lg:p-8 max-w-5xl">
+  <div class="p-4 sm:p-6 lg:p-8 max-w-7xl">
     <h1 class="page-title">İşlem Yetkileri</h1>
     <p class="page-subtitle mb-6">
       Kasadaki her işlemin kimin tarafından, hangi onayla yapılacağını seçin. Değişiklik kasalara
@@ -25,7 +25,9 @@
         Bu ayarları yalnızca işletme yöneticisi değiştirebilir.
       </p>
 
-      <div v-for="g in groups" :key="g.name" class="bg-white rounded-2xl shadow-sm mb-5 overflow-hidden">
+      <!-- Gruplar geniş ekranda iki sütun (kartlar bölünmeden dengeli dağılır) -->
+      <div class="2xl:columns-2 gap-5">
+      <div v-for="g in groups" :key="g.name" class="bg-white rounded-2xl shadow-sm mb-5 overflow-hidden break-inside-avoid">
         <div class="px-6 py-3.5 border-b border-gray-100">
           <h2 class="section-title">{{ g.name }}</h2>
         </div>
@@ -62,6 +64,7 @@
           </div>
           <div v-if="pinError(p)" class="w-full text-xs text-red-600 -mt-1">{{ pinError(p) }}</div>
         </div>
+      </div>
       </div>
 
       <!-- Kaydet çubuğu -->
