@@ -244,7 +244,8 @@ export default {
   // Dijital Menü (herkese açık)
   // Menü yanıtı büyük olabilir ve müşteri telefonu yavaş bağlantıda olabilir;
   // 10 sn'lik genel zaman aşımı isteği kesip menüyü "bulunamadı" gösteriyordu.
-  getPublicMenu: (slug, masa) => api.get(`menu/${slug}`, { timeout: 60000, params: masa ? { masa } : undefined }),
+  getPublicMenu: (slug, masa, gelal) => api.get(`menu/${slug}`, { timeout: 60000,
+    params: masa ? { masa } : gelal ? { gelal: 1 } : undefined }),
   placeQrOrder: (slug, d) => api.post(`menu/${slug}/order`, d, { timeout: 30000 }),
   getQrOrderStatus: (slug, code) => api.get(`menu/${slug}/order/${code}`),
   // Garson çağır / Hesap iste (masa QR kodu yetkidir)

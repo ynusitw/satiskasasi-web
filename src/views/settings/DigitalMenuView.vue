@@ -416,8 +416,54 @@
         </div>
       </div>
 
-      <!-- ④ Sipariş geçmişi -->
-      <div v-if="qrAvailable" v-show="tab === 'gecmis'" class="bg-white rounded-2xl shadow-sm p-6">
+      <!-- ④ Gel-al: masa dışı sipariş (vitrin QR'ı, Instagram), ödeme kasada -->
+      <div v-if="pickupAvailable" v-show="tab === 'gelal'" class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="section-title">Gel-Al Siparişi</h2>
+            <p class="text-xs text-muted mt-1 max-w-2xl">
+              Müşteri bu bağlantıyla menüden sipariş verir; adını, telefonunu ve alış zamanını yazar. Sipariş kasaya
+              onaya düşer, onaylanınca mutfağa gider. "Hazır" olunca müşterinin telefonunda görünür; müşteri gelir,
+              ödemeyi kasada yapar. Komisyon yok, online ödeme yok.
+            </p>
+          </div>
+          <button @click="toggleQrPickup" :disabled="qrSaving || !auth.isAdmin"
+                  :title="auth.isAdmin ? '' : 'Yalnızca yönetici değiştirebilir'" aria-label="Gel-al siparişi"
+                  class="relative inline-flex h-6 w-11 items-center rounded-full
+                         transition-colors duration-200 flex-shrink-0 mt-1 disabled:opacity-50"
+                  :class="qrPickup ? 'bg-accent' : 'bg-gray-300'">
+            <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow
+                         transition-transform duration-200"
+                  :class="qrPickup ? 'translate-x-6' : 'translate-x-1'"/>
+          </button>
+        </div>
+        <div v-if="qrError" class="text-xs text-danger mt-2">{{ qrError }}</div>
+
+        <div v-if="qrPickup" class="mt-6 grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-start">
+          <img :src="pickupQr(220)" :alt="pickupUrl" width="200" height="200" class="rounded-xl border border-gray-100"/>
+          <div class="flex flex-col gap-3 min-w-0">
+            <label class="block text-sm font-semibold text-primary">Gel-Al Bağlantısı</label>
+            <div class="flex gap-2">
+              <input :value="pickupUrl" readonly
+                     class="flex-1 min-w-0 px-3 border border-gray-200 rounded-lg text-[13.5px] bg-gray-50 text-muted h-10"/>
+              <button @click="copyPickupLink" class="btn-primary whitespace-nowrap">{{ pickupCopied ? 'Kopyalandı' : 'Kopyala' }}</button>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <a :href="pickupUrl" target="_blank" class="btn-secondary">Önizle</a>
+              <button @click="printPickupPoster" class="btn-secondary">Afiş Yazdır (A5)</button>
+            </div>
+            <ul class="text-xs text-muted list-disc ml-5 space-y-1">
+              <li>QR'ı vitrine, kasaya, paket poşetine koyun; bağlantıyı Instagram profiline ve Google Haritalar kaydınıza ekleyin.</li>
+              <li>Siparişler kasada "QR Siparişleri"ne düşer; müşteri gelince "Kasaya Al" ile ödeme alınır.</li>
+              <li>Aynı telefondan en fazla 3 açık sipariş verilebilir; onaylanmayan sipariş 30 dakikada düşer.</li>
+            </ul>
+          </div>
+        </div>
+        <p v-else class="text-sm text-muted mt-4">Açınca gel-al bağlantısı ve QR kodu burada görünür.</p>
+      </div>
+
+      <!-- ⑤ Sipariş geçmişi -->
+      <div v-if="pickupAvailable" v-show="tab === 'gecmis'" class="bg-white rounded-2xl shadow-sm p-6">
         <!-- Son siparişler -->
         <div class="flex items-center justify-between mb-3">
           <div class="text-sm font-semibold text-primary">Son QR Siparişleri</div>
@@ -478,6 +524,7 @@ const modules = useModulesStore()
 
 const loading   = ref(true)
 const slug      = ref('')
+const menuBusiness = ref('')
 const copied    = ref(false)
 
 // Görünürlük ayarları (anında kaydedilir)
@@ -785,6 +832,8 @@ async function importCategoryImages(e) {
 // Masaya sipariş hem QR menü hem masa modülü ister; ikisinden biri yoksa
 // bölüm hiç gösterilmez (uç 403 döner).
 const qrAvailable = computed(() => modules.has('qr_menu') && modules.has('tables'))
+// Gel-al yalnız QR menü modülü ister (masa modülü olmayan büfe / fırın da kullanabilir)
+const pickupAvailable = computed(() => modules.has('qr_menu'))
 
 // ── Sekmeler ─────────────────────────────────────────────────────────
 // Seçili sekme adreste tutulur (?sekme=masa): yenileyince / paylaşınca aynı sekme açılır.
@@ -795,6 +844,9 @@ const tabs = computed(() => [
   { id: 'icerik',   label: 'Menü İçeriği' },
   ...(qrAvailable.value ? [
     { id: 'masa',   label: 'Masadan Sipariş', badge: qrEnabled.value ? 'Açık' : 'Kapalı', badgeOn: qrEnabled.value },
+  ] : []),
+  ...(pickupAvailable.value ? [
+    { id: 'gelal',  label: 'Gel-Al', badge: qrPickup.value ? 'Açık' : 'Kapalı', badgeOn: qrPickup.value },
     { id: 'gecmis', label: 'Sipariş Geçmişi' },
   ] : []),
 ])
@@ -808,6 +860,7 @@ function setTab(id) {
 }
 const qrEnabled = ref(false)
 const qrCalls   = ref(true)    // QR menüde "Garson çağır" / "Hesap iste"
+const qrPickup  = ref(false)   // gel-al siparişi
 const qrSaving  = ref(false)
 const qrError   = ref('')
 const qrTables  = ref([])
@@ -821,19 +874,70 @@ function tableQrImage(t, size) {
 }
 
 async function loadQrOrdering() {
-  if (!qrAvailable.value) return
+  if (!pickupAvailable.value) return
   try {
     const [settingsRes, tablesRes] = await Promise.all([
-      api.getQrOrderSettings(), api.getQrOrderTables(),
+      api.getQrOrderSettings(), qrAvailable.value ? api.getQrOrderTables() : Promise.resolve({ data: [] }),
     ])
     qrEnabled.value = !!settingsRes.data.enabled
     // Eski API alanı göndermez: açık kabul edilir
     qrCalls.value   = settingsRes.data.callsEnabled !== false
+    qrPickup.value  = !!settingsRes.data.pickupEnabled
     qrTables.value  = tablesRes.data
   } catch {
-    qrError.value = 'Masadan sipariş ayarları yüklenemedi.'
+    qrError.value = 'QR sipariş ayarları yüklenemedi.'
   }
   loadQrHistory()
+}
+
+// ── Gel-al ───────────────────────────────────────────────────────────
+const pickupUrl = computed(() => `${menuUrl.value}?gelal=1`)
+const pickupQr  = (size = 220) =>
+  `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=8&data=${encodeURIComponent(pickupUrl.value)}`
+const pickupCopied = ref(false)
+async function copyPickupLink() {
+  try { await navigator.clipboard.writeText(pickupUrl.value); pickupCopied.value = true; setTimeout(() => (pickupCopied.value = false), 2000) } catch { /* izin yok */ }
+}
+async function toggleQrPickup() {
+  qrSaving.value = true
+  qrError.value  = ''
+  try {
+    const { data } = await api.saveQrOrderSettings({ pickupEnabled: !qrPickup.value })
+    qrPickup.value = !!data.pickupEnabled
+  } catch (e) {
+    qrError.value = e.response?.data?.message || 'Kaydedilemedi, tekrar deneyin.'
+  } finally {
+    qrSaving.value = false
+  }
+}
+/** Vitrine / kasaya asılacak A5 afiş: büyük QR + "Sırada beklemeden sipariş verin". */
+function printPickupPoster() {
+  const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+  const w = window.open('', '_blank')
+  if (!w) { uiAlert('Açılır pencere engellendi. Tarayıcıda bu site için açılır pencerelere izin verin.'); return }
+  w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8">
+    <title>Gel-Al Siparişi</title>
+    <style>
+      @page { size: A5; margin: 10mm; }
+      body { font-family: Inter, Arial, sans-serif; margin: 0; color: #13223A; text-align: center; }
+      .biz { font-size: 15pt; font-weight: 700; margin-top: 6mm; }
+      h1 { font-size: 28pt; margin: 6mm 0 2mm; letter-spacing: .5px; }
+      .sub { font-size: 12pt; color: #475569; }
+      img { width: 85mm; height: 85mm; margin: 8mm 0 4mm; }
+      ol { text-align: left; display: inline-block; font-size: 11pt; color: #334155; line-height: 1.6; margin: 0; padding-left: 6mm; }
+      .url { font-size: 9pt; color: #64748B; margin-top: 5mm; word-break: break-all; }
+    </style></head><body>
+    <div class="biz">${esc(menuBusiness.value)}</div>
+    <h1>GEL-AL SİPARİŞİ</h1>
+    <div class="sub">Sırada beklemeden telefonunuzdan sipariş verin</div>
+    <img src="${pickupQr(600)}" alt="">
+    <div><ol><li>QR kodu okutun, ürünleri seçin</li><li>Adınızı ve telefonunuzu yazın</li><li>"Hazır" yazınca gelip alın, ödemeyi kasada yapın</li></ol></div>
+    <div class="url">${esc(pickupUrl.value)}</div>
+    <script>
+      Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r })))
+        .then(() => { window.focus(); window.print() })
+    <\/script></body></html>`)
+  w.document.close()
 }
 
 async function loadQrHistory() {
@@ -907,10 +1011,13 @@ function printTableQrs() {
 }
 
 const STATUS = {
-  Pending:  ['Bekliyor',     'chip-accent'],
-  Accepted: ['Onaylandı',    'chip-success'],
-  Rejected: ['Reddedildi',   'chip-danger'],
-  Expired:  ['Zaman aşımı',  'chip-neutral'],
+  Pending:   ['Bekliyor',       'chip-accent'],
+  Accepted:  ['Onaylandı',      'chip-success'],
+  Rejected:  ['Reddedildi',     'chip-danger'],
+  Expired:   ['Zaman aşımı',    'chip-neutral'],
+  Ready:     ['Hazır',          'chip-success'],
+  Done:      ['Teslim edildi',  'chip-neutral'],
+  Cancelled: ['İptal',          'chip-danger'],
 }
 const statusLabel = s => STATUS[s]?.[0] ?? s
 const statusChip  = s => STATUS[s]?.[1] ?? 'chip-neutral'
@@ -969,6 +1076,7 @@ onMounted(async () => {
   try {
     const tenantRes = await api.getMyTenant()
     slug.value = tenantRes.data.slugName || ''
+    menuBusiness.value = tenantRes.data.businessName || ''
     settings.showAddressOnMenu = tenantRes.data.showAddressOnMenu ?? true
     settings.showPhoneOnMenu   = tenantRes.data.showPhoneOnMenu ?? true
   } catch { /* slug boş kalır: uyarı gösterilir */ }

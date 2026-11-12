@@ -47,6 +47,16 @@
           </div>
 
           <p class="text-sm text-muted">{{ plan.description }}</p>
+          <div class="flex flex-wrap gap-1.5 mt-3">
+            <span class="text-[11.5px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-primary">
+              {{ plan.includedDevices || 1 }} kasa dahil
+            </span>
+            <span v-for="c in plan.modules || []" :key="c"
+                  class="text-[11.5px] font-semibold px-2 py-0.5 rounded-md" :class="[colorBg(plan.color), colorText(plan.color)]">
+              {{ moduleName(c) }}
+            </span>
+            <span v-if="!(plan.modules || []).length" class="text-[11.5px] text-muted">Modül yok (yalnız kasa + panel)</span>
+          </div>
         </div>
 
         <!-- Özellikler -->
@@ -156,6 +166,30 @@
                      class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
             </div>
 
+            <!-- Dahil kasa -->
+            <div>
+              <label class="field-label">Pakete dahil kasa</label>
+              <input v-model.number="form.includedDevices" type="number" min="1" max="100"
+                     class="w-28 px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white"/>
+              <p class="text-[11.5px] text-muted mt-1">Fazlası Fiyat Listesi'ndeki ek kasa fiyatıyla eklenir.</p>
+            </div>
+
+            <!-- Modüller -->
+            <div>
+              <label class="field-label">Pakete dahil modüller</label>
+              <div class="flex flex-wrap gap-2">
+                <label v-for="m in catalog" :key="m.code" :title="m.description"
+                       class="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg border text-[12.5px] cursor-pointer"
+                       :class="form.modules.includes(m.code) ? 'border-accent bg-blue-50 text-accent font-semibold' : 'border-gray-200 text-muted'">
+                  <input type="checkbox" class="w-3.5 h-3.5" :checked="form.modules.includes(m.code)" @change="toggleModule(m.code)"/>
+                  {{ m.name }}
+                </label>
+              </div>
+              <p class="text-[11.5px] text-muted mt-1">
+                Fiyat teklifinde bu paket seçilince bu modüller ayrıca ücretlendirilmez; teklif uygulanınca işletmeye açılır.
+              </p>
+            </div>
+
             <!-- Renk -->
             <div>
               <label class="field-label">Kart Rengi</label>
@@ -249,13 +283,21 @@ import api              from '../api/api'
 
 const store   = usePlansStore()
 const tenants = ref([])
+const catalog = ref([])   // lisans modülleri
 
 onMounted(async () => {
   try {
-    tenants.value = (await api.getAllTenants()).data
+    const [t, c] = await Promise.all([api.getAllTenants(), api.getModuleCatalog().catch(() => ({ data: [] }))])
+    tenants.value = t.data
+    catalog.value = c.data
     await store.load()
   } catch {}
 })
+
+const moduleName = code => catalog.value.find(m => m.code === code)?.name ?? code
+function toggleModule(code) {
+  form.modules = form.modules.includes(code) ? form.modules.filter(c => c !== code) : [...form.modules, code]
+}
 
 function subscriberCount(planId) {
   return tenants.value.filter(t => t.plan === planId && t.isActive && !isExpired(t.expiresAt)).length
@@ -272,17 +314,20 @@ const modal     = reactive({ show: false, isEdit: false })
 const formError = ref('')
 const form      = reactive({
   id: '', name: '', price: 0, description: '', color: 'blue', isActive: true, features: [''],
+  modules: [], includedDevices: 1,
 })
 
 function openAdd() {
-  Object.assign(form, { id: '', name: '', price: 0, description: '', color: 'blue', isActive: true, features: [''] })
+  Object.assign(form, { id: '', name: '', price: 0, description: '', color: 'blue', isActive: true, features: [''],
+    modules: [], includedDevices: 1 })
   formError.value  = ''
   modal.isEdit     = false
   modal.show       = true
 }
 
 function openEdit(plan) {
-  Object.assign(form, { ...plan, features: [...plan.features] })
+  Object.assign(form, { ...plan, features: [...plan.features], modules: [...(plan.modules || [])],
+    includedDevices: plan.includedDevices || 1 })
   formError.value  = ''
   modal.isEdit     = true
   modal.show       = true
@@ -300,6 +345,7 @@ async function save() {
     ...form,
     name:     form.name.trim(),
     features: form.features.filter(f => f.trim()),
+    includedDevices: Math.max(1, Number(form.includedDevices) || 1),
   }
 
   try {

@@ -42,7 +42,10 @@
 
       <!-- Masadan sipariş bilgisi -->
       <div v-if="menu.ordering" class="order-banner" :class="menu.ordering.enabled ? 'is-ok' : 'is-warn'">
-        <template v-if="menu.ordering.enabled">
+        <template v-if="menu.ordering.enabled && isPickup">
+          <strong>Gel-Al</strong> · Sipariş verin, hazır olunca gelip alın; ödeme kasada
+        </template>
+        <template v-else-if="menu.ordering.enabled">
           <strong>{{ menu.ordering.tableName }}</strong> · Menüden sipariş verebilirsiniz
         </template>
         <template v-else>{{ menu.ordering.message }}</template>
@@ -240,7 +243,7 @@
       <div v-if="cartOpen" class="sheet-backdrop" @click="cartOpen = false">
         <div class="sheet" @click.stop>
           <div class="sheet-head">
-            <div class="sheet-title">Sepetiniz · {{ menu.ordering?.tableName }}</div>
+            <div class="sheet-title">Sepetiniz · {{ isPickup ? 'Gel-Al' : menu.ordering?.tableName }}</div>
             <button type="button" class="sheet-close" @click="cartOpen = false">Kapat</button>
           </div>
           <div class="sheet-body">
@@ -260,7 +263,18 @@
               </div>
             </div>
 
-            <template v-if="cart.length">
+            <template v-if="cart.length && isPickup">
+              <label class="field-lbl" for="pk-name">Adınız <span>teslim alırken söyleyeceğiniz</span></label>
+              <input id="pk-name" v-model="customerName" maxlength="40" class="text-field" placeholder="Ör. Ayşe" autocomplete="given-name"/>
+              <label class="field-lbl" for="pk-phone">Telefonunuz <span>sipariş hakkında aranabilmeniz için</span></label>
+              <input id="pk-phone" v-model="customerPhone" maxlength="20" class="text-field" placeholder="0532 111 22 33"
+                     inputmode="tel" autocomplete="tel"/>
+              <label class="field-lbl" for="pk-when">Ne zaman alacaksınız?</label>
+              <select id="pk-when" v-model.number="pickupMinutes" class="text-field">
+                <option v-for="m in pickupOptions" :key="m" :value="m">{{ m ? `${m} dakika sonra` : 'Hemen (hazır olunca)' }}</option>
+              </select>
+            </template>
+            <template v-else-if="cart.length">
               <label class="field-lbl">Adınız <span>isteğe bağlı</span></label>
               <input v-model="customerName" maxlength="40" class="text-field" placeholder="Garson sizi bulabilsin diye"/>
               <label class="field-lbl">Sipariş notu <span>isteğe bağlı</span></label>
@@ -268,7 +282,9 @@
             </template>
 
             <div v-if="orderError" class="order-error">{{ orderError }}</div>
-            <p class="cart-hint">Siparişiniz kasaya iletilir; onaylanınca hazırlanmaya başlar. Ödeme masada yapılır.</p>
+            <p class="cart-hint">{{ isPickup
+              ? 'Siparişiniz kasaya iletilir; onaylanınca hazırlanır. Hazır olunca bu sayfada görünür. Ödemeyi teslim alırken kasada yaparsınız.'
+              : 'Siparişiniz kasaya iletilir; onaylanınca hazırlanmaya başlar. Ödeme masada yapılır.' }}</p>
           </div>
           <div class="sheet-foot">
             <button type="button" class="add-main" :disabled="!cart.length || sending" @click="submitOrder">
@@ -306,9 +322,10 @@
             <div class="status-box" :class="`is-${statusInfo.tone}`">
               <div class="status-title">{{ statusInfo.title }}</div>
               <div class="status-text">{{ statusInfo.text }}</div>
-              <div v-if="orderStatus.status === 'Rejected' && orderStatus.rejectReason" class="status-text">
+              <div v-if="(orderStatus.status === 'Rejected' || orderStatus.status === 'Cancelled') && orderStatus.rejectReason" class="status-text">
                 Gerekçe: {{ orderStatus.rejectReason }}
               </div>
+              <div v-if="orderStatus.pickupNo" class="pickup-no">Gel-Al #{{ orderStatus.pickupNo }}</div>
             </div>
             <div v-for="(it, i) in orderStatus.items" :key="i" class="cart-line">
               <div class="cart-line-main">
@@ -322,7 +339,7 @@
             <div class="status-total">Toplam <strong>{{ fmt(orderStatus.total) }}</strong></div>
           </div>
           <div class="sheet-foot">
-            <button v-if="orderStatus.status !== 'Pending'" type="button" class="add-main" @click="finishOrder">
+            <button v-if="orderClosed" type="button" class="add-main" @click="finishOrder">
               Yeni sipariş ver
             </button>
             <button v-else type="button" class="add-main is-muted" @click="statusOpen = false">Menüye dön</button>
@@ -462,8 +479,11 @@ function onScroll() {
 // ── Masadan sipariş ─────────────────────────────────────────────────
 // Masa QR'ındaki kod (?masa=...). Yoksa menü salt okunur.
 const masa = typeof route.query.masa === 'string' ? route.query.masa : ''
+// Gel-al bağlantısı (?gelal=1): masa yok; ad + telefon + alış zamanı, ödeme kasada
+const gelal = !masa && route.query.gelal != null
 const canOrder = computed(() => !!menu.value.ordering?.enabled)
-const storeKey = kind => `qr${kind}:${route.params.slug}:${masa}`
+const isPickup = computed(() => menu.value.ordering?.mode === 'pickup')
+const storeKey = kind => `qr${kind}:${route.params.slug}:${masa || (gelal ? 'gelal' : '')}`
 
 function readStore(kind, fallback) {
   try { return JSON.parse(localStorage.getItem(storeKey(kind))) ?? fallback } catch { return fallback }
@@ -472,11 +492,14 @@ function writeStore(kind, value) {
   try { value == null ? localStorage.removeItem(storeKey(kind)) : localStorage.setItem(storeKey(kind), JSON.stringify(value)) } catch { /* gizli sekme */ }
 }
 
-const cart = ref(masa ? readStore('cart', []) : [])
+const cart = ref(masa || gelal ? readStore('cart', []) : [])
 watch(cart, v => writeStore('cart', v), { deep: true })
 const cartOpen = ref(false)
 const optionProduct = ref(null)
 const customerName = ref(readStore('name', '') || '')
+const customerPhone = ref(readStore('phone', '') || '')
+const pickupMinutes = ref(0)
+const pickupOptions = computed(() => menu.value.ordering?.pickupMinutes || [0, 15, 30, 45, 60])
 const orderNote = ref('')
 const sending = ref(false)
 const orderError = ref('')
@@ -529,18 +552,25 @@ function showToast(text) {
 }
 
 // ── Sipariş gönderme ve durum izleme ──
-const activeOrder = ref(masa ? readStore('order', null) : null)
+const activeOrder = ref(masa || gelal ? readStore('order', null) : null)
 const orderStatus = ref(null)
 const statusOpen = ref(false)
 let pollTimer = null
 
 async function submitOrder() {
   if (!cart.value.length || sending.value) return
+  if (isPickup.value) {
+    if (customerName.value.trim().length < 2) { orderError.value = 'Teslim alırken söyleyeceğiniz adı yazın.'; return }
+    if (customerPhone.value.replace(/\D/g, '').length < 10) { orderError.value = 'Telefon numaranızı yazın (ör. 0532 111 22 33).'; return }
+  }
   sending.value = true
   orderError.value = ''
   try {
     const { data } = await api.placeQrOrder(route.params.slug, {
       table: masa,
+      pickup: isPickup.value,
+      phone: isPickup.value ? customerPhone.value.trim() : null,
+      pickupInMinutes: isPickup.value ? pickupMinutes.value : 0,
       customerName: customerName.value.trim() || null,
       note: orderNote.value.trim() || null,
       items: cart.value.map(l => ({
@@ -549,6 +579,7 @@ async function submitOrder() {
       })),
     })
     writeStore('name', customerName.value.trim() || null)
+    if (isPickup.value) writeStore('phone', customerPhone.value.trim() || null)
     activeOrder.value = { code: data.code, at: Date.now() }
     writeStore('order', activeOrder.value)
     cart.value = []
@@ -570,6 +601,9 @@ async function refreshStatus() {
     orderStatus.value = data
     clearTimeout(pollTimer)
     if (data.status === 'Pending') pollTimer = setTimeout(refreshStatus, 5000)
+    // Gel-al: onaydan sonra "hazır" ve "teslim edildi" de izlenir
+    else if (data.type === 'Pickup' && (data.status === 'Accepted' || data.status === 'Ready'))
+      pollTimer = setTimeout(refreshStatus, data.status === 'Accepted' ? 8000 : 20000)
   } catch (e) {
     if (e.response?.status === 404) finishOrder()
     else pollTimer = setTimeout(refreshStatus, 10000)   // geçici ağ hatası
@@ -625,8 +659,35 @@ function finishOrder() {
   writeStore('order', null)
 }
 
+// Masada onaydan sonra yeni sipariş verilebilir; gel-al teslim / iptal olana kadar izlenir
+const orderClosed = computed(() => {
+  const st = orderStatus.value?.status
+  if (st === 'Pending') return false
+  return orderStatus.value?.type !== 'Pickup' || !['Accepted', 'Ready'].includes(st)
+})
+const pickupWhen = s => s?.pickupAt
+  ? `Alış: ${new Date(s.pickupAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}` : 'Alış: hazır olunca'
 const statusInfo = computed(() => {
-  switch (orderStatus.value?.status) {
+  const s = orderStatus.value
+  if (s?.type === 'Pickup') {
+    switch (s.status) {
+      case 'Accepted':  return { tone: 'wait', short: `Gel-Al #${s.pickupNo ?? ''} hazırlanıyor`, title: 'Siparişiniz hazırlanıyor',
+                                 text: `Hazır olunca bu sayfada görünür. ${pickupWhen(s)}.` }
+      case 'Ready':     return { tone: 'ok', short: `Gel-Al #${s.pickupNo ?? ''} hazır — gelip alabilirsiniz`, title: 'Siparişiniz hazır!',
+                                 text: 'Kasaya gelip adınızı ya da numaranızı söyleyin; ödemeyi kasada yaparsınız.' }
+      case 'Done':      return { tone: 'ok', short: 'Siparişiniz teslim edildi', title: 'Teslim edildi',
+                                 text: 'Afiyet olsun! Yine bekleriz.' }
+      case 'Cancelled': return { tone: 'bad', short: 'Siparişiniz iptal edildi', title: 'Siparişiniz iptal edildi',
+                                 text: 'Ayrıntı için işletmeyi arayabilirsiniz.' }
+      case 'Rejected':  return { tone: 'bad', short: 'Siparişiniz onaylanmadı', title: 'Siparişiniz onaylanmadı',
+                                 text: 'Ayrıntı için işletmeyi arayabilirsiniz.' }
+      case 'Expired':   return { tone: 'bad', short: 'Sipariş zaman aşımına uğradı', title: 'Sipariş onaylanmadı',
+                                 text: 'Siparişiniz süresinde onaylanmadı. İşletmeyi arayabilirsiniz.' }
+      default:          return { tone: 'wait', short: 'Siparişiniz onay bekliyor', title: 'Siparişiniz iletildi',
+                                 text: 'Kasaya ulaştı, onay bekleniyor. Bu sayfa kendiliğinden güncellenir.' }
+    }
+  }
+  switch (s?.status) {
     case 'Accepted': return { tone: 'ok', short: 'Siparişiniz onaylandı', title: 'Siparişiniz onaylandı',
                               text: 'Hazırlanmaya başladı. Afiyet olsun!' }
     case 'Rejected': return { tone: 'bad', short: 'Siparişiniz onaylanmadı', title: 'Siparişiniz onaylanmadı',
@@ -646,7 +707,7 @@ onMounted(async () => {
   if (activeOrder.value) refreshStatus()
   try {
     if (!route.params.slug) throw new Error('menü adı yok')
-    const res = await api.getPublicMenu(route.params.slug, masa || undefined)
+    const res = await api.getPublicMenu(route.params.slug, masa || undefined, gelal)
     menu.value = normalize(res.data)
     // Müşterinin sekmesinde panel adı değil işletmenin adı görünsün
     if (menu.value.businessName) document.title = `${menu.value.businessName} — Menü`
@@ -1051,6 +1112,10 @@ onUnmounted(() => {
 .status-box.is-bad  { background: #FEF2F2; color: #7F1D1D; }
 .status-title { font-size: 16px; font-weight: 800; }
 .status-text { font-size: 13px; margin-top: 4px; line-height: 1.45; }
+.pickup-no {
+  display: inline-block; margin-top: 10px; padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,255,255,0.7); font-size: 18px; font-weight: 900; letter-spacing: .3px;
+}
 .status-total { text-align: right; padding: 12px 0 4px; font-size: 14px; color: var(--ink); }
 
 </style>

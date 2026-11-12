@@ -147,8 +147,34 @@
             <button type="button" class="font-semibold underline" @click="applyListPrices">Güncel fiyatları uygula</button>
           </div>
 
+          <div v-if="pricing.packages.length" class="mt-3">
+            <span class="field-label">Paket</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
+              <button type="button" @click="selectPackage(null)"
+                      class="text-left px-3 py-2 rounded-xl border text-[12.5px]"
+                      :class="!q.payload.package ? 'border-accent bg-blue-50' : 'border-gray-200 hover:border-gray-300'">
+                <span class="block font-semibold text-primary">Paketsiz</span>
+                <span class="block text-muted">Temel + modül modül</span>
+              </button>
+              <button v-for="k in pricing.packages" :key="k.code" type="button" @click="selectPackage(k)"
+                      class="text-left px-3 py-2 rounded-xl border text-[12.5px]"
+                      :class="q.payload.package?.code === k.code ? 'border-accent bg-blue-50' : 'border-gray-200 hover:border-gray-300'">
+                <span class="block font-semibold text-primary">{{ k.name }}</span>
+                <span class="block text-muted tabular-nums">{{ money(k.monthly) }}/ay</span>
+              </button>
+            </div>
+          </div>
+
           <div class="divide-y divide-gray-100">
-            <label class="flex items-center gap-3 py-3">
+            <div v-if="q.payload.package" class="flex items-center gap-3 py-3">
+              <span class="flex-1 min-w-0">
+                <span class="font-semibold text-primary text-[13.5px]">{{ q.payload.package.name }} paketi</span>
+                <span class="block text-xs text-muted">{{ packageSummary(q.payload.package) }}</span>
+              </span>
+              <PriceInput v-if="q.payload.customPricing" v-model="q.payload.package.price" suffix="/ay"/>
+              <span v-else class="w-28 text-right text-[13.5px] font-semibold text-primary tabular-nums whitespace-nowrap">{{ money(q.payload.package.price) }}<span class="text-muted font-normal text-[12px]">/ay</span></span>
+            </div>
+            <label v-else class="flex items-center gap-3 py-3">
               <input type="checkbox" v-model="q.payload.base.on" class="w-4 h-4"/>
               <span class="flex-1 min-w-0">
                 <span class="font-semibold text-primary text-[13.5px]">Temel paket</span>
@@ -161,7 +187,7 @@
             <div class="flex flex-wrap items-center gap-3 py-3">
               <span class="flex-1 min-w-[180px]">
                 <span class="font-semibold text-primary text-[13.5px]">Kasa sayısı</span>
-                <span class="block text-xs text-muted">Temel pakette {{ q.payload.devices.included }} kasa dahil; fazlası kasa başına</span>
+                <span class="block text-xs text-muted">{{ q.payload.package ? 'Pakette' : 'Temel pakette' }} {{ q.payload.devices.included }} kasa dahil; fazlası kasa başına</span>
               </span>
               <input v-model.number="q.payload.devices.count" type="number" min="1" max="100"
                      class="w-20 px-3 h-9 border border-gray-200 rounded-lg text-[13.5px] text-center bg-white"/>
@@ -170,12 +196,13 @@
             </div>
 
             <label v-for="m in q.payload.modules" :key="m.code" class="flex items-center gap-3 py-3">
-              <input type="checkbox" v-model="m.on" class="w-4 h-4"/>
+              <input type="checkbox" v-model="m.on" :disabled="inPackage(m.code)" class="w-4 h-4"/>
               <span class="flex-1 min-w-0">
                 <span class="font-semibold text-[13.5px]" :class="m.on ? 'text-primary' : 'text-muted'">{{ m.name }}</span>
                 <span class="block text-xs text-muted">{{ m.description }}</span>
               </span>
-              <PriceInput v-if="q.payload.customPricing" v-model="m.price" suffix="/ay"/>
+              <span v-if="inPackage(m.code)" class="w-28 text-right text-[12.5px] font-semibold text-success whitespace-nowrap">Pakette</span>
+              <PriceInput v-else-if="q.payload.customPricing" v-model="m.price" suffix="/ay"/>
               <span v-else class="w-28 text-right text-[13.5px] font-semibold text-primary tabular-nums whitespace-nowrap">{{ money(m.price) }}<span class="text-muted font-normal text-[12px]">/ay</span></span>
             </label>
           </div>
@@ -240,9 +267,12 @@
         <h2 class="section-title mb-4">Özet</h2>
 
         <div class="space-y-1.5 text-[13.5px]">
-          <div v-for="l in calc.recurringLines" :key="l.key" class="flex justify-between gap-3">
-            <span class="text-muted min-w-0 truncate">{{ l.label }}</span>
-            <span class="tabular-nums whitespace-nowrap">{{ money(l.monthly) }}</span>
+          <div v-for="l in calc.recurringLines" :key="l.key">
+            <div class="flex justify-between gap-3">
+              <span class="text-muted min-w-0 truncate">{{ l.label }}</span>
+              <span class="tabular-nums whitespace-nowrap">{{ money(l.monthly) }}</span>
+            </div>
+            <div v-if="l.sub" class="text-[11.5px] text-muted leading-snug">{{ l.sub }}</div>
           </div>
           <div v-if="!calc.recurringLines.length" class="text-muted text-xs">Abonelik kalemi seçilmedi.</div>
         </div>
@@ -328,7 +358,7 @@
             <thead><tr><th>Kalem</th><th class="sag">Aylık</th><th v-if="q.payload.period === 'yearly'" class="sag">Yıllık ({{ q.payload.yearlyMonths }} ay)</th></tr></thead>
             <tbody>
               <tr v-for="l in calc.recurringLines" :key="l.key">
-                <td>{{ l.label }}</td>
+                <td>{{ l.label }}<div v-if="l.sub" style="font-size: 9pt; color: #64748b">{{ l.sub }}</div></td>
                 <td class="sag">{{ money(l.monthly) }}</td>
                 <td v-if="q.payload.period === 'yearly'" class="sag">{{ money(l.monthly * q.payload.yearlyMonths) }}</td>
               </tr>
@@ -427,7 +457,7 @@ const tab = ref('edit')
 const loading = ref(true)
 const loadError = ref('')
 const pricing = reactive({ baseMonthly: 0, includedDevices: 1, extraDeviceMonthly: 0, setupFee: 0, yearlyMonths: 12,
-  validityDays: 15, defaultNote: '', modulePrices: {}, hardware: [], modules: [] })
+  validityDays: 15, defaultNote: '', modulePrices: {}, hardware: [], modules: [], packages: [] })
 const tenants = ref([])
 const quotes = ref([])
 const search = ref('')
@@ -453,7 +483,30 @@ function blankPayload() {
     recurringDiscount: { type: 'percent', value: 0 },
     oneTimeDiscount: { type: 'percent', value: 0 },
     note: pricing.defaultNote,
-    customPricing: false
+    customPricing: false,
+    package: null
+  }
+}
+
+// ── Paket ─────────────────────────────────────────────────────────────
+const moduleName = code => pricing.modules.find(m => m.code === code)?.name ?? code
+const inPackage = code => !!q.payload?.package?.modules?.includes(code)
+const packageSummary = k => {
+  const mods = (k.modules || []).map(moduleName)
+  return [k.includedDevices > 1 ? `${k.includedDevices} kasa` : '1 kasa', 'yönetim paneli ve raporlar', ...mods].join(', ')
+}
+/** Paket temel paketin yerine geçer; paketteki modüller işaretlenir, diğerleri ek olarak seçilebilir. */
+function selectPackage(k) {
+  const p = q.payload
+  const prev = p.package
+  p.package = k ? { code: k.code, name: k.name, description: k.description, price: k.monthly,
+                    includedDevices: k.includedDevices || 1, modules: [...(k.modules || [])] } : null
+  p.base.on = !k
+  p.devices.included = k ? (k.includedDevices || 1) : (pricing.includedDevices || 1)
+  p.devices.count = Math.max(Number(p.devices.count) || 1, p.devices.included)
+  for (const m of p.modules) {
+    if (k?.modules?.includes(m.code)) m.on = true
+    else if (prev?.modules?.includes(m.code)) m.on = false   // önceki paketten gelen modül paketle gider
   }
 }
 
@@ -462,9 +515,12 @@ const listPrice = code => Number(pricing.modulePrices[code] ?? 0)
 function pricesDiffer() {
   const p = q.payload
   if (!p) return false
+  const pkg = p.package ? pricing.packages.find(k => k.code === p.package.code) : null
+  if (p.package && (!pkg || Number(p.package.price) !== Number(pkg.monthly)
+      || Number(p.devices.included) !== Number(pkg.includedDevices || 1))) return true
   return Number(p.base.price) !== Number(pricing.baseMonthly)
     || Number(p.devices.price) !== Number(pricing.extraDeviceMonthly)
-    || Number(p.devices.included) !== Number(pricing.includedDevices)
+    || (!p.package && Number(p.devices.included) !== Number(pricing.includedDevices))
     || Number(p.setup.price) !== Number(pricing.setupFee)
     || Number(p.yearlyMonths) !== Number(pricing.yearlyMonths)
     || p.modules.some(m => Number(m.price) !== listPrice(m.code))
@@ -476,6 +532,8 @@ function applyListPrices() {
   p.base.price = pricing.baseMonthly
   p.devices.price = pricing.extraDeviceMonthly
   p.devices.included = pricing.includedDevices
+  const pkg = p.package ? pricing.packages.find(k => k.code === p.package.code) : null
+  if (pkg) selectPackage(pkg)
   p.setup.price = pricing.setupFee
   p.yearlyMonths = pricing.yearlyMonths
   for (const m of p.modules) m.price = listPrice(m.code)
@@ -508,10 +566,13 @@ const calc = computed(() => {
   const p = q.payload
   if (!p) return { recurringLines: [], oneTimeLines: [] }
   const recurringLines = []
-  if (p.base.on) recurringLines.push({ key: 'base', label: 'Temel paket', monthly: r2(p.base.price) })
+  if (p.package)
+    recurringLines.push({ key: 'pkg', label: `${p.package.name} paketi`, sub: packageSummary(p.package), monthly: r2(p.package.price) })
+  else if (p.base.on) recurringLines.push({ key: 'base', label: 'Temel paket', monthly: r2(p.base.price) })
   const extra = Math.max(0, (Number(p.devices.count) || 1) - (p.devices.included || 1))
   if (extra > 0) recurringLines.push({ key: 'dev', label: `Ek kasa × ${extra}`, monthly: r2(extra * p.devices.price) })
-  for (const m of p.modules.filter(m => m.on)) recurringLines.push({ key: m.code, label: m.name, monthly: r2(m.price) })
+  for (const m of p.modules.filter(m => m.on && !inPackage(m.code)))
+    recurringLines.push({ key: m.code, label: m.name, monthly: r2(m.price) })
   const monthly = r2(recurringLines.reduce((s, l) => s + l.monthly, 0))
   const mult = p.period === 'yearly' ? p.yearlyMonths : 1
   const periodSub = r2(monthly * mult)
@@ -541,8 +602,12 @@ const calc = computed(() => {
 
 // ── Yükleme ───────────────────────────────────────────────────────────
 async function loadPricing() {
-  const { data } = await api.getPricing()
-  Object.assign(pricing, data)
+  const [{ data }, plans] = await Promise.all([api.getPricing(), api.getPlans().catch(() => ({ data: [] }))])
+  // Paketler Paket Yönetimi'nden: kod = işletmenin paketi (Tenant.Plan)
+  const packages = plans.data.filter(p => p.isActive).map(p => ({
+    code: p.id, name: p.name, description: p.description, monthly: Number(p.price) || 0,
+    includedDevices: p.includedDevices || 1, modules: p.modules || [] }))
+  Object.assign(pricing, data, { packages })
 }
 async function loadQuotes() {
   const { data } = await api.getQuotes()
@@ -682,6 +747,7 @@ async function applyToTenant() {
   const mods = q.payload.modules.filter(m => m.on).map(m => m.name)
   const ok = await uiConfirm(
     `${t?.businessName ?? 'İşletme'} için:\n\n` +
+    (q.payload.package ? `• Paket: ${q.payload.package.name}\n` : '') +
     `• Modüller: ${mods.length ? mods.join(', ') : 'yok (yalnız temel paket)'}\n` +
     `• Bağlanabilecek kasa: ${q.payload.devices.count}\n\n` +
     'İşletmede açık olup bu teklifte olmayan modüller kapatılır.',
