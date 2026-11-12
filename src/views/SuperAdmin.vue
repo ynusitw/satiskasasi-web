@@ -178,8 +178,9 @@
               <label class="field-label">Plan</label>
               <select v-model="form.plan"
                       class="w-full px-3 border border-gray-200 rounded-lg text-[13.5px] h-10 bg-white">
-                <option value="basic">Basic</option>
-                <option value="pro">Pro</option>
+                <option v-for="p in planOptions" :key="p.id" :value="p.id">
+                  {{ p.name }}{{ p.price ? ` · ${Number(p.price).toLocaleString('tr-TR')} ₺/ay` : '' }}{{ p.isActive === false ? ' (pasif)' : '' }}
+                </option>
               </select>
             </div>
 
@@ -232,6 +233,19 @@ import api      from '../api/api'
 import StatCard from '../components/StatCard.vue'
 import ModulePicker from '../components/ModulePicker.vue'
 import ServerStatusCard from '../components/ServerStatusCard.vue'
+import { usePlansStore } from '../stores/plans'
+
+const plans = usePlansStore()
+// İşletmenin paketi silinmiş / pasif olabilir: listede yine görünsün ki form onu değiştirmesin
+const planOptions = computed(() => {
+  const list = plans.plans.filter(p => p.isActive)
+  const cur = form.plan
+  if (cur && !list.some(p => p.id === cur)) {
+    const known = plans.plans.find(p => p.id === cur)
+    list.push(known || { id: cur, name: getPlanLabel(cur), price: 0, isActive: false })
+  }
+  return list
+})
 
 const tenants = ref([])
 const loading = ref(true)
@@ -360,15 +374,19 @@ function isDueSoon(d) {
 }
 
 function getPlanLabel(p) {
-  return { basic: 'Basic', pro: 'Pro' }[p] || p
+  return plans.plans.find(x => x.id === p)?.name || { basic: 'Basic', pro: 'Pro' }[p] || p
 }
 
+const PLAN_COLORS = {
+  blue: 'bg-blue-100 text-blue-600', purple: 'bg-purple-100 text-purple-600', green: 'bg-green-100 text-green-600',
+  orange: 'bg-orange-100 text-orange-600', red: 'bg-red-100 text-red-600', gray: 'bg-gray-100 text-gray-600',
+}
 function getPlanColor(p) {
-  return {
-    basic: 'bg-blue-100 text-blue-600',
-    pro:   'bg-purple-100 text-purple-600'
-  }[p] || 'bg-gray-100 text-gray-600'
+  return PLAN_COLORS[plans.plans.find(x => x.id === p)?.color] || 'bg-gray-100 text-gray-600'
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  if (!plans.loaded) plans.load().catch(() => {})
+})
 </script>
